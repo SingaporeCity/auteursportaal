@@ -148,6 +148,28 @@ serve(async (req: Request): Promise<Response> => {
   }
 });
 
+async function sendRecoveryEmail(email: string): Promise<{ ok: boolean; error?: string }> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+  try {
+    const response = await fetch(`${supabaseUrl}/auth/v1/recover`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: anonKey,
+      },
+      body: JSON.stringify({ email }),
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      return { ok: false, error: `recover endpoint ${String(response.status)}: ${text}` };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 async function activateOne(
   adminClient: ReturnType<typeof createClient>,
   { author_id, email }: ActivateInput
@@ -175,7 +197,10 @@ async function activateOne(
         .update({ is_active: true, activated_at: new Date().toISOString() })
         .eq('id', author_id);
 
-      await adminClient.auth.admin.generateLink({ type: 'recovery', email });
+      const sent = await sendRecoveryEmail(email);
+      if (!sent.ok) {
+        return { author_id, email, status: 'failed', error: sent.error };
+      }
       return { author_id, email, status: 'already_active' };
     }
 
@@ -197,18 +222,16 @@ async function activateOne(
       };
     }
 
-    // Recovery link triggert "set your password"-mail (Supabase email template)
-    const { error: linkError } = await adminClient.auth.admin.generateLink({
-      type: 'recovery',
-      email,
-    });
-
-    if (linkError) {
+    // Stuur recovery-mail via /auth/v1/recover REST endpoint — dezelfde route
+    // die het Supabase Dashboard gebruikt voor "Send password recovery", en
+    // robuuster dan auth.admin.generateLink() dat soms geen mail stuurt.
+    const sent = await sendRecoveryEmail(email);
+    if (!sent.ok) {
       return {
         author_id,
         email,
         status: 'failed',
-        error: `Auth user created but recovery mail failed: ${linkError.message}`,
+        error: `Auth user created but recovery mail failed: ${sent.error}`,
       };
     }
 
