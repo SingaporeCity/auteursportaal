@@ -1,8 +1,11 @@
 /**
- * Prognose-tab: hero-card met verwachte royalty-range voor het lopende jaar.
+ * Prognose-tab — hero card met range + payout-card + horizontale bar-chart.
  *
- * Toont alleen iets als er een forecast-record is voor dit jaar; anders een
- * empty-state. Geen demo-data — bewust geen placeholder-bedragen.
+ * Layout uit demo:
+ * - Bovenaan: 2-koloms grid met hero-card (groot range-bedrag) + payout-card
+ *   (kalender-icoon + uitbetaal-maand)
+ * - Onderaan: bar-chart card met horizontal bars per jaar (historisch teal,
+ *   forecast als lichte vulling met range-overlay)
  *
  * @module views/tabs/forecast
  */
@@ -14,6 +17,7 @@ import { t } from '@/lib/i18n';
 import type { Database } from '@/types/db';
 
 type ForecastRow = Database['public']['Tables']['forecasts']['Row'];
+type PaymentRow = Database['public']['Tables']['payments']['Row'];
 
 export function renderForecastTab(container: HTMLElement): void {
   const heading = document.createElement('h2');
@@ -25,30 +29,28 @@ export function renderForecastTab(container: HTMLElement): void {
   slot.textContent = '…';
   container.appendChild(slot);
 
-  const disclaimer = document.createElement('p');
-  disclaimer.className = 'forecast-disclaimer';
-  disclaimer.textContent = t('forecast.disclaimer');
-  container.appendChild(disclaimer);
-
   void loadAndRender(slot);
 }
 
 async function loadAndRender(container: HTMLElement): Promise<void> {
-  const currentYear = new Date().getFullYear();
-  const { data, error } = await supabase
-    .from('forecasts')
-    .select('*')
-    .order('year', { ascending: false });
+  const [forecastRes, paymentRes] = await Promise.all([
+    supabase.from('forecasts').select('*').order('year', { ascending: false }),
+    supabase.from('payments').select('*'),
+  ]);
 
   container.replaceChildren();
 
-  if (error !== null) {
-    reportError('forecast.load', error);
-    container.textContent = `Fout: ${error.message}`;
+  if (forecastRes.error !== null) {
+    reportError('forecast.load', forecastRes.error);
+    container.textContent = `Fout: ${forecastRes.error.message}`;
     return;
   }
 
-  if (data.length === 0) {
+  const forecasts = forecastRes.data;
+  const payments = paymentRes.error === null ? paymentRes.data : [];
+  const currentYear = new Date().getFullYear();
+
+  if (forecasts.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
     empty.textContent = t('forecast.empty');
@@ -56,28 +58,34 @@ async function loadAndRender(container: HTMLElement): Promise<void> {
     return;
   }
 
-  // Toon de hero (lopend jaar als beschikbaar, anders meest recente)
-  const current: ForecastRow | undefined = data.find((f) => f.year === currentYear) ?? data[0];
+  const current = forecasts.find((f) => f.year === currentYear) ?? forecasts[0];
   if (current === undefined) {
     return;
   }
-  container.appendChild(renderHero(current));
 
-  // Historische / andere jaren als kleinere rijen
-  data
-    .filter((f) => f !== current)
-    .forEach((f) => {
-      container.appendChild(renderRow(f));
-    });
+  // -- Top row: hero + payout
+  const topRow = document.createElement('div');
+  topRow.className = 'forecast-top-row';
+  topRow.appendChild(buildHero(current));
+  topRow.appendChild(buildPayout(current));
+  container.appendChild(topRow);
+
+  // -- Chart card
+  container.appendChild(buildChart(payments, forecasts));
+
+  const disclaimer = document.createElement('p');
+  disclaimer.className = 'forecast-disclaimer';
+  disclaimer.textContent = t('forecast.disclaimer');
+  container.appendChild(disclaimer);
 }
 
-function renderHero(forecast: ForecastRow): HTMLElement {
+function buildHero(forecast: ForecastRow): HTMLElement {
   const card = document.createElement('div');
   card.className = 'forecast-hero';
 
   const eyebrow = document.createElement('div');
   eyebrow.className = 'forecast-eyebrow';
-  eyebrow.textContent = `${t('forecast.range_label')} ${String(forecast.year)}`;
+  eyebrow.textContent = `Verwachte royalties ${String(forecast.year)}`;
   card.appendChild(eyebrow);
 
   const range = document.createElement('div');
@@ -85,22 +93,146 @@ function renderHero(forecast: ForecastRow): HTMLElement {
   range.textContent = `${formatCurrency(forecast.min_amount)} — ${formatCurrency(forecast.max_amount)}`;
   card.appendChild(range);
 
+  const sub = document.createElement('div');
+  sub.className = 'forecast-range-sub';
+  sub.textContent = 'Indicatieve bandbreedte';
+  card.appendChild(sub);
+
   return card;
 }
 
-function renderRow(forecast: ForecastRow): HTMLElement {
+function buildPayout(forecast: ForecastRow): HTMLElement {
+  const card = document.createElement('div');
+  card.className = 'forecast-payout';
+
+  const icon = document.createElement('div');
+  icon.className = 'forecast-payout-icon';
+  icon.textContent = '🗓';
+  icon.setAttribute('aria-hidden', 'true');
+  card.appendChild(icon);
+
+  const inner = document.createElement('div');
+  inner.className = 'forecast-payout-inner';
+
+  const eyebrow = document.createElement('div');
+  eyebrow.className = 'forecast-eyebrow';
+  eyebrow.textContent = 'Uitbetaling';
+  inner.appendChild(eyebrow);
+
+  const value = document.createElement('div');
+  value.className = 'forecast-payout-month';
+  value.textContent = `Maart ${String(forecast.year + 1)}`;
+  inner.appendChild(value);
+
+  card.appendChild(inner);
+  return card;
+}
+
+function buildChart(payments: PaymentRow[], forecasts: ForecastRow[]): HTMLElement {
+  const card = document.createElement('div');
+  card.className = 'forecast-chart-card';
+
+  const heading = document.createElement('h3');
+  heading.className = 'dash-tile-title';
+  heading.textContent = 'Verloop per jaar';
+  card.appendChild(heading);
+
+  // Verzamel historische totalen per jaar uit payments (alleen years zonder forecast)
+  const forecastYears = new Set(forecasts.map((f) => f.year));
+  const historic = new Map<number, number>();
+  for (const p of payments) {
+    if (forecastYears.has(p.year)) {
+      continue;
+    }
+    historic.set(p.year, (historic.get(p.year) ?? 0) + p.amount);
+  }
+
+  const allMaxes = [...[...historic.values()], ...forecasts.map((f) => f.max_amount)];
+  const maxAmount = allMaxes.length > 0 ? Math.max(...allMaxes) : 1;
+  const scale = maxAmount * 1.15;
+
+  const rows = document.createElement('div');
+  rows.className = 'forecast-rows';
+
+  // Combineer historische + forecast jaren, sorteer aflopend
+  const allYears = [...new Set([...historic.keys(), ...forecasts.map((f) => f.year)])].sort(
+    (a, b) => b - a
+  );
+
+  for (const year of allYears) {
+    const fc = forecasts.find((f) => f.year === year);
+    if (fc !== undefined) {
+      rows.appendChild(buildForecastBar(fc, scale));
+    } else {
+      const total = historic.get(year) ?? 0;
+      rows.appendChild(buildHistoricBar(year, total, scale));
+    }
+  }
+  card.appendChild(rows);
+  return card;
+}
+
+function buildHistoricBar(year: number, amount: number, scale: number): HTMLElement {
   const row = document.createElement('div');
-  row.className = 'forecast-row';
+  row.className = 'forecast-bar-row';
 
-  const year = document.createElement('span');
-  year.className = 'forecast-row-year';
-  year.textContent = String(forecast.year);
-  row.appendChild(year);
+  const yearEl = document.createElement('span');
+  yearEl.className = 'forecast-bar-year';
+  yearEl.textContent = String(year);
+  row.appendChild(yearEl);
 
-  const range = document.createElement('span');
-  range.className = 'forecast-row-range';
-  range.textContent = `${formatCurrency(forecast.min_amount)} — ${formatCurrency(forecast.max_amount)}`;
-  row.appendChild(range);
+  const track = document.createElement('div');
+  track.className = 'forecast-bar-track';
+
+  const fill = document.createElement('div');
+  fill.className = 'forecast-bar-fill';
+  fill.style.width = `${String((amount / scale) * 100)}%`;
+  track.appendChild(fill);
+
+  row.appendChild(track);
+
+  const value = document.createElement('span');
+  value.className = 'forecast-bar-value';
+  value.textContent = formatCurrency(amount);
+  row.appendChild(value);
+
+  return row;
+}
+
+function buildForecastBar(forecast: ForecastRow, scale: number): HTMLElement {
+  const row = document.createElement('div');
+  row.className = 'forecast-bar-row forecast-bar-row-projection';
+
+  const yearEl = document.createElement('span');
+  yearEl.className = 'forecast-bar-year';
+  yearEl.textContent = `${String(forecast.year)} · prognose`;
+  row.appendChild(yearEl);
+
+  const track = document.createElement('div');
+  track.className = 'forecast-bar-track';
+
+  const minPct = (forecast.min_amount / scale) * 100;
+  const maxPct = (forecast.max_amount / scale) * 100;
+
+  // Lichte vulling tot max
+  const light = document.createElement('div');
+  light.className = 'forecast-bar-fill forecast-bar-fill-light';
+  light.style.width = `${String(maxPct)}%`;
+  track.appendChild(light);
+
+  // Donkere range overlay min→max
+  const range = document.createElement('div');
+  range.className = 'forecast-bar-range';
+  range.style.left = `${String(minPct)}%`;
+  range.style.width = `${String(maxPct - minPct)}%`;
+  track.appendChild(range);
+
+  row.appendChild(track);
+
+  const value = document.createElement('span');
+  value.className = 'forecast-bar-value forecast-bar-value-range';
+  value.textContent = `${formatCurrency(forecast.min_amount)} — ${formatCurrency(forecast.max_amount)}`;
+  row.appendChild(value);
 
   return row;
 }

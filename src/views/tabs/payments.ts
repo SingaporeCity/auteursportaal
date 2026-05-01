@@ -1,10 +1,9 @@
 /**
- * Afrekeningen-tab: lijst alle payments van de ingelogde auteur, gegroepeerd
- * per jaar (nieuwste eerst). Klik op de download-knop genereert een
- * gesigneerde URL (60s geldig) en triggert een browser-download.
+ * Afrekeningen-tab — lijst eigen payments met type-filter pills + zoek.
  *
- * RLS-isolatie wordt door Supabase afgedwongen — een auteur ziet alleen
- * eigen rijen. Het debug-panel toont de count als check.
+ * Designtaal van demo: type-pills met gekleurde dot, zoekbalk met clear-knop,
+ * year-headers tussen jaren (alleen als filter "Alle"), gradient-icon-circles
+ * per type, signed-URL download in nieuwe tab.
  *
  * @module views/tabs/payments
  */
@@ -23,7 +22,6 @@ const TYPE_LABEL: Record<PaymentType, string> = {
   jaaropgave: 'Jaaropgave',
 };
 
-// Korte mnemonic per type — 2 letters voor in de gradient-icon
 const TYPE_INITIALS: Record<PaymentType, string> = {
   royalty: 'R',
   subsidiary: 'N',
@@ -31,55 +29,194 @@ const TYPE_INITIALS: Record<PaymentType, string> = {
   jaaropgave: 'J',
 };
 
+const TYPE_COLOR: Record<PaymentType, string> = {
+  royalty: 'var(--color-primary)',
+  subsidiary: 'var(--color-accent-blue)',
+  foreign: 'var(--color-accent-coral)',
+  jaaropgave: 'var(--color-accent-purple)',
+};
+
+type TypeFilter = 'all' | PaymentType;
+
+interface State {
+  payments: PaymentRow[];
+  search: string;
+  typeFilter: TypeFilter;
+}
+
 export function renderPaymentsTab(container: HTMLElement): void {
   const heading = document.createElement('h2');
   heading.textContent = 'Royalty-afrekeningen';
   container.appendChild(heading);
+
+  const state: State = { payments: [], search: '', typeFilter: 'all' };
+
+  const toolbar = document.createElement('div');
+  toolbar.className = 'payments-toolbar';
+  container.appendChild(toolbar);
 
   const list = document.createElement('div');
   list.className = 'payments-list';
   list.textContent = 'Laden…';
   container.appendChild(list);
 
-  void loadAndRender(list);
+  const repaint = (): void => {
+    renderToolbar(toolbar, state, () => {
+      repaint();
+    });
+    renderList(list, state);
+  };
+
+  void load(state, repaint);
 }
 
-async function loadAndRender(container: HTMLElement): Promise<void> {
+async function load(state: State, repaint: () => void): Promise<void> {
   const { data, error } = await supabase
     .from('payments')
     .select('*')
     .order('year', { ascending: false })
     .order('payment_date', { ascending: false });
 
-  container.replaceChildren();
-
   if (error !== null) {
     reportError('payments.load', error);
-    const errBox = document.createElement('div');
-    errBox.className = 'payments-error';
-    errBox.textContent = `Kon afrekeningen niet laden: ${error.message}`;
-    container.appendChild(errBox);
-    return;
+    state.payments = [];
+  } else {
+    state.payments = data;
   }
+  repaint();
+}
 
-  if (data.length === 0) {
+function renderToolbar(container: HTMLElement, state: State, repaint: () => void): void {
+  container.replaceChildren();
+
+  // Zoekbalk
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'payments-search';
+
+  const searchIcon = document.createElement('span');
+  searchIcon.className = 'payments-search-icon';
+  searchIcon.textContent = '🔎';
+  searchIcon.setAttribute('aria-hidden', 'true');
+  searchWrap.appendChild(searchIcon);
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.placeholder = 'Zoek op titel, datum of bedrag…';
+  searchInput.value = state.search;
+  searchInput.addEventListener('input', () => {
+    state.search = searchInput.value.trim().toLowerCase();
+    repaint();
+  });
+  searchWrap.appendChild(searchInput);
+
+  if (state.search.length > 0) {
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'payments-search-clear';
+    clear.textContent = '×';
+    clear.setAttribute('aria-label', 'Zoekterm wissen');
+    clear.addEventListener('click', () => {
+      state.search = '';
+      repaint();
+    });
+    searchWrap.appendChild(clear);
+  }
+  container.appendChild(searchWrap);
+
+  // Type filter pills
+  const filters = document.createElement('div');
+  filters.className = 'payments-type-filter';
+
+  const opts: { id: TypeFilter; label: string; color?: string }[] = [
+    { id: 'all', label: 'Alle' },
+    { id: 'royalty', label: 'Royalties', color: TYPE_COLOR.royalty },
+    { id: 'subsidiary', label: 'Nevenrechten', color: TYPE_COLOR.subsidiary },
+    { id: 'foreign', label: 'Foreign Rights', color: TYPE_COLOR.foreign },
+    { id: 'jaaropgave', label: 'Jaaropgaves', color: TYPE_COLOR.jaaropgave },
+  ];
+
+  for (const opt of opts) {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'payments-pill';
+    if (state.typeFilter === opt.id) {
+      pill.classList.add('active');
+    }
+    if (opt.color !== undefined) {
+      const dot = document.createElement('span');
+      dot.className = 'payments-pill-dot';
+      dot.style.background = opt.color;
+      pill.appendChild(dot);
+    }
+    const label = document.createElement('span');
+    label.textContent = opt.label;
+    pill.appendChild(label);
+    pill.addEventListener('click', () => {
+      state.typeFilter = opt.id;
+      repaint();
+    });
+    filters.appendChild(pill);
+  }
+  container.appendChild(filters);
+}
+
+function renderList(container: HTMLElement, state: State): void {
+  container.replaceChildren();
+
+  const filtered = state.payments.filter((p) => {
+    if (state.typeFilter !== 'all' && p.type !== state.typeFilter) {
+      return false;
+    }
+    if (state.search.length > 0) {
+      const haystack = [
+        p.title_nl ?? '',
+        TYPE_LABEL[p.type],
+        p.payment_date ?? '',
+        String(p.year),
+        String(p.amount),
+      ]
+        .join(' ')
+        .toLowerCase();
+      if (!haystack.includes(state.search)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // Result count
+  const count = document.createElement('div');
+  count.className = 'payments-result-count';
+  if (filtered.length === state.payments.length) {
+    count.textContent = `${String(state.payments.length)} afrekeningen`;
+  } else {
+    count.textContent = `${String(filtered.length)} van ${String(state.payments.length)} afrekeningen`;
+  }
+  container.appendChild(count);
+
+  if (filtered.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'payments-empty';
-    empty.textContent = 'Geen afrekeningen beschikbaar.';
+    empty.textContent =
+      state.payments.length === 0
+        ? 'Geen afrekeningen beschikbaar.'
+        : 'Geen afrekeningen die voldoen aan de filter.';
     container.appendChild(empty);
     return;
   }
 
-  const byYear = groupByYear(data);
-  for (const [year, payments] of byYear) {
-    const yearHeader = document.createElement('h3');
-    yearHeader.className = 'payments-year-header';
-    yearHeader.textContent = String(year);
-    container.appendChild(yearHeader);
+  // Year-headers alleen als filter "Alle" is
+  const showYearHeaders = state.typeFilter === 'all' && state.search.length === 0;
+  const byYear = groupByYear(filtered);
 
-    payments.forEach((payment) => {
-      container.appendChild(renderPaymentRow(payment));
-    });
+  for (const [year, items] of byYear) {
+    if (showYearHeaders) {
+      const yearHeader = document.createElement('h3');
+      yearHeader.className = 'payments-year-header';
+      yearHeader.textContent = String(year);
+      container.appendChild(yearHeader);
+    }
+    items.forEach((p) => container.appendChild(renderPaymentRow(p)));
   }
 }
 
@@ -155,16 +292,15 @@ async function download(payment: PaymentRow, btn: HTMLButtonElement): Promise<vo
     return;
   }
 
-  // Triggert browser-download in een nieuwe tab
   window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
 }
 
 function groupByYear(payments: PaymentRow[]): Map<number, PaymentRow[]> {
   const map = new Map<number, PaymentRow[]>();
-  for (const payment of payments) {
-    const list = map.get(payment.year) ?? [];
-    list.push(payment);
-    map.set(payment.year, list);
+  for (const p of payments) {
+    const list = map.get(p.year) ?? [];
+    list.push(p);
+    map.set(p.year, list);
   }
   return map;
 }

@@ -92,7 +92,7 @@ function renderTabContent(container: HTMLElement, tab: TabId, author: AuthorRow)
       renderForecastTab(container);
       return;
     case 'expenses':
-      renderExpensesTab(container);
+      renderExpensesTab(container, author);
       return;
     case 'faq':
       renderFaqTab(container);

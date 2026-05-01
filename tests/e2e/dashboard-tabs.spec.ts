@@ -18,9 +18,11 @@ test.describe('Dashboard tabs', () => {
     await expect(page.locator('.tab-btn').first()).toBeVisible({ timeout: 10000 });
   });
 
-  test('Start tab toont KPI-cards', async ({ page }) => {
+  test('Start tab toont Year-in-Review hero', async ({ page }) => {
     await page.click('button.tab-btn[data-tab="start"]');
-    await expect(page.locator('.kpi-card')).toHaveCount(4, { timeout: 5000 });
+    // Year-in-Review card + (eventueel) royalty chart
+    await expect(page.locator('.yr-card')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.yr-hero-value')).toBeVisible();
   });
 
   test('Profiel tab toont ID-banner + grid', async ({ page }) => {
@@ -49,8 +51,10 @@ test.describe('Dashboard tabs', () => {
     await expect(page.locator('.expenses-form-card')).toBeVisible();
   });
 
-  test('FAQ tab toont accordion items', async ({ page }) => {
+  test('FAQ tab toont accordion items in categorieën', async ({ page }) => {
     await page.click('button.tab-btn[data-tab="faq"]');
-    await expect(page.locator('.faq-item')).toHaveCount(5, { timeout: 5000 });
+    // 14 vragen verdeeld over 4 categorieën
+    await expect(page.locator('.faq-category')).toHaveCount(4, { timeout: 5000 });
+    await expect(page.locator('.faq-item')).toHaveCount(14);
   });
 });

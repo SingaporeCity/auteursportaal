@@ -1,10 +1,9 @@
 /**
- * Declaraties-tab: indienformulier + lijst eigen declaraties.
+ * Declaraties-tab — vendor notice + drag&drop indien-formulier + geschiedenis.
  *
- * Indienen:
- *   1. PDF-bon uploaden naar `expense-receipts` bucket onder eigen UUID-pad
- *   2. INSERT in `expenses`-tabel met `status = 'pending'`
- *   3. Admin keurt later goed/af in admin-UI
+ * Demo design: tealgekleurde vendor-banner bovenaan met Vendor ID, dan
+ * indien-formulier met drag-and-drop dropzone (alleen PDF, max 10 MB),
+ * onderaan een lijst met status-badges per declaratie.
  *
  * @module views/tabs/expenses
  */
@@ -13,11 +12,12 @@ import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { reportError } from '@/dev/debug-panel';
 import { t } from '@/lib/i18n';
+import type { AuthorRow } from '@/auth';
 import type { Database, ExpenseStatus, ExpenseType } from '@/types/db';
 
 type ExpenseRow = Database['public']['Tables']['expenses']['Row'];
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 const STATUS_LABEL: Record<ExpenseStatus, Parameters<typeof t>[0]> = {
   pending: 'expenses.status_pending',
@@ -26,18 +26,32 @@ const STATUS_LABEL: Record<ExpenseStatus, Parameters<typeof t>[0]> = {
   paid: 'expenses.status_paid',
 };
 
-export function renderExpensesTab(container: HTMLElement): void {
+export function renderExpensesTab(container: HTMLElement, author?: AuthorRow): void {
   const heading = document.createElement('h2');
-  heading.textContent = t('expenses.title');
+  heading.textContent = t('expenses.new_title');
   container.appendChild(heading);
+
+  // Vendor ID notice
+  if (author?.netsuite_vendor_id !== undefined && author.netsuite_vendor_id !== null) {
+    const notice = document.createElement('div');
+    notice.className = 'expenses-vendor-notice';
+
+    const label = document.createElement('span');
+    label.className = 'expenses-vendor-label';
+    label.textContent = 'Vermeld uw Vendor ID op het formulier:';
+    notice.appendChild(label);
+
+    const value = document.createElement('span');
+    value.className = 'expenses-vendor-value';
+    value.textContent = author.netsuite_vendor_id;
+    notice.appendChild(value);
+
+    container.appendChild(notice);
+  }
 
   const formCard = document.createElement('section');
   formCard.className = 'expenses-form-card';
   container.appendChild(formCard);
-
-  const formHeading = document.createElement('h3');
-  formHeading.textContent = t('expenses.new_title');
-  formCard.appendChild(formHeading);
 
   const statusBox = document.createElement('div');
   statusBox.className = 'admin-status';
@@ -83,17 +97,71 @@ function buildForm(statusBox: HTMLElement, onSuccess: () => void): HTMLElement {
   }
   typeWrap.appendChild(typeSelect);
 
-  const fileWrap = document.createElement('label');
+  // Drag & drop dropzone
+  const fileWrap = document.createElement('div');
   fileWrap.className = 'auth-field';
-  const fileSpan = document.createElement('span');
-  fileSpan.textContent = t('expenses.field_receipt');
-  fileWrap.appendChild(fileSpan);
+  const fileLabel = document.createElement('span');
+  fileLabel.textContent = t('expenses.field_receipt');
+  fileWrap.appendChild(fileLabel);
+
+  const dropzone = document.createElement('label');
+  dropzone.className = 'expense-dropzone';
+
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.name = 'receipt';
   fileInput.accept = 'application/pdf';
   fileInput.required = true;
-  fileWrap.appendChild(fileInput);
+  fileInput.style.display = 'none';
+  dropzone.appendChild(fileInput);
+
+  const dropzoneInner = document.createElement('div');
+  dropzoneInner.className = 'expense-dropzone-inner';
+  dropzoneInner.innerHTML = '';
+  const dropIcon = document.createElement('span');
+  dropIcon.className = 'expense-dropzone-icon';
+  dropIcon.textContent = '⬆';
+  dropIcon.setAttribute('aria-hidden', 'true');
+  dropzoneInner.appendChild(dropIcon);
+
+  const dropText = document.createElement('div');
+  dropText.className = 'expense-dropzone-text';
+  dropText.textContent = 'Sleep een PDF hierheen of klik om te selecteren';
+  dropzoneInner.appendChild(dropText);
+
+  const dropHint = document.createElement('div');
+  dropHint.className = 'expense-dropzone-hint';
+  dropHint.textContent = 'Alleen PDF, max 10 MB';
+  dropzoneInner.appendChild(dropHint);
+
+  dropzone.appendChild(dropzoneInner);
+  fileWrap.appendChild(dropzone);
+
+  // Drag-and-drop handlers
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('dragover');
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    const file = e.dataTransfer?.files[0];
+    if (file !== undefined) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInput.files = dt.files;
+      updateDropText(dropText, file.name);
+    }
+  });
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (file !== undefined) {
+      updateDropText(dropText, file.name);
+    }
+  });
 
   form.appendChild(desc.field);
   form.appendChild(amount.field);
@@ -131,11 +199,16 @@ function buildForm(statusBox: HTMLElement, onSuccess: () => void): HTMLElement {
       submit,
       statusBox,
       form,
+      dropText,
       onSuccess
     );
   });
 
   return form;
+}
+
+function updateDropText(el: HTMLElement, filename: string): void {
+  el.textContent = `📎 ${filename}`;
 }
 
 interface SubmitInput {
@@ -150,10 +223,11 @@ async function submitExpense(
   submitBtn: HTMLButtonElement,
   statusBox: HTMLElement,
   form: HTMLFormElement,
+  dropText: HTMLElement,
   onSuccess: () => void
 ): Promise<void> {
   submitBtn.disabled = true;
-  showStatus(statusBox, 'info', 'Bezig met uploaden…');
+  showStatus(statusBox, 'success', 'Bezig met uploaden…');
 
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
@@ -163,7 +237,6 @@ async function submitExpense(
     return;
   }
 
-  // -- 1. Upload PDF
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const path = `${userId}/${stamp}-${sanitize(input.file.name)}`;
 
@@ -178,7 +251,6 @@ async function submitExpense(
     return;
   }
 
-  // -- 2. INSERT expense
   const { error: insertError } = await supabase.from('expenses').insert({
     author_id: userId,
     description: input.description,
@@ -198,6 +270,7 @@ async function submitExpense(
 
   showStatus(statusBox, 'success', 'Declaratie ingediend — admin krijgt deze ter beoordeling.');
   form.reset();
+  dropText.textContent = 'Sleep een PDF hierheen of klik om te selecteren';
   onSuccess();
 }
 
@@ -279,8 +352,8 @@ function labeledInput(
   return { field, input };
 }
 
-function showStatus(box: HTMLElement, kind: 'error' | 'success' | 'info', message: string): void {
-  box.className = `admin-status admin-status-${kind === 'info' ? 'success' : kind}`;
+function showStatus(box: HTMLElement, kind: 'error' | 'success', message: string): void {
+  box.className = `admin-status admin-status-${kind}`;
   box.textContent = message;
   box.hidden = false;
 }

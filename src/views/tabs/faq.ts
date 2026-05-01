@@ -1,47 +1,14 @@
 /**
- * FAQ-tab: statische vragen en antwoorden in een accordion.
+ * FAQ-tab — 14 vragen verdeeld over 4 categorieën (geport uit demo).
  *
- * Geen DB-call — content komt uit een lokaal data-object. Volledige set
- * (16 vragen in oude demo) wordt later overgenomen of door admin-content-
- * management gevuld.
+ * HTML in answers wordt gesanitized via DOMPurify (allow `<strong>` + `<a>`).
  *
  * @module views/tabs/faq
  */
 
+import DOMPurify from 'dompurify';
 import { t } from '@/lib/i18n';
-
-interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-const FAQ_ITEMS: FaqItem[] = [
-  {
-    question: 'Wanneer ontvang ik mijn royalty-afrekening?',
-    answer:
-      'Royalty-afrekeningen worden jaarlijks in maart uitgekeerd over het voorgaande jaar. U ontvangt een notificatie zodra een nieuwe afrekening klaar staat in dit portaal.',
-  },
-  {
-    question: 'Hoe wijzig ik mijn persoonlijke gegevens?',
-    answer:
-      'Op het tabblad Profiel kunt u uw gegevens bekijken. Wijzigingen verlopen via een verzoek dat door de uitgever wordt beoordeeld voordat het definitief wordt doorgevoerd.',
-  },
-  {
-    question: 'Mijn afrekening klopt niet — wat nu?',
-    answer:
-      'Neem contact op met rights@noordhoff.nl. Vermeld uw Vendor ID en het betreffende afrekeningsjaar; we kijken er zo snel mogelijk naar.',
-  },
-  {
-    question: 'Hoe dien ik een declaratie in?',
-    answer:
-      'Op het tabblad Declaraties vult u een korte omschrijving en bedrag in en uploadt u de bijbehorende bon (PDF). U ontvangt bericht zodra de declaratie is beoordeeld.',
-  },
-  {
-    question: 'Hoe wordt mijn data beschermd?',
-    answer:
-      'Uw data is uitsluitend zichtbaar voor uzelf en de geautoriseerde administrator. Alle communicatie verloopt over een versleutelde verbinding (HTTPS) en de database hanteert strikte toegangsregels per gebruiker.',
-  },
-];
+import { FAQ_CATEGORIES, FAQ_ITEMS, type FaqCategory, type FaqItem } from './faq-data';
 
 export function renderFaqTab(container: HTMLElement): void {
   const heading = document.createElement('h2');
@@ -53,15 +20,36 @@ export function renderFaqTab(container: HTMLElement): void {
   intro.textContent = t('faq.intro');
   container.appendChild(intro);
 
-  const list = document.createElement('div');
-  list.className = 'faq-list';
-  FAQ_ITEMS.forEach((item) => {
-    list.appendChild(renderFaqItem(item));
-  });
-  container.appendChild(list);
+  for (const category of FAQ_CATEGORIES) {
+    const itemsInCat = FAQ_ITEMS.filter((q) => q.category === category.id);
+    if (itemsInCat.length === 0) {
+      continue;
+    }
+    container.appendChild(buildCategory(category.id, category.label, itemsInCat));
+  }
 }
 
-function renderFaqItem(item: FaqItem): HTMLElement {
+function buildCategory(catId: FaqCategory, label: string, items: readonly FaqItem[]): HTMLElement {
+  const wrap = document.createElement('section');
+  wrap.className = 'faq-category';
+  wrap.dataset['category'] = catId;
+
+  const header = document.createElement('h4');
+  header.className = 'faq-category-header';
+  header.textContent = label;
+  wrap.appendChild(header);
+
+  const list = document.createElement('div');
+  list.className = 'faq-list';
+  items.forEach((item) => {
+    list.appendChild(buildItem(item));
+  });
+  wrap.appendChild(list);
+
+  return wrap;
+}
+
+function buildItem(item: FaqItem): HTMLElement {
   const details = document.createElement('details');
   details.className = 'faq-item';
 
@@ -72,7 +60,13 @@ function renderFaqItem(item: FaqItem): HTMLElement {
 
   const answer = document.createElement('div');
   answer.className = 'faq-answer';
-  answer.textContent = item.answer;
+
+  // Sanitized HTML — alleen <strong>, <a>, <em>, <br> toegestaan
+  // eslint-disable-next-line no-unsanitized/property -- DOMPurify.sanitize is de aangewezen sanitizer
+  answer.innerHTML = DOMPurify.sanitize(item.answer, {
+    ALLOWED_TAGS: ['strong', 'em', 'a', 'br'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+  });
   details.appendChild(answer);
 
   return details;

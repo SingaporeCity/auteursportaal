@@ -1,8 +1,8 @@
 /**
- * Contracten-tab: lijst contracten van de ingelogde auteur.
+ * Contracten-tab — stats tegels + zoekbalk + contract cards.
  *
- * RLS isoleert per author_id. Klik op de download-knop genereert een
- * gesigneerde URL voor de contract-PDF (zelfde Storage-bucket als payments).
+ * Demo design: 3 stats bovenaan (aantal contracten / gem. royalty% /
+ * eerste contract), zoek-veld, daaronder cards met preview + download knoppen.
  *
  * @module views/tabs/contracts
  */
@@ -15,14 +15,29 @@ import type { Database } from '@/types/db';
 
 type ContractRow = Database['public']['Tables']['contracts']['Row'];
 
+interface State {
+  contracts: ContractRow[];
+  search: string;
+}
+
 export function renderContractsTab(container: HTMLElement): void {
   const heading = document.createElement('h2');
   heading.textContent = t('contracts.title');
   container.appendChild(heading);
 
+  const state: State = { contracts: [], search: '' };
+
+  const statsRow = document.createElement('div');
+  statsRow.className = 'contracts-stats';
+  container.appendChild(statsRow);
+
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'payments-search';
+  container.appendChild(searchWrap);
+
   const list = document.createElement('div');
   list.className = 'contracts-list';
-  list.textContent = '…';
+  list.textContent = 'Laden…';
   container.appendChild(list);
 
   const contact = document.createElement('p');
@@ -30,34 +45,125 @@ export function renderContractsTab(container: HTMLElement): void {
   contact.textContent = t('contracts.contact_text');
   container.appendChild(contact);
 
-  void loadAndRender(list);
+  const repaint = (): void => {
+    renderStats(statsRow, state.contracts);
+    renderSearch(searchWrap, state, repaint);
+    renderList(list, state);
+  };
+
+  void load(state, repaint);
 }
 
-async function loadAndRender(container: HTMLElement): Promise<void> {
+async function load(state: State, repaint: () => void): Promise<void> {
   const { data, error } = await supabase
     .from('contracts')
     .select('*')
     .order('start_date', { ascending: false });
 
-  container.replaceChildren();
-
   if (error !== null) {
     reportError('contracts.load', error);
-    container.textContent = `Fout: ${error.message}`;
-    return;
+    state.contracts = [];
+  } else {
+    state.contracts = data;
   }
+  repaint();
+}
 
-  if (data.length === 0) {
+function renderStats(container: HTMLElement, contracts: ContractRow[]): void {
+  container.replaceChildren();
+
+  const count = contracts.length;
+  const royalties = contracts
+    .map((c) => c.royalty_percentage)
+    .filter((r): r is number => r !== null);
+  const avgRoyalty =
+    royalties.length > 0 ? royalties.reduce((sum, r) => sum + r, 0) / royalties.length : null;
+  const startDates = contracts
+    .map((c) => c.start_date)
+    .filter((d): d is string => d !== null)
+    .sort();
+  const firstStart = startDates[0] ?? null;
+
+  container.appendChild(buildStat('Actieve contracten', String(count)));
+  container.appendChild(
+    buildStat('Gem. royalty', avgRoyalty !== null ? `${avgRoyalty.toFixed(1)}%` : '—')
+  );
+  container.appendChild(
+    buildStat('Eerste contract', firstStart !== null ? formatDate(firstStart) : '—')
+  );
+}
+
+function buildStat(label: string, value: string): HTMLElement {
+  const stat = document.createElement('div');
+  stat.className = 'contracts-stat';
+
+  const valEl = document.createElement('div');
+  valEl.className = 'contracts-stat-value';
+  valEl.textContent = value;
+  stat.appendChild(valEl);
+
+  const labelEl = document.createElement('div');
+  labelEl.className = 'contracts-stat-label';
+  labelEl.textContent = label;
+  stat.appendChild(labelEl);
+
+  return stat;
+}
+
+function renderSearch(container: HTMLElement, state: State, repaint: () => void): void {
+  container.replaceChildren();
+
+  const icon = document.createElement('span');
+  icon.className = 'payments-search-icon';
+  icon.textContent = '🔎';
+  container.appendChild(icon);
+
+  const input = document.createElement('input');
+  input.type = 'search';
+  input.placeholder = 'Zoek op naam of nummer…';
+  input.value = state.search;
+  input.addEventListener('input', () => {
+    state.search = input.value.trim().toLowerCase();
+    repaint();
+  });
+  container.appendChild(input);
+
+  if (state.search.length > 0) {
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'payments-search-clear';
+    clear.textContent = '×';
+    clear.addEventListener('click', () => {
+      state.search = '';
+      repaint();
+    });
+    container.appendChild(clear);
+  }
+}
+
+function renderList(container: HTMLElement, state: State): void {
+  container.replaceChildren();
+
+  const filtered = state.contracts.filter((c) => {
+    if (state.search.length === 0) {
+      return true;
+    }
+    const haystack = `${c.contract_name ?? ''} ${c.contract_number}`.toLowerCase();
+    return haystack.includes(state.search);
+  });
+
+  if (filtered.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
-    empty.textContent = t('contracts.empty');
+    empty.textContent =
+      state.contracts.length === 0
+        ? t('contracts.empty')
+        : 'Geen contracten die voldoen aan de zoekterm.';
     container.appendChild(empty);
     return;
   }
 
-  data.forEach((contract) => {
-    container.appendChild(renderContractRow(contract));
-  });
+  filtered.forEach((c) => container.appendChild(renderContractRow(c)));
 }
 
 function renderContractRow(contract: ContractRow): HTMLElement {
@@ -76,7 +182,7 @@ function renderContractRow(contract: ContractRow): HTMLElement {
   meta.className = 'contract-meta';
   const parts: string[] = [`Nr. ${contract.contract_number}`];
   if (contract.royalty_percentage !== null) {
-    parts.push(`${String(contract.royalty_percentage)}%`);
+    parts.push(`${contract.royalty_percentage.toFixed(1)}%`);
   }
   if (contract.start_date !== null) {
     parts.push(formatDate(contract.start_date));
