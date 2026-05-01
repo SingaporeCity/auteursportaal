@@ -11,6 +11,7 @@
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { reportError } from '@/dev/debug-panel';
+import { openPdfPreview } from '@/views/shared/pdf-preview';
 import type { Database, PaymentType } from '@/types/db';
 
 type PaymentRow = Database['public']['Tables']['payments']['Row'];
@@ -74,7 +75,6 @@ async function load(state: State, repaint: () => void): Promise<void> {
   const { data, error } = await supabase
     .from('payments')
     .select('*')
-    .order('year', { ascending: false })
     .order('payment_date', { ascending: false });
 
   if (error !== null) {
@@ -205,15 +205,15 @@ function renderList(container: HTMLElement, state: State): void {
     return;
   }
 
-  // Year-headers alleen als filter "Alle" is
+  // Year-headers per UITBETAALJAAR (year of payment_date)
   const showYearHeaders = state.typeFilter === 'all' && state.search.length === 0;
-  const byYear = groupByYear(filtered);
+  const byPaidYear = groupByPaidYear(filtered);
 
-  for (const [year, items] of byYear) {
+  for (const [year, items] of byPaidYear) {
     if (showYearHeaders) {
       const yearHeader = document.createElement('h3');
       yearHeader.className = 'payments-year-header';
-      yearHeader.textContent = String(year);
+      yearHeader.textContent = `Uitgekeerd in ${String(year)}`;
       container.appendChild(yearHeader);
     }
     items.forEach((p) => container.appendChild(renderPaymentRow(p)));
@@ -258,14 +258,42 @@ function renderPaymentRow(payment: PaymentRow): HTMLElement {
   row.appendChild(amount);
 
   if (payment.file_path !== null) {
+    const actions = document.createElement('div');
+    actions.className = 'payment-actions';
+
+    const previewBtn = document.createElement('button');
+    previewBtn.type = 'button';
+    previewBtn.className = 'payment-action-btn payment-preview';
+    previewBtn.title = 'Bekijken';
+    previewBtn.setAttribute('aria-label', 'PDF bekijken');
+    previewBtn.innerHTML =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+    previewBtn.addEventListener('click', () => {
+      const filePath = payment.file_path;
+      if (filePath === null) {
+        return;
+      }
+      void openPdfPreview({
+        filePath,
+        title: payment.title_nl ?? TYPE_LABEL[payment.type],
+        subtitle: payment.payment_date !== null ? formatDate(payment.payment_date) : undefined,
+      });
+    });
+    actions.appendChild(previewBtn);
+
     const downloadBtn = document.createElement('button');
     downloadBtn.type = 'button';
-    downloadBtn.className = 'payment-download';
-    downloadBtn.textContent = 'Download';
+    downloadBtn.className = 'payment-action-btn payment-download-icon';
+    downloadBtn.title = 'Downloaden';
+    downloadBtn.setAttribute('aria-label', 'PDF downloaden');
+    downloadBtn.innerHTML =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
     downloadBtn.addEventListener('click', () => {
       void download(payment, downloadBtn);
     });
-    row.appendChild(downloadBtn);
+    actions.appendChild(downloadBtn);
+
+    row.appendChild(actions);
   } else {
     const missing = document.createElement('span');
     missing.className = 'payment-missing';
@@ -281,14 +309,12 @@ async function download(payment: PaymentRow, btn: HTMLButtonElement): Promise<vo
     return;
   }
   btn.disabled = true;
-  btn.textContent = '…';
 
   const { data, error } = await supabase.storage
     .from('statements')
     .createSignedUrl(payment.file_path, 60);
 
   btn.disabled = false;
-  btn.textContent = 'Download';
 
   if (error !== null) {
     reportError('payments.download', error);
@@ -298,12 +324,14 @@ async function download(payment: PaymentRow, btn: HTMLButtonElement): Promise<vo
   window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
 }
 
-function groupByYear(payments: PaymentRow[]): Map<number, PaymentRow[]> {
+function groupByPaidYear(payments: PaymentRow[]): Map<number, PaymentRow[]> {
   const map = new Map<number, PaymentRow[]>();
   for (const p of payments) {
-    const list = map.get(p.year) ?? [];
+    const py = p.payment_date !== null ? new Date(p.payment_date).getFullYear() : p.year;
+    const list = map.get(py) ?? [];
     list.push(p);
-    map.set(p.year, list);
+    map.set(py, list);
   }
-  return map;
+  // Sorteer aflopend: nieuwste uitbetaaljaar eerst
+  return new Map([...map.entries()].sort((a, b) => b[0] - a[0]));
 }

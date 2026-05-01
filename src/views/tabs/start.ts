@@ -77,14 +77,19 @@ async function loadAndRender(container: HTMLElement): Promise<void> {
   const data = paymentRes.data;
   const forecasts = forecastRes.error === null ? forecastRes.data : [];
 
-  // Year-in-Review (laatste afgesloten jaar)
-  const allYears = [...new Set(data.map((p) => p.year))].sort((a, b) => b - a);
-  const currentYear = new Date().getFullYear();
-  const reviewYear = allYears.find((y) => y < currentYear) ?? allYears[0] ?? currentYear - 1;
+  // Alleen royalty-uitkeringen tellen mee voor totalen — jaaropgaves zijn
+  // fiscale overzichten, geen uitkeringen.
+  const royalties = data.filter((p) => p.type !== 'jaaropgave');
 
-  container.appendChild(buildYearInReview(data, reviewYear, forecasts));
+  // Group op uitbetaal-jaar (year of payment_date), niet op royalty-year
+  const paidYears = [
+    ...new Set(royalties.map(paidYear).filter((y): y is number => y !== null)),
+  ].sort((a, b) => b - a);
+  const reviewYear = paidYears[0] ?? new Date().getFullYear() - 1;
 
-  if (allYears.length === 0) {
+  container.appendChild(buildYearInReview(royalties, reviewYear, forecasts));
+
+  if (royalties.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
     empty.textContent =
@@ -93,7 +98,7 @@ async function loadAndRender(container: HTMLElement): Promise<void> {
     return;
   }
 
-  container.appendChild(buildRoyaltyChart(data, allYears));
+  container.appendChild(buildRoyaltyChart(royalties, paidYears));
 
   // Events + News in 2-koloms grid
   const eventsNewsGrid = document.createElement('div');
@@ -229,6 +234,14 @@ function buildNewsTile(): HTMLElement {
   return tile;
 }
 
+// Helper: jaar van uitbetaling (uit payment_date), of null als nog niet betaald
+function paidYear(payment: PaymentRow): number | null {
+  if (payment.payment_date === null) {
+    return null;
+  }
+  return new Date(payment.payment_date).getFullYear();
+}
+
 // =============================================================================
 // Year-in-Review hero
 // =============================================================================
@@ -256,9 +269,9 @@ function buildYearInReview(
 
   card.appendChild(header);
 
-  // Hero bedrag
-  const reviewTotal = sumYear(payments, reviewYear);
-  const previousTotal = sumYear(payments, reviewYear - 1);
+  // Hero bedrag — sum van royalty's die zijn UITBETAALD in reviewYear
+  const reviewTotal = sumPaidYear(payments, reviewYear);
+  const previousTotal = sumPaidYear(payments, reviewYear - 1);
   const yoy = computeYoY(reviewTotal, previousTotal);
 
   const hero = document.createElement('div');
@@ -314,8 +327,10 @@ function buildTotalFromBlock(payments: PaymentRow[]): HTMLElement {
   labelRow.appendChild(label);
   block.appendChild(labelRow);
 
-  // Pill toggle voor jaren waar payments uit zijn (oudste eerst)
-  const yearsAvailable = [...new Set(payments.map((p) => p.year))].sort((a, b) => a - b);
+  // Pill toggle voor uitbetaaljaren (oudste eerst)
+  const yearsAvailable = [
+    ...new Set(payments.map(paidYear).filter((y): y is number => y !== null)),
+  ].sort((a, b) => a - b);
 
   const valueEl = document.createElement('div');
   valueEl.className = 'yr-stat-value';
@@ -324,12 +339,14 @@ function buildTotalFromBlock(payments: PaymentRow[]): HTMLElement {
   const pills = document.createElement('div');
   pills.className = 'yr-from-pills';
 
-  // Default: oudste jaar (toont volledig totaal)
   let activeFrom = yearsAvailable[0] ?? new Date().getFullYear();
 
   const updateValue = (): void => {
     const total = payments
-      .filter((p) => p.year >= activeFrom)
+      .filter((p) => {
+        const py = paidYear(p);
+        return py !== null && py >= activeFrom;
+      })
       .reduce((sum, p) => sum + p.amount, 0);
     valueEl.textContent = formatCurrency(total);
   };
@@ -367,12 +384,12 @@ function buildLastPaymentBlock(payments: PaymentRow[]): HTMLElement {
   label.textContent = 'Laatste betaling';
   block.appendChild(label);
 
-  // Sorteer op payment_date (recentste eerst); skip jaaropgaves
-  const royalties = payments
-    .filter((p) => p.type !== 'jaaropgave' && p.payment_date !== null)
+  // payments parameter bevat al alleen royalty's (jaaropgaves geëxcludeerd)
+  const sorted = payments
+    .filter((p) => p.payment_date !== null)
     .sort((a, b) => (b.payment_date ?? '').localeCompare(a.payment_date ?? ''));
 
-  const last = royalties[0];
+  const last = sorted[0];
 
   const valueEl = document.createElement('div');
   valueEl.className = 'yr-stat-value';
@@ -451,9 +468,10 @@ function buildYearCard(payments: PaymentRow[], year: number, index: number): HTM
   card.className = 'chart-card';
   card.style.animationDelay = `${String(index * 60)}ms`;
 
-  const yearPayments = payments.filter((p) => p.year === year);
+  // Group op uitbetaaljaar (year of payment_date) — niet op royalty-year column
+  const yearPayments = payments.filter((p) => paidYear(p) === year);
   const total = yearPayments.reduce((sum, p) => sum + p.amount, 0);
-  const previous = sumYear(payments, year - 1);
+  const previous = sumPaidYear(payments, year - 1);
   const yoy = computeYoY(total, previous);
 
   // Header
@@ -594,8 +612,8 @@ function buildAcademyTile(): HTMLElement {
 // =============================================================================
 // Helpers
 // =============================================================================
-function sumYear(payments: PaymentRow[], year: number): number {
-  return payments.filter((p) => p.year === year).reduce((sum, p) => sum + p.amount, 0);
+function sumPaidYear(payments: PaymentRow[], year: number): number {
+  return payments.filter((p) => paidYear(p) === year).reduce((sum, p) => sum + p.amount, 0);
 }
 
 function groupByType(payments: PaymentRow[]): Map<PaymentType, number> {

@@ -82,28 +82,23 @@ function buildPendingHero(year: number, announcementDate: string): HTMLElement {
 
   const eyebrow = document.createElement('div');
   eyebrow.className = 'forecast-eyebrow';
-  eyebrow.textContent = `Verwachte royalties ${String(year)}`;
+  eyebrow.textContent = `Prognose ${String(year)}`;
   card.appendChild(eyebrow);
 
   const headline = document.createElement('div');
   headline.className = 'forecast-pending-headline';
-  headline.textContent = 'Wordt nog vastgesteld';
+  headline.textContent = 'Nog niet beschikbaar';
   card.appendChild(headline);
 
   const sub = document.createElement('p');
   sub.className = 'forecast-pending-sub';
-  sub.innerHTML = '';
-  const span1 = document.createElement('span');
-  span1.textContent = 'De prognose voor ';
-  const yearStrong = document.createElement('strong');
-  yearStrong.textContent = String(year);
-  const span2 = document.createElement('span');
-  span2.textContent = ' wordt bekendgemaakt op ';
+  const part1 = document.createTextNode('De prognose wordt jaarlijks gepubliceerd op ');
   const dateStrong = document.createElement('strong');
   dateStrong.textContent = announcementDate;
-  const span3 = document.createElement('span');
-  span3.textContent = '. Je krijgt automatisch bericht zodra hij beschikbaar is.';
-  sub.append(span1, yearStrong, span2, dateStrong, span3);
+  const part2 = document.createTextNode(
+    `, na verwerking van de jaaromzet. Zodra de prognose voor ${String(year)} klaar staat, vindt u hier de verwachte royalty-range.`
+  );
+  sub.append(part1, dateStrong, part2);
   card.appendChild(sub);
 
   return card;
@@ -111,28 +106,23 @@ function buildPendingHero(year: number, announcementDate: string): HTMLElement {
 
 function buildAnnouncementCard(announcementDate: string): HTMLElement {
   const card = document.createElement('div');
-  card.className = 'forecast-payout';
-
-  const icon = document.createElement('div');
-  icon.className = 'forecast-payout-icon';
-  icon.textContent = '📅';
-  icon.setAttribute('aria-hidden', 'true');
-  card.appendChild(icon);
-
-  const inner = document.createElement('div');
-  inner.className = 'forecast-payout-inner';
+  card.className = 'forecast-announcement-card';
 
   const eyebrow = document.createElement('div');
   eyebrow.className = 'forecast-eyebrow';
-  eyebrow.textContent = 'Bekendmaking';
-  inner.appendChild(eyebrow);
+  eyebrow.textContent = 'Publicatiedatum';
+  card.appendChild(eyebrow);
 
   const value = document.createElement('div');
-  value.className = 'forecast-payout-month';
+  value.className = 'forecast-announcement-date';
   value.textContent = announcementDate;
-  inner.appendChild(value);
+  card.appendChild(value);
 
-  card.appendChild(inner);
+  const note = document.createElement('div');
+  note.className = 'forecast-announcement-note';
+  note.textContent = 'U ontvangt automatisch bericht.';
+  card.appendChild(note);
+
   return card;
 }
 
