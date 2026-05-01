@@ -64,4 +64,42 @@ export const sv: Translations = {
   'greeting.afternoon': 'God eftermiddag',
   'greeting.evening': 'God kväll',
   'greeting.night': 'God natt',
+
+  'start.kpi.total_paid': 'Totalt utbetalt',
+  'start.kpi.this_year': 'Detta år',
+  'start.kpi.statements_count': 'Antal avräkningar',
+  'start.kpi.last_payment': 'Senaste avräkning',
+  'start.recent_title': 'Senaste avräkningar',
+
+  'payments.title': 'Royaltyavräkningar',
+  'payments.empty': 'Inga avräkningar tillgängliga.',
+  'payments.download': 'Ladda ner',
+  'payments.missing_pdf': 'PDF saknas',
+
+  'contracts.title': 'Dina kontrakt',
+  'contracts.empty': 'Inga kontrakt registrerade.',
+  'contracts.contact_text': 'För frågor om ditt kontrakt, vänligen kontakta rights@noordhoff.nl.',
+
+  'forecast.title': 'Förväntade royalties',
+  'forecast.empty': 'Ingen prognos tillgänglig.',
+  'forecast.range_label': 'Förväntat belopp',
+  'forecast.disclaimer':
+    'Indikativ prognos. Det faktiska beloppet kan avvika baserat på slutliga försäljningssiffror och kontraktsändringar.',
+
+  'expenses.title': 'Utgifter',
+  'expenses.new_title': 'Skicka in en ny utgift',
+  'expenses.field_description': 'Beskrivning',
+  'expenses.field_amount': 'Belopp (€)',
+  'expenses.field_type': 'Typ',
+  'expenses.field_receipt': 'Kvitto (PDF)',
+  'expenses.submit': 'Skicka in',
+  'expenses.history_title': 'Inskickade utgifter',
+  'expenses.history_empty': 'Du har inte skickat in några utgifter ännu.',
+  'expenses.status_pending': 'Väntande',
+  'expenses.status_approved': 'Godkänd',
+  'expenses.status_rejected': 'Avvisad',
+  'expenses.status_paid': 'Betald',
+
+  'faq.title': 'Vanliga frågor',
+  'faq.intro': 'Svar på de vanligaste frågorna om royalties, kontrakt och portalen.',
 };

@@ -322,6 +322,280 @@ input {
   color: var(--color-text-light);
 }
 
+.empty-state {
+  background: #fff;
+  border: 1px dashed var(--color-border);
+  padding: 2rem;
+  text-align: center;
+  border-radius: var(--radius-md);
+  color: var(--color-text-light);
+}
+
+/* =============================================================================
+ * Start tab
+ * ============================================================================= */
+.start-welcome {
+  margin-bottom: 1.5rem;
+}
+
+.start-welcome h2 {
+  margin: 0 0 0.25rem;
+}
+
+.start-welcome-sub {
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.kpi-card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+}
+
+.kpi-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.kpi-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+}
+
+/* =============================================================================
+ * Contracts tab
+ * ============================================================================= */
+.contracts-list {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.25rem 1.25rem;
+}
+
+.contract-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.contract-row:last-child {
+  border-bottom: none;
+}
+
+.contract-name {
+  font-weight: 500;
+}
+
+.contract-meta {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  margin-top: 0.15rem;
+}
+
+.contracts-contact {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+}
+
+/* =============================================================================
+ * Forecast tab
+ * ============================================================================= */
+.forecast-hero {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1rem;
+}
+
+.forecast-eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-light);
+  margin-bottom: 0.75rem;
+}
+
+.forecast-range {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+}
+
+.forecast-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+}
+
+.forecast-row-year {
+  color: var(--color-text-light);
+  font-size: 0.85rem;
+}
+
+.forecast-row-range {
+  font-weight: 500;
+}
+
+.forecast-disclaimer {
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  font-style: italic;
+}
+
+/* =============================================================================
+ * Expenses tab
+ * ============================================================================= */
+.expenses-form-card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.expenses-form-card h3 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.expenses-history-heading {
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+}
+
+.expenses-history {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.25rem 1.25rem;
+}
+
+.expense-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.expense-row:last-child {
+  border-bottom: none;
+}
+
+.expense-desc {
+  font-weight: 500;
+}
+
+.expense-meta {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  margin-top: 0.15rem;
+}
+
+.expense-status {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+}
+
+.expense-status-pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.expense-status-approved {
+  background: #dcfce7;
+  color: var(--color-success);
+}
+
+.expense-status-rejected {
+  background: #fef2f2;
+  color: var(--color-error);
+}
+
+.expense-status-paid {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+/* =============================================================================
+ * FAQ tab
+ * ============================================================================= */
+.faq-intro {
+  color: var(--color-text-light);
+  margin: 0 0 1.5rem;
+}
+
+.faq-list {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.faq-item {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.faq-item:last-child {
+  border-bottom: none;
+}
+
+.faq-question {
+  cursor: pointer;
+  padding: 1rem 1.25rem;
+  font-weight: 500;
+  user-select: none;
+  list-style: none;
+  position: relative;
+  padding-right: 2.5rem;
+}
+
+.faq-question::after {
+  content: '+';
+  position: absolute;
+  right: 1.25rem;
+  font-size: 1.25rem;
+  color: var(--color-text-light);
+  transition: transform 0.2s;
+}
+
+.faq-item[open] .faq-question::after {
+  transform: rotate(45deg);
+}
+
+.faq-answer {
+  padding: 0 1.25rem 1rem;
+  color: var(--color-text-light);
+  line-height: 1.5;
+}
+
 /* =============================================================================
  * Profile tab
  * ============================================================================= */

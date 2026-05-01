@@ -57,4 +57,43 @@ export const nl: Translations = {
   'greeting.afternoon': 'Goedemiddag',
   'greeting.evening': 'Goedenavond',
   'greeting.night': 'Goedenacht',
+
+  'start.kpi.total_paid': 'Totaal uitgekeerd',
+  'start.kpi.this_year': 'Dit jaar',
+  'start.kpi.statements_count': 'Aantal afrekeningen',
+  'start.kpi.last_payment': 'Laatste afrekening',
+  'start.recent_title': 'Recente afrekeningen',
+
+  'payments.title': 'Royalty-afrekeningen',
+  'payments.empty': 'Geen afrekeningen beschikbaar.',
+  'payments.download': 'Download',
+  'payments.missing_pdf': 'PDF ontbreekt',
+
+  'contracts.title': 'Uw contracten',
+  'contracts.empty': 'Geen contracten geregistreerd.',
+  'contracts.contact_text':
+    'Voor vragen over uw contract kunt u contact opnemen met rights@noordhoff.nl.',
+
+  'forecast.title': 'Verwachte royalties',
+  'forecast.empty': 'Geen prognose beschikbaar.',
+  'forecast.range_label': 'Verwacht bedrag',
+  'forecast.disclaimer':
+    'Indicatieve prognose. Het werkelijke bedrag kan afwijken op basis van definitieve verkoopcijfers en contractwijzigingen.',
+
+  'expenses.title': 'Declaraties',
+  'expenses.new_title': 'Nieuwe declaratie indienen',
+  'expenses.field_description': 'Omschrijving',
+  'expenses.field_amount': 'Bedrag (€)',
+  'expenses.field_type': 'Type',
+  'expenses.field_receipt': 'Bon (PDF)',
+  'expenses.submit': 'Indienen',
+  'expenses.history_title': 'Ingediende declaraties',
+  'expenses.history_empty': 'U heeft nog geen declaraties ingediend.',
+  'expenses.status_pending': 'In behandeling',
+  'expenses.status_approved': 'Goedgekeurd',
+  'expenses.status_rejected': 'Afgewezen',
+  'expenses.status_paid': 'Uitbetaald',
+
+  'faq.title': 'Veelgestelde vragen',
+  'faq.intro': 'Antwoorden op de meest gestelde vragen over royalties, contracten en het portaal.',
 };

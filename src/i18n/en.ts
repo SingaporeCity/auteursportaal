@@ -57,4 +57,43 @@ export const en: Translations = {
   'greeting.afternoon': 'Good afternoon',
   'greeting.evening': 'Good evening',
   'greeting.night': 'Good night',
+
+  'start.kpi.total_paid': 'Total paid out',
+  'start.kpi.this_year': 'This year',
+  'start.kpi.statements_count': 'Number of statements',
+  'start.kpi.last_payment': 'Last statement',
+  'start.recent_title': 'Recent statements',
+
+  'payments.title': 'Royalty statements',
+  'payments.empty': 'No statements available.',
+  'payments.download': 'Download',
+  'payments.missing_pdf': 'PDF missing',
+
+  'contracts.title': 'Your contracts',
+  'contracts.empty': 'No contracts registered.',
+  'contracts.contact_text':
+    'For questions about your contract, please contact rights@noordhoff.nl.',
+
+  'forecast.title': 'Expected royalties',
+  'forecast.empty': 'No forecast available.',
+  'forecast.range_label': 'Expected amount',
+  'forecast.disclaimer':
+    'Indicative forecast. The actual amount may differ based on final sales figures and contract changes.',
+
+  'expenses.title': 'Expenses',
+  'expenses.new_title': 'Submit a new expense',
+  'expenses.field_description': 'Description',
+  'expenses.field_amount': 'Amount (€)',
+  'expenses.field_type': 'Type',
+  'expenses.field_receipt': 'Receipt (PDF)',
+  'expenses.submit': 'Submit',
+  'expenses.history_title': 'Submitted expenses',
+  'expenses.history_empty': 'You have not submitted any expenses yet.',
+  'expenses.status_pending': 'Pending',
+  'expenses.status_approved': 'Approved',
+  'expenses.status_rejected': 'Rejected',
+  'expenses.status_paid': 'Paid',
+
+  'faq.title': 'Frequently asked questions',
+  'faq.intro': 'Answers to the most common questions about royalties, contracts and the portal.',
 };

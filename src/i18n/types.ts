@@ -82,6 +82,49 @@ export type TranslationKey =
   | 'greeting.morning'
   | 'greeting.afternoon'
   | 'greeting.evening'
-  | 'greeting.night';
+  | 'greeting.night'
+
+  // Start tab
+  | 'start.kpi.total_paid'
+  | 'start.kpi.this_year'
+  | 'start.kpi.statements_count'
+  | 'start.kpi.last_payment'
+  | 'start.recent_title'
+
+  // Payments tab
+  | 'payments.title'
+  | 'payments.empty'
+  | 'payments.download'
+  | 'payments.missing_pdf'
+
+  // Contracts tab
+  | 'contracts.title'
+  | 'contracts.empty'
+  | 'contracts.contact_text'
+
+  // Forecast tab
+  | 'forecast.title'
+  | 'forecast.empty'
+  | 'forecast.range_label'
+  | 'forecast.disclaimer'
+
+  // Expenses tab
+  | 'expenses.title'
+  | 'expenses.new_title'
+  | 'expenses.field_description'
+  | 'expenses.field_amount'
+  | 'expenses.field_type'
+  | 'expenses.field_receipt'
+  | 'expenses.submit'
+  | 'expenses.history_title'
+  | 'expenses.history_empty'
+  | 'expenses.status_pending'
+  | 'expenses.status_approved'
+  | 'expenses.status_rejected'
+  | 'expenses.status_paid'
+
+  // FAQ tab
+  | 'faq.title'
+  | 'faq.intro';
 
 export type Translations = Record<TranslationKey, string>;
