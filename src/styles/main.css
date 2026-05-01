@@ -1,19 +1,11 @@
 /**
  * Hoofd-stylesheet — wordt geïmporteerd door src/main.ts.
  *
- * Domein-specifieke stylesheets staan in subfolders:
- * - src/styles/_variables.css   — design tokens (kleuren, radii, fonts)
- * - src/styles/_components.css  — herbruikbare componenten
- * - src/styles/auth.css         — login + onboarding schermen
- * - src/styles/dashboard.css    — auteur-dashboard tabs
- * - src/styles/admin.css        — admin-portaal
- *
- * Worden hier aan elkaar gelinkt zodra de port van de oude styles.css per
- * domein is gesplitst.
+ * MVP-styling: voldoende om de UI bruikbaar en leesbaar te maken voor de
+ * IT-review. Polish (responsive details, animaties, dark mode) komt later.
  */
 
 :root {
-  /* Noordhoff brand */
   --color-primary: #007460;
   --color-primary-dark: #005a49;
   --color-primary-subtle: #f0faf7;
@@ -22,23 +14,18 @@
   --color-text: #111827;
   --color-text-light: #6b7280;
   --color-border: #e5e7eb;
+  --color-error: #dc2626;
+  --color-success: #16a34a;
 
-  /* Typography */
   --font-sans: 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  /* Spacing & radii */
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 18px;
   --radius-pill: 100px;
-}
 
-[data-theme='dark'] {
-  --color-bg: #0f1117;
-  --color-bg-alt: #161922;
-  --color-text: #e8eaed;
-  --color-text-light: #8b8fa4;
-  --color-border: #2a2d3a;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 * {
@@ -48,7 +35,579 @@
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: var(--color-bg);
+  background-color: var(--color-bg-alt);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+input {
+  font-family: inherit;
+}
+
+/* =============================================================================
+ * Auth (login + forgot)
+ * ============================================================================= */
+.auth-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .auth-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+.auth-brand-panel {
+  background: linear-gradient(160deg, var(--color-primary), var(--color-primary-dark) 60%, #004035);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+}
+
+@media (max-width: 768px) {
+  .auth-brand-panel {
+    display: none;
+  }
+}
+
+.auth-brand-inner {
+  max-width: 360px;
+}
+
+.auth-brand-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.auth-brand-subtitle {
+  font-size: 1rem;
+  opacity: 0.85;
+  line-height: 1.5;
+}
+
+.auth-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  padding: 2rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+}
+
+.auth-card h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.auth-subtitle {
+  color: var(--color-text-light);
+  margin: 0 0 1.5rem;
+}
+
+.auth-field {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.auth-field span {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+  color: var(--color-text-light);
+}
+
+.auth-field input {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  transition: border-color 0.15s;
+}
+
+.auth-field input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.auth-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--color-error);
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.auth-submit {
+  width: 100%;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  transition: background 0.15s;
+}
+
+.auth-submit:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.auth-link {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  margin-top: 1rem;
+  text-align: center;
+  text-decoration: underline;
+}
+
+.auth-sso {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.auth-divider {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  margin: 1rem 0;
+  letter-spacing: 0.1em;
+}
+
+.auth-sso-btn {
+  width: 100%;
+  background: #fff;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 0.7rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+.auth-sso-disabled {
+  opacity: 0.55;
+}
+
+.auth-sso-notice {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--color-text-light);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+/* =============================================================================
+ * App shell (dashboard + admin)
+ * ============================================================================= */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: #fff;
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.app-header-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.app-header-logout {
+  background: none;
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.app-header-logout:hover {
+  background: var(--color-bg-alt);
+}
+
+/* =============================================================================
+ * Dashboard tabs
+ * ============================================================================= */
+.tabs-nav {
+  background: #fff;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 0.85rem 1rem;
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--color-text);
+}
+
+.tab-btn.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: 500;
+}
+
+.tab-btn.tab-soon {
+  color: #b0b3bf;
+  font-style: italic;
+}
+
+.tab-content {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tab-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem;
+}
+
+.tab-placeholder {
+  background: #fff;
+  border: 1px dashed var(--color-border);
+  padding: 3rem;
+  text-align: center;
+  border-radius: var(--radius-md);
+  color: var(--color-text-light);
+}
+
+/* =============================================================================
+ * Profile tab
+ * ============================================================================= */
+.id-banner {
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.id-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.id-chip-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary-dark);
+}
+
+.id-chip-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.profile-grid {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 1.25rem;
+}
+
+.profile-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.profile-row:last-child {
+  border-bottom: none;
+}
+
+.profile-label {
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+}
+
+.profile-value {
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.profile-missing {
+  color: #b0b3bf;
+  font-style: italic;
+}
+
+/* =============================================================================
+ * Payments tab
+ * ============================================================================= */
+.payments-list {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.25rem 1.25rem;
+}
+
+.payments-empty,
+.payments-error {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-light);
+}
+
+.payments-error {
+  color: var(--color-error);
+}
+
+.payments-year-header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-light);
+  margin: 1rem 0 0.5rem;
+}
+
+.payment-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.payment-row:last-child {
+  border-bottom: none;
+}
+
+.payment-title {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.payment-meta {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  margin-top: 0.15rem;
+}
+
+.payment-amount {
+  font-weight: 600;
+  color: var(--color-primary-dark);
+}
+
+.payment-download {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.payment-download:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.payment-missing {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  font-style: italic;
+}
+
+/* =============================================================================
+ * Admin
+ * ============================================================================= */
+.admin-content {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.admin-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+
+.admin-status {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.admin-status-success {
+  background: #dcfce7;
+  color: var(--color-success);
+  border: 1px solid #86efac;
+}
+
+.admin-status-error {
+  background: #fef2f2;
+  color: var(--color-error);
+  border: 1px solid #fecaca;
+}
+
+.admin-action {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+.admin-author-list {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.25rem 1.25rem;
+}
+
+.admin-author-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-author-row:last-child {
+  border-bottom: none;
+}
+
+.admin-author-name {
+  font-weight: 500;
+}
+
+.admin-author-meta {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  margin-top: 0.2rem;
+}
+
+.admin-author-status {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+}
+
+.status-admin {
+  background: #f0e7ff;
+  color: #7c3aed;
+}
+
+.status-active {
+  background: #dcfce7;
+  color: var(--color-success);
+}
+
+.status-inactive {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.admin-activate {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.admin-new-author-form {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* =============================================================================
+ * No-access screen
+ * ============================================================================= */
+.no-access-card {
+  max-width: 480px;
+  margin: 8vh auto;
+  padding: 2rem;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.no-access-card h2 {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+}
+
+.no-access-card p {
+  color: var(--color-text-light);
+  line-height: 1.5;
+}
+
+.no-access-reason {
+  display: block;
+  margin: 1rem 0;
+  color: var(--color-text-light);
+  font-size: 0.8rem;
 }

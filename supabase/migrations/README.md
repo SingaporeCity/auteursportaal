@@ -9,6 +9,7 @@ Genummerde SQL-bestanden die in volgorde uitgevoerd moeten worden in een schoon 
 | 0001 | `0001_initial_schema.sql`  | Tabellen: `authors`, `contracts`, `payments`, `forecasts`, `change_requests`, `login_history` + indexes + RLS |
 | 0002 | `0002_storage_buckets.sql` | Buckets `statements` + `expense-receipts` + RLS-policies                                                      |
 | 0003 | `0003_expenses.sql`        | Tabel `expenses` + RLS (vervangt localStorage-fallback)                                                       |
+| 0004 | `0004_grants.sql`          | Expliciete GRANTs voor `service_role`, `authenticated`, `anon` (nodig omdat "auto-expose" UIT staat)          |
 
 ## Hoe te runnen
 

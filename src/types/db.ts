@@ -73,6 +73,7 @@ export interface Database {
           activated_at?: string | null;
         };
         Update: Partial<Database['public']['Tables']['authors']['Insert']>;
+        Relationships: [];
       };
       contracts: {
         Row: {
@@ -98,6 +99,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['contracts']['Insert']>;
+        Relationships: [];
       };
       payments: {
         Row: {
@@ -127,6 +129,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['payments']['Insert']>;
+        Relationships: [];
       };
       forecasts: {
         Row: {
@@ -146,6 +149,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['forecasts']['Insert']>;
+        Relationships: [];
       };
       change_requests: {
         Row: {
@@ -173,6 +177,7 @@ export interface Database {
           rejection_reason?: string | null;
         };
         Update: Partial<Database['public']['Tables']['change_requests']['Insert']>;
+        Relationships: [];
       };
       login_history: {
         Row: {
@@ -188,6 +193,7 @@ export interface Database {
           ip_address?: string | null;
         };
         Update: Partial<Database['public']['Tables']['login_history']['Insert']>;
+        Relationships: [];
       };
       expenses: {
         Row: {
@@ -221,6 +227,7 @@ export interface Database {
           paid_at?: string | null;
         };
         Update: Partial<Database['public']['Tables']['expenses']['Insert']>;
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

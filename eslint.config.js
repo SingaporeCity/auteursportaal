@@ -17,6 +17,8 @@ export default tseslint.config(
       '.husky/**',
       'supabase/.temp/**',
       'tests/e2e/**', // Playwright heeft eigen TS-pipeline + tsconfig
+      'scripts/**', // Node CLI-scripts (.mjs); strict TS-regels niet relevant
+      'supabase/functions/**', // Deno Edge Functions, andere TS-config
     ],
   },
 
