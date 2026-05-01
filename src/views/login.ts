@@ -80,17 +80,45 @@ export function renderLoginView(root: HTMLElement): void {
 // =============================================================================
 function buildBrandPanel(): HTMLElement {
   const panel = el('aside', 'auth-brand-panel');
-
   const wrap = el('div', 'auth-brand-inner');
+
+  const logo = document.createElement('img');
+  logo.src = '/noordhoff-logo.png';
+  logo.alt = 'Noordhoff';
+  logo.className = 'auth-brand-logo';
+  wrap.appendChild(logo);
+
+  const eyebrow = el('div', 'auth-brand-eyebrow');
+  eyebrow.textContent = 'Auteursportaal';
+  wrap.appendChild(eyebrow);
+
   const title = el('h1', 'auth-brand-title');
-  title.textContent = t('app.title');
+  title.textContent = 'Inzicht in uw royalties.';
+  wrap.appendChild(title);
+
   const subtitle = el('p', 'auth-brand-subtitle');
   subtitle.textContent = t('app.tagline');
-
-  wrap.appendChild(title);
   wrap.appendChild(subtitle);
+
+  const stats = el('div', 'auth-brand-stats');
+  stats.appendChild(buildStat('190', 'jaar'));
+  stats.appendChild(buildStat('2.500+', 'auteurs'));
+  stats.appendChild(buildStat('1.000+', 'publicaties'));
+  wrap.appendChild(stats);
+
   panel.appendChild(wrap);
   return panel;
+}
+
+function buildStat(num: string, label: string): HTMLElement {
+  const wrap = el('div', 'auth-brand-stat');
+  const numEl = el('span', 'auth-brand-stat-num');
+  numEl.textContent = num;
+  const labelEl = el('span', 'auth-brand-stat-label');
+  labelEl.textContent = label;
+  wrap.appendChild(numEl);
+  wrap.appendChild(labelEl);
+  return wrap;
 }
 
 // =============================================================================

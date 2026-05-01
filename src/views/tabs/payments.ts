@@ -23,6 +23,14 @@ const TYPE_LABEL: Record<PaymentType, string> = {
   jaaropgave: 'Jaaropgave',
 };
 
+// Korte mnemonic per type — 2 letters voor in de gradient-icon
+const TYPE_INITIALS: Record<PaymentType, string> = {
+  royalty: 'R',
+  subsidiary: 'N',
+  foreign: 'FR',
+  jaaropgave: 'J',
+};
+
 export function renderPaymentsTab(container: HTMLElement): void {
   const heading = document.createElement('h2');
   heading.textContent = 'Royalty-afrekeningen';
@@ -78,6 +86,11 @@ async function loadAndRender(container: HTMLElement): Promise<void> {
 function renderPaymentRow(payment: PaymentRow): HTMLElement {
   const row = document.createElement('div');
   row.className = 'payment-row';
+
+  const icon = document.createElement('div');
+  icon.className = `payment-icon payment-icon-${payment.type}`;
+  icon.textContent = TYPE_INITIALS[payment.type];
+  row.appendChild(icon);
 
   const main = document.createElement('div');
   main.className = 'payment-main';

@@ -8,19 +8,18 @@
  */
 
 import type { AuthorRow } from '@/auth';
-import { signOut } from '@/auth';
 import { supabase } from '@/lib/supabase';
 import { reportError } from '@/dev/debug-panel';
-import { t } from '@/lib/i18n';
 import { renderChangesSection } from './admin/changes';
 import { buildStatementUploadForm } from './admin/statement-upload';
+import { buildAppHeader } from './shared/header';
 
 export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   root.replaceChildren();
 
   const layout = document.createElement('div');
   layout.className = 'app-shell';
-  layout.appendChild(buildHeader(admin));
+  layout.appendChild(buildAppHeader(`${admin.first_name} ${admin.last_name} (admin)`));
 
   const main = document.createElement('main');
   main.className = 'admin-content';
@@ -63,27 +62,6 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
 
   void loadAuthors(list, statusBox);
   root.appendChild(layout);
-}
-
-function buildHeader(admin: AuthorRow): HTMLElement {
-  const header = document.createElement('header');
-  header.className = 'app-header';
-
-  const title = document.createElement('div');
-  title.className = 'app-header-title';
-  title.textContent = `${t('app.title')} · admin (${admin.first_name} ${admin.last_name})`;
-  header.appendChild(title);
-
-  const logoutBtn = document.createElement('button');
-  logoutBtn.type = 'button';
-  logoutBtn.className = 'app-header-logout';
-  logoutBtn.textContent = t('auth.logout');
-  logoutBtn.addEventListener('click', () => {
-    void signOut();
-  });
-  header.appendChild(logoutBtn);
-
-  return header;
 }
 
 async function loadAuthors(container: HTMLElement, statusBox: HTMLElement): Promise<void> {

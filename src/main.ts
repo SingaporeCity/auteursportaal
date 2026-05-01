@@ -13,6 +13,7 @@
 
 import './styles/main.css';
 import { initLocale, t } from '@/lib/i18n';
+import { initTheme } from '@/lib/theme';
 import { restoreSession, onAuthStateChange, signOut } from '@/auth';
 import { renderLoginView } from '@/views/login';
 import { renderDashboardView } from '@/views/dashboard';
@@ -27,6 +28,7 @@ void bootstrap(root);
 
 async function bootstrap(rootEl: HTMLElement): Promise<void> {
   initLocale();
+  initTheme();
 
   if (import.meta.env.DEV) {
     const { mountDebugPanel } = await import('@/dev/debug-panel');

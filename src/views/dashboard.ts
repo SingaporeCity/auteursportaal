@@ -9,7 +9,6 @@
  */
 
 import type { AuthorRow } from '@/auth';
-import { signOut } from '@/auth';
 import { renderProfileTab } from './tabs/profile';
 import { renderPaymentsTab } from './tabs/payments';
 import { renderStartTab } from './tabs/start';
@@ -18,6 +17,7 @@ import { renderForecastTab } from './tabs/forecast';
 import { renderExpensesTab } from './tabs/expenses';
 import { renderFaqTab } from './tabs/faq';
 import { t } from '@/lib/i18n';
+import { buildAppHeader } from './shared/header';
 
 type TabId = 'start' | 'payments' | 'contracts' | 'forecast' | 'expenses' | 'faq' | 'profile';
 
@@ -37,7 +37,7 @@ export function renderDashboardView(root: HTMLElement, author: AuthorRow): void 
   const layout = document.createElement('div');
   layout.className = 'app-shell';
 
-  layout.appendChild(buildHeader(author));
+  layout.appendChild(buildAppHeader(`${author.first_name} ${author.last_name}`));
 
   const tabsNav = document.createElement('nav');
   tabsNav.className = 'tabs-nav';
@@ -73,27 +73,6 @@ export function renderDashboardView(root: HTMLElement, author: AuthorRow): void 
   });
 
   switchTab(activeTab);
-}
-
-function buildHeader(author: AuthorRow): HTMLElement {
-  const header = document.createElement('header');
-  header.className = 'app-header';
-
-  const title = document.createElement('div');
-  title.className = 'app-header-title';
-  title.textContent = `${t('app.title')} · ${author.first_name} ${author.last_name}`;
-  header.appendChild(title);
-
-  const logoutBtn = document.createElement('button');
-  logoutBtn.type = 'button';
-  logoutBtn.className = 'app-header-logout';
-  logoutBtn.textContent = t('auth.logout');
-  logoutBtn.addEventListener('click', () => {
-    void signOut();
-  });
-  header.appendChild(logoutBtn);
-
-  return header;
 }
 
 function renderTabContent(container: HTMLElement, tab: TabId, author: AuthorRow): void {
