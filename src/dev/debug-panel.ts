@@ -146,7 +146,7 @@ function render(): void {
   if (panelEl === null) {
     return;
   }
-  panelEl.innerHTML = '';
+  panelEl.replaceChildren();
 
   const title = document.createElement('div');
   title.style.cssText = 'font-weight:600;color:#93c5cf;margin-bottom:6px;';

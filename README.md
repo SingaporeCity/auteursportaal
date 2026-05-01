@@ -35,7 +35,11 @@ Een TypeScript single-page applicatie die op GitHub Pages draait, met Supabase a
 | CI/CD          | GitHub Actions: lint + typecheck + tests + GH Pages deploy            |
 | Custom domain  | `mijn-noordhoff.nl` (CNAME → GitHub Pages)                            |
 
-Zie `docs/adr/` voor architectuurbeslissingen (TS-strict-vanilla-keuze, fresh-repo-strategie, RLS-whitelist-aanpak).
+### Documentatie voor IT-review
+
+- **[docs/SECURITY.md](docs/SECURITY.md)** — bedreigingsmodel, RLS-policies per tabel, secret-management, XSS-prevention, CI-security-checks, bekende beperkingen
+- **[docs/adr/0001-typescript-strict-vanilla.md](docs/adr/0001-typescript-strict-vanilla.md)** — waarom geen framework
+- **[docs/adr/0002-rls-whitelist-via-is-active.md](docs/adr/0002-rls-whitelist-via-is-active.md)** — toegangscontrole-aanpak
 
 ## 3. Lokale setup
 

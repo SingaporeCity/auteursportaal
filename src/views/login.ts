@@ -80,7 +80,6 @@ export function renderLoginView(root: HTMLElement): void {
 // =============================================================================
 function buildBrandPanel(): HTMLElement {
   const panel = el('aside', 'auth-brand-panel');
-  panel.innerHTML = '';
 
   const wrap = el('div', 'auth-brand-inner');
   const title = el('h1', 'auth-brand-title');
