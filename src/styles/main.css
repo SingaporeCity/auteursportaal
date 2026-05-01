@@ -740,9 +740,136 @@ input {
   font-style: italic;
 }
 
+.profile-edit-btn {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.profile-edit-btn:hover {
+  background: var(--color-bg-alt);
+}
+
+.profile-pending-badge {
+  display: inline-block;
+  margin-left: 1rem;
+  padding: 0.15rem 0.6rem;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.profile-edit-form {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.profile-edit-form h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.profile-edit-intro {
+  color: var(--color-text-light);
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+}
+
 /* =============================================================================
  * Admin
  * ============================================================================= */
+.admin-section {
+  margin-bottom: 2rem;
+}
+
+.changes-list {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.25rem 1.25rem;
+}
+
+.change-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.change-row:last-child {
+  border-bottom: none;
+}
+
+.change-who {
+  font-weight: 500;
+}
+
+.change-what {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  margin-top: 0.15rem;
+}
+
+.change-when {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  margin-top: 0.1rem;
+}
+
+.change-approve {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.change-reject {
+  background: #fff;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.admin-author-card {
+  margin-bottom: 0.5rem;
+}
+
+.admin-expand {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.admin-upload-panel {
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.admin-upload-form h4 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
 .admin-content {
   flex: 1;
   padding: 2rem 1.5rem;

@@ -1,9 +1,8 @@
 /**
- * Admin-pagina (MVP-versie): lijst auteurs + nieuwe-auteur form + activate-knop.
- *
- * Activeren roept de Edge Function `create-accounts` aan die de auth-user
- * aanmaakt + recovery-mail stuurt + `is_active=true` zet. De Edge Function
- * uitbreiding zit in een aparte task (#17).
+ * Admin-pagina: hoofdview met
+ *  - Pending wijzigingsverzoeken (bovenaan, alle auteurs)
+ *  - Auteurslijst met inline expand: Activeer + Statement-upload
+ *  - "Nieuwe auteur"-form
  *
  * @module views/admin
  */
@@ -13,19 +12,31 @@ import { signOut } from '@/auth';
 import { supabase } from '@/lib/supabase';
 import { reportError } from '@/dev/debug-panel';
 import { t } from '@/lib/i18n';
+import { renderChangesSection } from './admin/changes';
+import { buildStatementUploadForm } from './admin/statement-upload';
 
 export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   root.replaceChildren();
 
   const layout = document.createElement('div');
   layout.className = 'app-shell';
-
   layout.appendChild(buildHeader(admin));
 
   const main = document.createElement('main');
   main.className = 'admin-content';
   layout.appendChild(main);
 
+  // -- Pending change_requests (bovenaan, herlaadt zichzelf na elke approve/reject)
+  const changesWrapper = document.createElement('section');
+  changesWrapper.className = 'admin-section';
+  main.appendChild(changesWrapper);
+  const refreshChanges = (): void => {
+    changesWrapper.replaceChildren();
+    void renderChangesSection(changesWrapper, admin.id, refreshChanges);
+  };
+  refreshChanges();
+
+  // -- Auteurslijst sectie
   const heading = document.createElement('h2');
   heading.textContent = 'Auteursbeheer';
   main.appendChild(heading);
@@ -51,7 +62,6 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   });
 
   void loadAuthors(list, statusBox);
-
   root.appendChild(layout);
 }
 
@@ -96,15 +106,18 @@ async function loadAuthors(container: HTMLElement, statusBox: HTMLElement): Prom
   }
 
   data.forEach((author) => {
-    container.appendChild(renderAuthorRow(author, container, statusBox));
+    container.appendChild(renderAuthorCard(author, container, statusBox));
   });
 }
 
-function renderAuthorRow(
+function renderAuthorCard(
   author: AuthorRow,
   listContainer: HTMLElement,
   statusBox: HTMLElement
 ): HTMLElement {
+  const card = document.createElement('div');
+  card.className = 'admin-author-card';
+
   const row = document.createElement('div');
   row.className = 'admin-author-row';
 
@@ -127,6 +140,29 @@ function renderAuthorRow(
 
   row.appendChild(main);
 
+  // Actie-knoppen rechts
+  if (!author.is_admin && !author.is_active) {
+    const activateBtn = document.createElement('button');
+    activateBtn.type = 'button';
+    activateBtn.className = 'admin-activate';
+    activateBtn.textContent = 'Activeer';
+    activateBtn.addEventListener('click', () => {
+      void activate(author, activateBtn, listContainer, statusBox);
+    });
+    row.appendChild(activateBtn);
+  }
+
+  if (!author.is_admin) {
+    const expandBtn = document.createElement('button');
+    expandBtn.type = 'button';
+    expandBtn.className = 'admin-expand';
+    expandBtn.textContent = 'Statement uploaden';
+    expandBtn.addEventListener('click', () => {
+      toggleUploadPanel(card, author);
+    });
+    row.appendChild(expandBtn);
+  }
+
   const status = document.createElement('span');
   status.className = 'admin-author-status';
   if (author.is_admin) {
@@ -138,19 +174,27 @@ function renderAuthorRow(
   } else {
     status.textContent = 'inactief';
     status.classList.add('status-inactive');
-
-    const activateBtn = document.createElement('button');
-    activateBtn.type = 'button';
-    activateBtn.className = 'admin-activate';
-    activateBtn.textContent = 'Activeer';
-    activateBtn.addEventListener('click', () => {
-      void activate(author, activateBtn, listContainer, statusBox);
-    });
-    row.appendChild(activateBtn);
   }
-
   row.appendChild(status);
-  return row;
+
+  card.appendChild(row);
+  return card;
+}
+
+function toggleUploadPanel(card: HTMLElement, author: AuthorRow): void {
+  const existing = card.querySelector('.admin-upload-panel');
+  if (existing !== null) {
+    existing.remove();
+    return;
+  }
+  const panel = document.createElement('div');
+  panel.className = 'admin-upload-panel';
+  panel.appendChild(
+    buildStatementUploadForm(author, () => {
+      panel.remove();
+    })
+  );
+  card.appendChild(panel);
 }
 
 async function activate(
