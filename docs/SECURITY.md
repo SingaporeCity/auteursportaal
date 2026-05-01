@@ -176,16 +176,17 @@ Edge Functions draaien in Supabase's Deno-runtime, server-side. CORS in de funct
 
 ## 10. Bekende beperkingen / open punten
 
-| Item                                 | Status        | Toelichting                                                                                                                                      |
-| ------------------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Microsoft Entra SSO                  | Placeholder   | Wacht op Infinitas IT: Azure tenant-ID + OAuth client-ID/secret + admin consent                                                                  |
-| BSN/geboortedatum Charlotte          | Onbekend      | Default placeholders (`000000000` / `1900-01-01`) — UI toont "ontbreekt"                                                                         |
-| Custom domain TLS                    | Pending       | DNS-CNAME-switch pas na go-live                                                                                                                  |
-| Playwright E2E tests                 | In progress   | Task #20                                                                                                                                         |
-| Audit logging buiten `login_history` | Niet voor MVP | Profile-changes worden via `change_requests`-tabel gelogd; admin-acties (statement upload, change approval) hebben geen aparte audit-trail tabel |
-| Rate-limiting expense submissions    | Niet voor MVP | Supabase platform-level rate-limiting; geen per-user throttle                                                                                    |
-| MFA voor admin                       | Niet voor MVP | Komt automatisch met SSO (Entra ID)                                                                                                              |
-| File-upload virusscan                | Niet voor MVP | PDF-only enforcement; admin-only access. Voor zwaardere garantie: ClamAV-integratie via Edge Function                                            |
+| Item                                 | Status                    | Toelichting                                                                                                                                                                                                          |
+| ------------------------------------ | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Microsoft Entra SSO                  | Placeholder               | Wacht op Infinitas IT: Azure tenant-ID + OAuth client-ID/secret + admin consent                                                                                                                                      |
+| BSN/geboortedatum Charlotte          | Onbekend                  | Default placeholders (`000000000` / `1900-01-01`) — UI toont "ontbreekt"                                                                                                                                             |
+| Custom domain TLS                    | Pending                   | DNS-CNAME-switch pas na go-live                                                                                                                                                                                      |
+| Playwright E2E tests                 | In progress               | Task #20                                                                                                                                                                                                             |
+| Email delivery (recovery + invite)   | Standaard Supabase mailer | Free tier: 3 emails/uur per project, vanaf `noreply@mail.app.supabase.io`. Hotmail/Outlook blokkeert vaak als spam. **Productie vereist eigen SMTP** (Resend / SendGrid / AWS SES) via Supabase Auth → SMTP settings |
+| Audit logging buiten `login_history` | Niet voor MVP             | Profile-changes worden via `change_requests`-tabel gelogd; admin-acties (statement upload, change approval) hebben geen aparte audit-trail tabel                                                                     |
+| Rate-limiting expense submissions    | Niet voor MVP             | Supabase platform-level rate-limiting; geen per-user throttle                                                                                                                                                        |
+| MFA voor admin                       | Niet voor MVP             | Komt automatisch met SSO (Entra ID)                                                                                                                                                                                  |
+| File-upload virusscan                | Niet voor MVP             | PDF-only enforcement; admin-only access. Voor zwaardere garantie: ClamAV-integratie via Edge Function                                                                                                                |
 
 ## 11. Verificatie / hoe te testen
 
