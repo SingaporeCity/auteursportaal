@@ -1,6 +1,11 @@
 /**
  * Gedeelde app-header voor auteur-dashboard én admin-pagina.
- * Bevat logo + sub-label + greeting + dark-mode toggle + uitloggen.
+ *
+ * Layout (5-koloms grid zoals demo):
+ *   logo + sub-label  |  search-trigger  |  taal-toggle  |  dark-toggle  |  logout
+ *
+ * Greeting staat NIET meer in de header — die is verplaatst naar de
+ * `welcome-section` boven de tabs (zie `welcome-section.ts`).
  *
  * @module views/shared/header
  */
@@ -9,8 +14,9 @@ import { signOut } from '@/auth';
 import { t, getLocale, setLocale, listSupportedLocales } from '@/lib/i18n';
 import { toggleTheme } from '@/lib/theme';
 import type { SupportedLocale } from '@/i18n/types';
+import { openCommandPalette } from './command-palette';
 
-export function buildAppHeader(displayName: string): HTMLElement {
+export function buildAppHeader(): HTMLElement {
   const header = document.createElement('header');
   header.className = 'app-header';
 
@@ -35,16 +41,13 @@ export function buildAppHeader(displayName: string): HTMLElement {
 
   header.appendChild(brand);
 
-  // -- Acties (greeting + theme toggle + logout)
+  // -- Search trigger (opent command palette)
+  header.appendChild(buildSearchTrigger());
+
+  // -- Acties container
   const actions = document.createElement('div');
   actions.className = 'app-header-actions';
 
-  const greeting = document.createElement('span');
-  greeting.className = 'app-header-greeting';
-  greeting.textContent = `${greetingFor(new Date())}, ${displayName}`;
-  actions.appendChild(greeting);
-
-  // Taal-toggle (NL / EN / SV)
   actions.appendChild(buildLangToggle());
 
   const themeBtn = document.createElement('button');
@@ -70,6 +73,35 @@ export function buildAppHeader(displayName: string): HTMLElement {
   return header;
 }
 
+function buildSearchTrigger(): HTMLElement {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'header-search-trigger';
+  btn.setAttribute('aria-label', 'Zoeken (Ctrl+K)');
+
+  const iconWrap = document.createElement('span');
+  iconWrap.className = 'header-search-icon';
+  iconWrap.innerHTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+  btn.appendChild(iconWrap);
+
+  const label = document.createElement('span');
+  label.className = 'header-search-label';
+  label.textContent = 'Zoeken…';
+  btn.appendChild(label);
+
+  const kbd = document.createElement('kbd');
+  kbd.className = 'header-search-kbd';
+  const isMac = navigator.userAgent.includes('Mac');
+  kbd.textContent = isMac ? '⌘K' : 'Ctrl K';
+  btn.appendChild(kbd);
+
+  btn.addEventListener('click', () => {
+    openCommandPalette();
+  });
+  return btn;
+}
+
 function buildLangToggle(): HTMLElement {
   const wrap = document.createElement('div');
   wrap.className = 'lang-toggle';
@@ -85,24 +117,9 @@ function buildLangToggle(): HTMLElement {
     btn.textContent = locale.toUpperCase();
     btn.addEventListener('click', () => {
       setLocale(locale satisfies SupportedLocale);
-      // Hard reload zodat alle gerenderde labels meedoen
       window.location.reload();
     });
     wrap.appendChild(btn);
   }
   return wrap;
-}
-
-function greetingFor(date: Date): string {
-  const hour = date.getHours();
-  if (hour < 6) {
-    return t('greeting.night');
-  }
-  if (hour < 12) {
-    return t('greeting.morning');
-  }
-  if (hour < 18) {
-    return t('greeting.afternoon');
-  }
-  return t('greeting.evening');
 }

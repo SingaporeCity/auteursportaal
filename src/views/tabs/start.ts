@@ -10,11 +10,9 @@
  * @module views/tabs/start
  */
 
-import type { AuthorRow } from '@/auth';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { reportError } from '@/dev/debug-panel';
-import { t } from '@/lib/i18n';
 import type { Database, PaymentType } from '@/types/db';
 
 type PaymentRow = Database['public']['Tables']['payments']['Row'];
@@ -37,21 +35,9 @@ const TYPE_COLOR: Record<PaymentType, string> = {
   jaaropgave: 'var(--color-accent-purple)',
 };
 
-export function renderStartTab(container: HTMLElement, author: AuthorRow): void {
-  const welcome = document.createElement('div');
-  welcome.className = 'start-welcome';
-
-  const heading = document.createElement('h2');
-  heading.textContent = `${greetingFor(new Date())}, ${author.first_name}`;
-  welcome.appendChild(heading);
-
-  const sub = document.createElement('p');
-  sub.className = 'start-welcome-sub';
-  sub.textContent = t('app.tagline');
-  welcome.appendChild(sub);
-
-  container.appendChild(welcome);
-
+export function renderStartTab(container: HTMLElement): void {
+  // Greeting + tagline staan nu in de welcome-section boven de tabs
+  // (zie src/views/shared/welcome-section.ts) — niet meer hier.
   const slot = document.createElement('div');
   slot.className = 'start-slot';
   slot.textContent = '…';
@@ -100,14 +86,13 @@ async function loadAndRender(container: HTMLElement): Promise<void> {
 
   container.appendChild(buildRoyaltyChart(royalties, paidYears));
 
-  // Events + News in 2-koloms grid
+  // Events + News + Academy in 3-koloms grid (zoals demo)
   const eventsNewsGrid = document.createElement('div');
-  eventsNewsGrid.className = 'start-events-news';
+  eventsNewsGrid.className = 'start-events-news start-events-news-3';
   eventsNewsGrid.appendChild(buildEventsTile());
   eventsNewsGrid.appendChild(buildNewsTile());
+  eventsNewsGrid.appendChild(buildAcademyTile());
   container.appendChild(eventsNewsGrid);
-
-  container.appendChild(buildAcademyTile());
 }
 
 // =============================================================================
@@ -644,18 +629,4 @@ function computeYoY(current: number, previous: number): YoY | null {
     direction: change > 0 ? 'up' : 'down',
     percentage: Math.abs(change).toFixed(1),
   };
-}
-
-function greetingFor(date: Date): string {
-  const hour = date.getHours();
-  if (hour < 6) {
-    return t('greeting.night');
-  }
-  if (hour < 12) {
-    return t('greeting.morning');
-  }
-  if (hour < 18) {
-    return t('greeting.afternoon');
-  }
-  return t('greeting.evening');
 }

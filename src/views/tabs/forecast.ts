@@ -67,6 +67,11 @@ async function loadAndRender(container: HTMLElement): Promise<void> {
   }
   container.appendChild(topRow);
 
+  // History-bars: daadwerkelijke uitbetalingen per jaar (zelfde data als afrekeningen)
+  if (payments.length > 0) {
+    container.appendChild(buildHistoryBars(payments));
+  }
+
   // -- Chart card
   container.appendChild(buildChart(payments, forecasts));
 
@@ -123,6 +128,63 @@ function buildAnnouncementCard(announcementDate: string): HTMLElement {
   note.textContent = 'U ontvangt automatisch bericht.';
   card.appendChild(note);
 
+  return card;
+}
+
+function buildHistoryBars(payments: PaymentRow[]): HTMLElement {
+  const card = document.createElement('div');
+  card.className = 'forecast-chart-card';
+
+  const heading = document.createElement('h3');
+  heading.className = 'dash-tile-title';
+  heading.textContent = 'Daadwerkelijke uitbetalingen per jaar';
+  card.appendChild(heading);
+
+  // Group op uitbetaal-jaar (year of payment_date), exclude jaaropgaves
+  const royalties = payments.filter((p) => p.type !== 'jaaropgave');
+  const byYear = new Map<number, number>();
+  for (const p of royalties) {
+    if (p.payment_date === null) {
+      continue;
+    }
+    const year = new Date(p.payment_date).getFullYear();
+    byYear.set(year, (byYear.get(year) ?? 0) + p.amount);
+  }
+
+  const years = [...byYear.keys()].sort((a, b) => b - a);
+  const max = Math.max(...byYear.values());
+  const scale = max * 1.15;
+
+  const rows = document.createElement('div');
+  rows.className = 'forecast-rows';
+
+  for (const year of years) {
+    const amount = byYear.get(year) ?? 0;
+    const row = document.createElement('div');
+    row.className = 'forecast-bar-row';
+
+    const yearEl = document.createElement('span');
+    yearEl.className = 'forecast-bar-year';
+    yearEl.textContent = String(year);
+    row.appendChild(yearEl);
+
+    const track = document.createElement('div');
+    track.className = 'forecast-bar-track';
+    const fill = document.createElement('div');
+    fill.className = 'forecast-bar-fill';
+    fill.style.width = `${String((amount / scale) * 100)}%`;
+    track.appendChild(fill);
+    row.appendChild(track);
+
+    const value = document.createElement('span');
+    value.className = 'forecast-bar-value';
+    value.textContent = formatCurrency(amount);
+    row.appendChild(value);
+
+    rows.appendChild(row);
+  }
+
+  card.appendChild(rows);
   return card;
 }
 

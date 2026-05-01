@@ -71,26 +71,8 @@ async function load(state: State, repaint: () => void): Promise<void> {
 
 function renderStats(container: HTMLElement, contracts: ContractRow[]): void {
   container.replaceChildren();
-
-  const count = contracts.length;
-  const royalties = contracts
-    .map((c) => c.royalty_percentage)
-    .filter((r): r is number => r !== null);
-  const avgRoyalty =
-    royalties.length > 0 ? royalties.reduce((sum, r) => sum + r, 0) / royalties.length : null;
-  const startDates = contracts
-    .map((c) => c.start_date)
-    .filter((d): d is string => d !== null)
-    .sort();
-  const firstStart = startDates[0] ?? null;
-
-  container.appendChild(buildStat('Actieve contracten', String(count)));
-  container.appendChild(
-    buildStat('Gem. royalty', avgRoyalty !== null ? `${avgRoyalty.toFixed(1)}%` : '—')
-  );
-  container.appendChild(
-    buildStat('Eerste contract', firstStart !== null ? formatDate(firstStart) : '—')
-  );
+  // Alleen 'Actieve contracten' tegel — Gem. royalty + Eerste contract weg
+  container.appendChild(buildStat('Actieve contracten', String(contracts.length)));
 }
 
 function buildStat(label: string, value: string): HTMLElement {

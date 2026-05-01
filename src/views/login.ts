@@ -101,12 +101,19 @@ function buildBrandPanel(): HTMLElement {
   wrap.appendChild(subtitle);
 
   const stats = el('div', 'auth-brand-stats');
-  stats.appendChild(buildStat('190', 'jaar'));
-  stats.appendChild(buildStat('2.500+', 'auteurs'));
+  stats.appendChild(buildStat('190', 'jaar ervaring'));
+  stats.appendChild(el('div', 'auth-brand-stat-divider'));
+  stats.appendChild(buildStat('2.500+', 'actieve auteurs'));
+  stats.appendChild(el('div', 'auth-brand-stat-divider'));
   stats.appendChild(buildStat('1.000+', 'publicaties'));
   wrap.appendChild(stats);
 
   panel.appendChild(wrap);
+
+  const footer = el('div', 'auth-brand-footer');
+  footer.textContent = `© ${String(new Date().getFullYear())} Noordhoff Uitgevers`;
+  panel.appendChild(footer);
+
   return panel;
 }
 
@@ -126,6 +133,8 @@ function buildStat(num: string, label: string): HTMLElement {
 // =============================================================================
 function buildLoginForm({ onForgotClick }: { onForgotClick: () => void }): HTMLElement {
   const card = el('div', 'auth-card');
+
+  card.appendChild(buildMobileLogo());
 
   const heading = el('h2');
   heading.textContent = t('auth.login.title');
@@ -215,6 +224,8 @@ function buildForgotForm({
 }): HTMLElement {
   const card = el('div', 'auth-card');
 
+  card.appendChild(buildMobileLogo());
+
   const heading = el('h2');
   heading.textContent = t('auth.login.forgot_password');
   card.appendChild(heading);
@@ -260,6 +271,9 @@ function buildForgotForm({
 
 function buildForgotSent({ onBack }: { onBack: () => void }): HTMLElement {
   const card = el('div', 'auth-card');
+
+  card.appendChild(buildMobileLogo());
+
   const heading = el('h2');
   heading.textContent = '✉️';
   card.appendChild(heading);
@@ -304,6 +318,16 @@ function buildSsoSection(): HTMLElement {
     });
     wrap.appendChild(ssoBtn);
   }
+  return wrap;
+}
+
+function buildMobileLogo(): HTMLElement {
+  const wrap = el('div', 'auth-logo-mobile');
+  const logo = document.createElement('img');
+  logo.src = '/noordhoff-logo.png';
+  logo.alt = 'Noordhoff';
+  logo.className = 'auth-logo-mobile-img';
+  wrap.appendChild(logo);
   return wrap;
 }
 

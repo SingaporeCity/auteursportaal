@@ -213,7 +213,7 @@ function renderList(container: HTMLElement, state: State): void {
     if (showYearHeaders) {
       const yearHeader = document.createElement('h3');
       yearHeader.className = 'payments-year-header';
-      yearHeader.textContent = `Uitgekeerd in ${String(year)}`;
+      yearHeader.textContent = String(year);
       container.appendChild(yearHeader);
     }
     items.forEach((p) => container.appendChild(renderPaymentRow(p)));

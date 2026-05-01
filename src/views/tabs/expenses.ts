@@ -214,24 +214,6 @@ function buildForm(statusBox: HTMLElement, onSuccess: () => void): HTMLElement {
   form.className = 'expenses-form';
 
   const desc = labeledInput('description', t('expenses.field_description'), 'text', true);
-  const amount = labeledInput('amount', t('expenses.field_amount'), 'number', true);
-  amount.input.step = '0.01';
-  amount.input.min = '0.01';
-
-  const typeWrap = document.createElement('label');
-  typeWrap.className = 'auth-field';
-  const typeSpan = document.createElement('span');
-  typeSpan.textContent = t('expenses.field_type');
-  typeWrap.appendChild(typeSpan);
-  const typeSelect = document.createElement('select');
-  typeSelect.name = 'expense_type';
-  for (const value of ['onkosten', 'idc'] satisfies ExpenseType[]) {
-    const opt = document.createElement('option');
-    opt.value = value;
-    opt.textContent = value === 'onkosten' ? 'Onkosten (reis/bureau)' : 'IDC (projectkosten)';
-    typeSelect.appendChild(opt);
-  }
-  typeWrap.appendChild(typeSelect);
 
   const fileWrap = document.createElement('div');
   fileWrap.className = 'auth-field';
@@ -298,8 +280,6 @@ function buildForm(statusBox: HTMLElement, onSuccess: () => void): HTMLElement {
   });
 
   form.appendChild(desc.field);
-  form.appendChild(amount.field);
-  form.appendChild(typeWrap);
   form.appendChild(fileWrap);
 
   const submit = document.createElement('button');
@@ -326,8 +306,8 @@ function buildForm(statusBox: HTMLElement, onSuccess: () => void): HTMLElement {
     void submitExpense(
       {
         description: desc.input.value.trim(),
-        amount: Number(amount.input.value),
-        expense_type: typeSelect.value as ExpenseType,
+        amount: 0,
+        expense_type: 'onkosten',
         file,
       },
       submit,

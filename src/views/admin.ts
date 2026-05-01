@@ -19,7 +19,7 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
 
   const layout = document.createElement('div');
   layout.className = 'app-shell';
-  layout.appendChild(buildAppHeader(`${admin.first_name} ${admin.last_name} (admin)`));
+  layout.appendChild(buildAppHeader());
 
   const main = document.createElement('main');
   main.className = 'admin-content';

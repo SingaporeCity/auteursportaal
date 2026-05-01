@@ -57,4 +57,38 @@ test.describe('Dashboard tabs', () => {
     await expect(page.locator('.faq-category')).toHaveCount(4, { timeout: 5000 });
     await expect(page.locator('.faq-item')).toHaveCount(14);
   });
+
+  // -- Iteration 2 design polish --
+
+  test('welcome-section toont greeting boven de tabs', async ({ page }) => {
+    await expect(page.locator('.welcome-section .welcome-heading')).toBeVisible();
+    // Header bevat geen greeting meer
+    await expect(page.locator('.app-header .welcome-heading')).toHaveCount(0);
+  });
+
+  test('topbar bevat search-trigger met ⌘K badge', async ({ page }) => {
+    await expect(page.locator('.header-search-trigger')).toBeVisible();
+    await expect(page.locator('.header-search-kbd')).toBeVisible();
+  });
+
+  test('command palette opent met Ctrl+K en sluit met Escape', async ({ page }) => {
+    await page.keyboard.press('Control+K');
+    await expect(page.locator('.cmd-modal')).toBeVisible({ timeout: 2000 });
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.cmd-modal')).toHaveCount(0);
+  });
+
+  test('contracten tab heeft één stat-tegel (Actieve contracten)', async ({ page }) => {
+    await page.click('button.tab-btn[data-tab="contracts"]');
+    await expect(page.locator('.contracts-stat')).toHaveCount(1, { timeout: 5000 });
+  });
+
+  test('declaraties form heeft alleen omschrijving + dropzone', async ({ page }) => {
+    await page.click('button.tab-btn[data-tab="expenses"]');
+    // Enter Submit-form
+    await page.click('.expenses-form-card-option:first-child');
+    // Geen amount/type invoer meer — alleen omschrijving (textarea/input) + dropzone
+    await expect(page.locator('.expenses-form input[type="number"]')).toHaveCount(0);
+    await expect(page.locator('.expenses-form select')).toHaveCount(0);
+  });
 });

@@ -9,6 +9,9 @@
  */
 
 import type { AuthorRow } from '@/auth';
+import { buildWelcomeSection } from './shared/welcome-section';
+import { registerGlobalCmdKShortcut } from './shared/command-palette';
+import { buildMobileTabToggle } from './shared/mobile-tabs';
 import { renderProfileTab } from './tabs/profile';
 import { renderPaymentsTab } from './tabs/payments';
 import { renderStartTab } from './tabs/start';
@@ -38,18 +41,28 @@ export function renderDashboardView(root: HTMLElement, author: AuthorRow): void 
   const layout = document.createElement('div');
   layout.className = 'app-shell';
 
-  layout.appendChild(buildAppHeader(`${author.first_name} ${author.last_name}`));
+  layout.appendChild(buildAppHeader());
 
   const dashContent = document.createElement('div');
   dashContent.className = 'dashboard-content';
   layout.appendChild(dashContent);
 
+  // Welcome section staat boven de tabs (greeting + tagline)
+  dashContent.appendChild(buildWelcomeSection(author));
+
   const tabsContainer = document.createElement('section');
   tabsContainer.className = 'tabs-container';
   dashContent.appendChild(tabsContainer);
 
+  registerGlobalCmdKShortcut();
+
   const tabsNav = document.createElement('nav');
   tabsNav.className = 'tabs-nav';
+
+  const firstTab = TABS[0];
+  const initialLabel = firstTab !== undefined ? t(firstTab.labelKey) : '';
+  const mobileToggleHandle = buildMobileTabToggle(tabsNav, initialLabel);
+  tabsContainer.appendChild(mobileToggleHandle.toggle);
   tabsContainer.appendChild(tabsNav);
 
   const content = document.createElement('main');
@@ -66,6 +79,11 @@ export function renderDashboardView(root: HTMLElement, author: AuthorRow): void 
       const btn = node as HTMLButtonElement;
       btn.classList.toggle('active', btn.dataset['tab'] === target);
     });
+    const targetTab = TABS.find((tab) => tab.id === target);
+    if (targetTab !== undefined) {
+      mobileToggleHandle.setLabel(t(targetTab.labelKey));
+    }
+    mobileToggleHandle.close();
     renderTabContent(content, target, author);
   }
 
@@ -100,7 +118,7 @@ function renderTabContent(container: HTMLElement, tab: TabId, author: AuthorRow)
 
   switch (tab) {
     case 'start':
-      renderStartTab(container, author);
+      renderStartTab(container);
       return;
     case 'payments':
       renderPaymentsTab(container);
