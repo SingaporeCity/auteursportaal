@@ -13,6 +13,7 @@
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { reportError } from '@/dev/debug-panel';
+import { t } from '@/lib/i18n';
 import type { Database, PaymentType } from '@/types/db';
 
 type PaymentRow = Database['public']['Tables']['payments']['Row'];
@@ -135,7 +136,7 @@ function buildEventsTile(): HTMLElement {
   header.className = 'dash-tile-header';
   const title = document.createElement('h3');
   title.className = 'dash-tile-title';
-  title.textContent = 'Aankomende evenementen';
+  title.textContent = t('start.events_title');
   header.appendChild(title);
   tile.appendChild(header);
 
@@ -191,7 +192,7 @@ function buildNewsTile(): HTMLElement {
   header.className = 'dash-tile-header';
   const title = document.createElement('h3');
   title.className = 'dash-tile-title';
-  title.textContent = 'Laatste nieuws';
+  title.textContent = t('start.news_title');
   header.appendChild(title);
   tile.appendChild(header);
 
@@ -244,7 +245,7 @@ function buildYearInReview(
 
   const badge = document.createElement('span');
   badge.className = 'yr-badge';
-  badge.textContent = 'Jaaroverzicht';
+  badge.textContent = t('start.year_review_badge');
   header.appendChild(badge);
 
   const yearLabel = document.createElement('span');
@@ -264,7 +265,7 @@ function buildYearInReview(
 
   const heroLabel = document.createElement('div');
   heroLabel.className = 'yr-hero-label';
-  heroLabel.textContent = `Uitgekeerd in ${String(reviewYear)}`;
+  heroLabel.textContent = t('start.paid_in_year').replace('{year}', String(reviewYear));
   hero.appendChild(heroLabel);
 
   const heroValue = document.createElement('div');
@@ -276,7 +277,8 @@ function buildYearInReview(
     const change = document.createElement('span');
     change.className = `yr-hero-change ${yoy.direction}`;
     const arrow = yoy.direction === 'up' ? '▲' : yoy.direction === 'down' ? '▼' : '–';
-    change.textContent = `${arrow} ${yoy.percentage}% t.o.v. ${String(reviewYear - 1)}`;
+    const yoyVs = t('start.yoy_vs').replace('{prevYear}', String(reviewYear - 1));
+    change.textContent = `${arrow} ${yoy.percentage}% ${yoyVs}`;
     hero.appendChild(change);
   }
 
@@ -308,7 +310,7 @@ function buildTotalFromBlock(payments: PaymentRow[]): HTMLElement {
 
   const label = document.createElement('span');
   label.className = 'yr-stat-label';
-  label.textContent = 'Totaal vanaf';
+  label.textContent = t('start.total_since');
   labelRow.appendChild(label);
   block.appendChild(labelRow);
 
@@ -366,7 +368,7 @@ function buildLastPaymentBlock(payments: PaymentRow[]): HTMLElement {
 
   const label = document.createElement('div');
   label.className = 'yr-stat-label';
-  label.textContent = 'Laatste betaling';
+  label.textContent = t('start.last_payment');
   block.appendChild(label);
 
   // payments parameter bevat al alleen royalty's (jaaropgaves geëxcludeerd)
@@ -378,7 +380,8 @@ function buildLastPaymentBlock(payments: PaymentRow[]): HTMLElement {
 
   const valueEl = document.createElement('div');
   valueEl.className = 'yr-stat-value';
-  valueEl.textContent = last !== undefined ? formatCurrency(last.amount) : '—';
+  valueEl.textContent =
+    last !== undefined ? formatCurrency(last.amount) : t('common.not_available_dash');
   block.appendChild(valueEl);
 
   const sub = document.createElement('div');
@@ -396,7 +399,7 @@ function buildForecastBlock(forecasts: ForecastRow[]): HTMLElement {
 
   const label = document.createElement('div');
   label.className = 'yr-stat-label';
-  label.textContent = `Verwacht in ${String(FORECAST_YEAR)}`;
+  label.textContent = t('start.expected_in_year').replace('{year}', String(FORECAST_YEAR));
   block.appendChild(label);
 
   const fc = forecasts.find((f) => f.year === FORECAST_YEAR);
@@ -407,7 +410,7 @@ function buildForecastBlock(forecasts: ForecastRow[]): HTMLElement {
     valueEl.textContent = `${formatCurrency(fc.min_amount)} — ${formatCurrency(fc.max_amount)}`;
     valueEl.classList.add('yr-stat-value-range');
   } else {
-    valueEl.textContent = 'Wordt bekendgemaakt';
+    valueEl.textContent = t('start.tba');
     valueEl.classList.add('yr-stat-value-pending');
   }
   block.appendChild(valueEl);
@@ -416,8 +419,8 @@ function buildForecastBlock(forecasts: ForecastRow[]): HTMLElement {
   sub.className = 'yr-stat-sub';
   sub.textContent =
     fc !== undefined && fc.max_amount > 0
-      ? 'Indicatieve bandbreedte'
-      : `Op ${FORECAST_ANNOUNCEMENT_DATE}`;
+      ? t('forecast.range_sub')
+      : t('start.on_date').replace('{date}', FORECAST_ANNOUNCEMENT_DATE);
   block.appendChild(sub);
 
   return block;
@@ -434,7 +437,7 @@ function buildRoyaltyChart(payments: PaymentRow[], years: number[]): HTMLElement
   header.className = 'dash-tile-header';
   const title = document.createElement('h3');
   title.className = 'dash-tile-title';
-  title.textContent = 'Royalty-overzicht';
+  title.textContent = t('start.royalty_overview');
   header.appendChild(title);
   tile.appendChild(header);
 
@@ -514,7 +517,7 @@ function buildYearCard(payments: PaymentRow[], year: number, index: number): HTM
   } else {
     const placeholder = document.createElement('div');
     placeholder.className = 'chart-card-placeholder';
-    placeholder.textContent = 'Bedragen nog niet ingevoerd';
+    placeholder.textContent = t('start.amounts_pending');
     card.appendChild(placeholder);
   }
 
@@ -566,7 +569,7 @@ function buildAcademyTile(): HTMLElement {
 
   const label = document.createElement('span');
   label.className = 'academy-tile-label';
-  label.textContent = 'ACADEMY';
+  label.textContent = t('start.academy_label');
   header.appendChild(label);
 
   const arrow = document.createElement('span');
@@ -578,7 +581,7 @@ function buildAcademyTile(): HTMLElement {
 
   const desc = document.createElement('p');
   desc.className = 'academy-tile-desc';
-  desc.textContent = 'Workshops, didactiek en digitale tools om je auteurschap te verdiepen.';
+  desc.textContent = t('start.academy_desc');
   link.appendChild(desc);
 
   const tags = document.createElement('div');

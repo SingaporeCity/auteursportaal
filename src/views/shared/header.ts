@@ -36,7 +36,7 @@ export function buildAppHeader(): HTMLElement {
 
   const sub = document.createElement('span');
   sub.className = 'app-header-sub';
-  sub.textContent = 'Auteursportaal';
+  sub.textContent = t('header.app_label');
   brand.appendChild(sub);
 
   header.appendChild(brand);
@@ -87,7 +87,7 @@ function buildSearchTrigger(): HTMLElement {
 
   const label = document.createElement('span');
   label.className = 'header-search-label';
-  label.textContent = 'Zoeken…';
+  label.textContent = t('header.search_label');
   btn.appendChild(label);
 
   const kbd = document.createElement('kbd');

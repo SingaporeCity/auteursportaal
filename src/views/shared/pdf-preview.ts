@@ -9,6 +9,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { reportError } from '@/dev/debug-panel';
+import { t } from '@/lib/i18n';
 
 export interface PreviewOptions {
   filePath: string;
@@ -61,7 +62,7 @@ export async function openPdfPreview({ filePath, title, subtitle }: PreviewOptio
   downloadBtn.href = data.signedUrl;
   downloadBtn.target = '_blank';
   downloadBtn.rel = 'noopener noreferrer';
-  downloadBtn.textContent = 'Download';
+  downloadBtn.textContent = t('pdf.download');
   actions.appendChild(downloadBtn);
 
   const closeBtn = document.createElement('button');
@@ -80,7 +81,7 @@ export async function openPdfPreview({ filePath, title, subtitle }: PreviewOptio
 
   const loading = document.createElement('div');
   loading.className = 'pdf-preview-loading';
-  loading.textContent = 'PDF laden…';
+  loading.textContent = t('pdf.loading');
   body.appendChild(loading);
 
   const iframe = document.createElement('iframe');

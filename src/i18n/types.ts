@@ -42,15 +42,38 @@ export type TranslationKey =
   | 'auth.login.password_label'
   | 'auth.login.submit'
   | 'auth.login.forgot_password'
+  | 'auth.login.forgot_back'
+  | 'auth.login.forgot_sent'
   | 'auth.login.error_invalid'
   | 'auth.login.error_generic'
-  | 'auth.login.admin_sso'
-  | 'auth.login.admin_sso_disabled_notice'
+  | 'auth.login.brand_title'
+  | 'auth.login.brand_subtitle'
+  | 'auth.login.stat_years'
+  | 'auth.login.stat_authors'
+  | 'auth.login.stat_publications'
   | 'auth.set_password.title'
   | 'auth.set_password.submit'
   | 'auth.logout'
   | 'auth.no_access.title'
   | 'auth.no_access.message'
+
+  // Header / shared
+  | 'header.search_placeholder'
+  | 'header.search_label'
+  | 'header.app_label'
+
+  // Command palette
+  | 'cmd.placeholder'
+  | 'cmd.no_results'
+  | 'cmd.group_navigation'
+  | 'cmd.group_payments'
+  | 'cmd.group_contracts'
+  | 'cmd.group_faq'
+  | 'cmd.hint_open_tab'
+
+  // PDF preview
+  | 'pdf.download'
+  | 'pdf.loading'
 
   // Dashboard tabs
   | 'tabs.start'
@@ -90,23 +113,54 @@ export type TranslationKey =
   | 'start.kpi.statements_count'
   | 'start.kpi.last_payment'
   | 'start.recent_title'
+  | 'start.events_title'
+  | 'start.news_title'
+  | 'start.year_review_badge'
+  | 'start.total_since'
+  | 'start.last_payment'
+  | 'start.expected_next'
+  | 'start.tba'
+  | 'start.royalty_overview'
+  | 'start.amounts_pending'
+  | 'start.academy_label'
+  | 'start.academy_desc'
+  | 'start.paid_in_year'
+  | 'start.expected_in_year'
+  | 'start.yoy_vs'
+  | 'start.on_date'
+  | 'common.not_available_dash'
 
   // Payments tab
   | 'payments.title'
   | 'payments.empty'
   | 'payments.download'
   | 'payments.missing_pdf'
+  | 'payments.search_placeholder'
 
   // Contracts tab
   | 'contracts.title'
   | 'contracts.empty'
   | 'contracts.contact_text'
+  | 'contracts.search_placeholder'
+  | 'contracts.stat_active'
 
   // Forecast tab
   | 'forecast.title'
   | 'forecast.empty'
   | 'forecast.range_label'
   | 'forecast.disclaimer'
+  | 'forecast.pending_headline'
+  | 'forecast.pending_sub_part1'
+  | 'forecast.pending_sub_part2'
+  | 'forecast.publish_date_label'
+  | 'forecast.auto_notify'
+  | 'forecast.history_title'
+  | 'forecast.range_sub'
+  | 'forecast.payout_label'
+  | 'forecast.chart_title'
+  | 'forecast.eyebrow_year'
+  | 'forecast.payout_month'
+  | 'forecast.bar_year_projection'
 
   // Expenses tab
   | 'expenses.title'
@@ -122,6 +176,10 @@ export type TranslationKey =
   | 'expenses.status_approved'
   | 'expenses.status_rejected'
   | 'expenses.status_paid'
+  | 'expenses.vendor_id_label'
+  | 'expenses.rules_heading'
+  | 'expenses.dropzone_text'
+  | 'expenses.dropzone_hint'
 
   // FAQ tab
   | 'faq.title'

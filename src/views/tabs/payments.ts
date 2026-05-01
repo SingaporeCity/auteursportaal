@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { reportError } from '@/dev/debug-panel';
 import { openPdfPreview } from '@/views/shared/pdf-preview';
+import { t } from '@/lib/i18n';
 import type { Database, PaymentType } from '@/types/db';
 
 type PaymentRow = Database['public']['Tables']['payments']['Row'];
@@ -47,7 +48,7 @@ interface State {
 
 export function renderPaymentsTab(container: HTMLElement): void {
   const heading = document.createElement('h2');
-  heading.textContent = 'Royalty-afrekeningen';
+  heading.textContent = t('payments.title');
   container.appendChild(heading);
 
   const state: State = { payments: [], search: '', typeFilter: 'all' };
@@ -58,7 +59,7 @@ export function renderPaymentsTab(container: HTMLElement): void {
 
   const list = document.createElement('div');
   list.className = 'payments-list';
-  list.textContent = 'Laden…';
+  list.textContent = t('common.loading');
   container.appendChild(list);
 
   const repaint = (): void => {
@@ -101,7 +102,7 @@ function renderToolbar(container: HTMLElement, state: State, repaint: () => void
 
   const searchInput = document.createElement('input');
   searchInput.type = 'search';
-  searchInput.placeholder = 'Zoek op titel, datum of bedrag…';
+  searchInput.placeholder = t('payments.search_placeholder');
   searchInput.value = state.search;
   searchInput.addEventListener('input', () => {
     state.search = searchInput.value.trim().toLowerCase();
@@ -297,7 +298,7 @@ function renderPaymentRow(payment: PaymentRow): HTMLElement {
   } else {
     const missing = document.createElement('span');
     missing.className = 'payment-missing';
-    missing.textContent = 'PDF ontbreekt';
+    missing.textContent = t('payments.missing_pdf');
     row.appendChild(missing);
   }
 

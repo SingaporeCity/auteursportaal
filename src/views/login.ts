@@ -13,12 +13,7 @@
  * @module views/login
  */
 
-import {
-  signInWithPassword,
-  requestPasswordReset,
-  isAdminSsoEnabled,
-  signInWithAzure,
-} from '@/auth';
+import { signInWithPassword, requestPasswordReset } from '@/auth';
 import { isValidEmail } from '@/lib/validate';
 import { t } from '@/lib/i18n';
 
@@ -88,24 +83,20 @@ function buildBrandPanel(): HTMLElement {
   logo.className = 'auth-brand-logo';
   wrap.appendChild(logo);
 
-  const eyebrow = el('div', 'auth-brand-eyebrow');
-  eyebrow.textContent = 'Auteursportaal';
-  wrap.appendChild(eyebrow);
-
   const title = el('h1', 'auth-brand-title');
-  title.textContent = 'Inzicht in uw royalties.';
+  title.textContent = t('auth.login.brand_title');
   wrap.appendChild(title);
 
   const subtitle = el('p', 'auth-brand-subtitle');
-  subtitle.textContent = t('app.tagline');
+  subtitle.textContent = t('auth.login.brand_subtitle');
   wrap.appendChild(subtitle);
 
   const stats = el('div', 'auth-brand-stats');
-  stats.appendChild(buildStat('190', 'jaar ervaring'));
+  stats.appendChild(buildStat('190', t('auth.login.stat_years')));
   stats.appendChild(el('div', 'auth-brand-stat-divider'));
-  stats.appendChild(buildStat('2.500+', 'actieve auteurs'));
+  stats.appendChild(buildStat('2.500+', t('auth.login.stat_authors')));
   stats.appendChild(el('div', 'auth-brand-stat-divider'));
-  stats.appendChild(buildStat('1.000+', 'publicaties'));
+  stats.appendChild(buildStat('1.000+', t('auth.login.stat_publications')));
   wrap.appendChild(stats);
 
   panel.appendChild(wrap);
@@ -176,8 +167,6 @@ function buildLoginForm({ onForgotClick }: { onForgotClick: () => void }): HTMLE
   forgotLink.textContent = t('auth.login.forgot_password');
   forgotLink.addEventListener('click', onForgotClick);
   card.appendChild(forgotLink);
-
-  card.appendChild(buildSsoSection());
 
   return card;
 }
@@ -279,46 +268,16 @@ function buildForgotSent({ onBack }: { onBack: () => void }): HTMLElement {
   card.appendChild(heading);
 
   const msg = el('p');
-  msg.textContent =
-    'Als dit e-mailadres bij ons bekend is, ontvang je binnen enkele minuten een link om een nieuw wachtwoord in te stellen.';
+  msg.textContent = t('auth.login.forgot_sent');
   card.appendChild(msg);
 
   const back = el('button', 'auth-link');
   back.setAttribute('type', 'button');
-  back.textContent = '← terug naar inloggen';
+  back.textContent = t('auth.login.forgot_back');
   back.addEventListener('click', onBack);
   card.appendChild(back);
 
   return card;
-}
-
-// =============================================================================
-// SSO section (admin only, gated)
-// =============================================================================
-function buildSsoSection(): HTMLElement {
-  const wrap = el('div', 'auth-sso');
-  const divider = el('div', 'auth-divider');
-  divider.textContent = 'OF';
-  wrap.appendChild(divider);
-
-  const ssoBtn = el('button', 'auth-sso-btn');
-  ssoBtn.setAttribute('type', 'button');
-  ssoBtn.textContent = t('auth.login.admin_sso');
-
-  if (!isAdminSsoEnabled()) {
-    ssoBtn.setAttribute('disabled', 'disabled');
-    ssoBtn.classList.add('auth-sso-disabled');
-    const notice = el('small', 'auth-sso-notice');
-    notice.textContent = t('auth.login.admin_sso_disabled_notice');
-    wrap.appendChild(ssoBtn);
-    wrap.appendChild(notice);
-  } else {
-    ssoBtn.addEventListener('click', () => {
-      void signInWithAzure();
-    });
-    wrap.appendChild(ssoBtn);
-  }
-  return wrap;
 }
 
 function buildMobileLogo(): HTMLElement {

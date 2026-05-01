@@ -37,7 +37,7 @@ export function renderContractsTab(container: HTMLElement): void {
 
   const list = document.createElement('div');
   list.className = 'contracts-list';
-  list.textContent = 'Laden…';
+  list.textContent = t('common.loading');
   container.appendChild(list);
 
   const contact = document.createElement('p');
@@ -72,7 +72,7 @@ async function load(state: State, repaint: () => void): Promise<void> {
 function renderStats(container: HTMLElement, contracts: ContractRow[]): void {
   container.replaceChildren();
   // Alleen 'Actieve contracten' tegel — Gem. royalty + Eerste contract weg
-  container.appendChild(buildStat('Actieve contracten', String(contracts.length)));
+  container.appendChild(buildStat(t('contracts.stat_active'), String(contracts.length)));
 }
 
 function buildStat(label: string, value: string): HTMLElement {
@@ -102,7 +102,7 @@ function renderSearch(container: HTMLElement, state: State, repaint: () => void)
 
   const input = document.createElement('input');
   input.type = 'search';
-  input.placeholder = 'Zoek op naam of nummer…';
+  input.placeholder = t('contracts.search_placeholder');
   input.value = state.search;
   input.addEventListener('input', () => {
     state.search = input.value.trim().toLowerCase();

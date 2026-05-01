@@ -169,7 +169,7 @@ function buildVendorNotice(vendorId: string): HTMLElement {
 
   const label = document.createElement('span');
   label.className = 'expenses-vendor-label';
-  label.textContent = 'Vermeld uw Vendor ID op het formulier:';
+  label.textContent = t('expenses.vendor_id_label');
   notice.appendChild(label);
 
   const value = document.createElement('span');
@@ -185,7 +185,7 @@ function buildRulesBlock(): HTMLElement {
   wrap.className = 'expenses-rules';
 
   const heading = document.createElement('h3');
-  heading.textContent = 'Voor u declareert: lees de spelregels';
+  heading.textContent = t('expenses.rules_heading');
   wrap.appendChild(heading);
 
   const list = document.createElement('ul');
@@ -243,12 +243,12 @@ function buildForm(statusBox: HTMLElement, onSuccess: () => void): HTMLElement {
 
   const dropText = document.createElement('div');
   dropText.className = 'expense-dropzone-text';
-  dropText.textContent = 'Sleep een PDF hierheen of klik om te selecteren';
+  dropText.textContent = t('expenses.dropzone_text');
   dropzoneInner.appendChild(dropText);
 
   const dropHint = document.createElement('div');
   dropHint.className = 'expense-dropzone-hint';
-  dropHint.textContent = 'Alleen PDF, max 10 MB';
+  dropHint.textContent = t('expenses.dropzone_hint');
   dropzoneInner.appendChild(dropHint);
 
   dropzone.appendChild(dropzoneInner);
@@ -384,7 +384,7 @@ async function submitExpense(
 
   showStatus(statusBox, 'success', 'Declaratie ingediend — admin krijgt deze ter beoordeling.');
   form.reset();
-  dropText.textContent = 'Sleep een PDF hierheen of klik om te selecteren';
+  dropText.textContent = t('expenses.dropzone_text');
   onSuccess();
 }
 

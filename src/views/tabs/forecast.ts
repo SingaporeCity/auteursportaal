@@ -87,21 +87,21 @@ function buildPendingHero(year: number, announcementDate: string): HTMLElement {
 
   const eyebrow = document.createElement('div');
   eyebrow.className = 'forecast-eyebrow';
-  eyebrow.textContent = `Prognose ${String(year)}`;
+  eyebrow.textContent = `${t('forecast.title')} ${String(year)}`;
   card.appendChild(eyebrow);
 
   const headline = document.createElement('div');
   headline.className = 'forecast-pending-headline';
-  headline.textContent = 'Nog niet beschikbaar';
+  headline.textContent = t('forecast.pending_headline');
   card.appendChild(headline);
 
   const sub = document.createElement('p');
   sub.className = 'forecast-pending-sub';
-  const part1 = document.createTextNode('De prognose wordt jaarlijks gepubliceerd op ');
+  const part1 = document.createTextNode(t('forecast.pending_sub_part1'));
   const dateStrong = document.createElement('strong');
   dateStrong.textContent = announcementDate;
   const part2 = document.createTextNode(
-    `, na verwerking van de jaaromzet. Zodra de prognose voor ${String(year)} klaar staat, vindt u hier de verwachte royalty-range.`
+    t('forecast.pending_sub_part2').replace('{year}', String(year))
   );
   sub.append(part1, dateStrong, part2);
   card.appendChild(sub);
@@ -115,7 +115,7 @@ function buildAnnouncementCard(announcementDate: string): HTMLElement {
 
   const eyebrow = document.createElement('div');
   eyebrow.className = 'forecast-eyebrow';
-  eyebrow.textContent = 'Publicatiedatum';
+  eyebrow.textContent = t('forecast.publish_date_label');
   card.appendChild(eyebrow);
 
   const value = document.createElement('div');
@@ -125,7 +125,7 @@ function buildAnnouncementCard(announcementDate: string): HTMLElement {
 
   const note = document.createElement('div');
   note.className = 'forecast-announcement-note';
-  note.textContent = 'U ontvangt automatisch bericht.';
+  note.textContent = t('forecast.auto_notify');
   card.appendChild(note);
 
   return card;
@@ -137,7 +137,7 @@ function buildHistoryBars(payments: PaymentRow[]): HTMLElement {
 
   const heading = document.createElement('h3');
   heading.className = 'dash-tile-title';
-  heading.textContent = 'Daadwerkelijke uitbetalingen per jaar';
+  heading.textContent = t('forecast.history_title');
   card.appendChild(heading);
 
   // Group op uitbetaal-jaar (year of payment_date), exclude jaaropgaves
@@ -194,7 +194,7 @@ function buildHero(forecast: ForecastRow): HTMLElement {
 
   const eyebrow = document.createElement('div');
   eyebrow.className = 'forecast-eyebrow';
-  eyebrow.textContent = `Verwachte royalties ${String(forecast.year)}`;
+  eyebrow.textContent = t('forecast.eyebrow_year').replace('{year}', String(forecast.year));
   card.appendChild(eyebrow);
 
   const range = document.createElement('div');
@@ -204,7 +204,7 @@ function buildHero(forecast: ForecastRow): HTMLElement {
 
   const sub = document.createElement('div');
   sub.className = 'forecast-range-sub';
-  sub.textContent = 'Indicatieve bandbreedte';
+  sub.textContent = t('forecast.range_sub');
   card.appendChild(sub);
 
   return card;
@@ -225,12 +225,12 @@ function buildPayout(forecast: ForecastRow): HTMLElement {
 
   const eyebrow = document.createElement('div');
   eyebrow.className = 'forecast-eyebrow';
-  eyebrow.textContent = 'Uitbetaling';
+  eyebrow.textContent = t('forecast.payout_label');
   inner.appendChild(eyebrow);
 
   const value = document.createElement('div');
   value.className = 'forecast-payout-month';
-  value.textContent = `Maart ${String(forecast.year + 1)}`;
+  value.textContent = t('forecast.payout_month').replace('{year}', String(forecast.year + 1));
   inner.appendChild(value);
 
   card.appendChild(inner);
@@ -243,7 +243,7 @@ function buildChart(payments: PaymentRow[], forecasts: ForecastRow[]): HTMLEleme
 
   const heading = document.createElement('h3');
   heading.className = 'dash-tile-title';
-  heading.textContent = 'Verloop per jaar';
+  heading.textContent = t('forecast.chart_title');
   card.appendChild(heading);
 
   // Verzamel historische totalen per jaar uit payments (alleen years zonder forecast)
@@ -314,7 +314,7 @@ function buildForecastBar(forecast: ForecastRow, scale: number): HTMLElement {
 
   const yearEl = document.createElement('span');
   yearEl.className = 'forecast-bar-year';
-  yearEl.textContent = `${String(forecast.year)} · prognose`;
+  yearEl.textContent = t('forecast.bar_year_projection').replace('{year}', String(forecast.year));
   row.appendChild(yearEl);
 
   const track = document.createElement('div');

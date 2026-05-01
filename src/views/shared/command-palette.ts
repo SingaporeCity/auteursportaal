@@ -58,7 +58,7 @@ export function openCommandPalette(): void {
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'cmd-input';
-  input.placeholder = 'Zoek tabs, afrekeningen, contracten, FAQ…';
+  input.placeholder = t('cmd.placeholder');
   input.autocomplete = 'off';
   input.spellcheck = false;
   inputWrap.appendChild(input);
@@ -158,9 +158,9 @@ function baseCommands(): CommandItem[] {
   ];
 
   return tabs.map((tab) => ({
-    group: 'Navigatie',
+    group: t('cmd.group_navigation'),
     label: t(tab.key),
-    hint: 'Open tabblad',
+    hint: t('cmd.hint_open_tab'),
     action: () => {
       const btn = document.querySelector<HTMLButtonElement>(`button.tab-btn[data-tab="${tab.id}"]`);
       btn?.click();
@@ -179,7 +179,7 @@ async function loadDatabaseCommands(): Promise<CommandItem[]> {
   if (pErr === null) {
     payments.forEach((p) => {
       out.push({
-        group: 'Afrekeningen',
+        group: t('cmd.group_payments'),
         label: p.title_nl ?? `${p.type} ${String(p.year)}`,
         hint: p.payment_date ?? '',
         action: () => {
@@ -198,7 +198,7 @@ async function loadDatabaseCommands(): Promise<CommandItem[]> {
   if (cErr === null) {
     contracts.forEach((c) => {
       out.push({
-        group: 'Contracten',
+        group: t('cmd.group_contracts'),
         label: c.contract_name ?? c.contract_number,
         hint: c.contract_number,
         action: () => {
@@ -215,7 +215,7 @@ async function loadDatabaseCommands(): Promise<CommandItem[]> {
   // FAQ
   FAQ_ITEMS.forEach((item) => {
     out.push({
-      group: 'FAQ',
+      group: t('cmd.group_faq'),
       label: item.question,
       action: () => {
         document.querySelector<HTMLButtonElement>('button.tab-btn[data-tab="faq"]')?.click();
@@ -247,7 +247,7 @@ function renderResults(
   if (items.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'cmd-empty';
-    empty.textContent = 'Geen resultaten';
+    empty.textContent = t('cmd.no_results');
     container.appendChild(empty);
     return;
   }
