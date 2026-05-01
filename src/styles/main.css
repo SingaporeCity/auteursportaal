@@ -1,0 +1,54 @@
+/**
+ * Hoofd-stylesheet — wordt geïmporteerd door src/main.ts.
+ *
+ * Domein-specifieke stylesheets staan in subfolders:
+ * - src/styles/_variables.css   — design tokens (kleuren, radii, fonts)
+ * - src/styles/_components.css  — herbruikbare componenten
+ * - src/styles/auth.css         — login + onboarding schermen
+ * - src/styles/dashboard.css    — auteur-dashboard tabs
+ * - src/styles/admin.css        — admin-portaal
+ *
+ * Worden hier aan elkaar gelinkt zodra de port van de oude styles.css per
+ * domein is gesplitst.
+ */
+
+:root {
+  /* Noordhoff brand */
+  --color-primary: #007460;
+  --color-primary-dark: #005a49;
+  --color-primary-subtle: #f0faf7;
+  --color-bg: #ffffff;
+  --color-bg-alt: #f7f8fa;
+  --color-text: #111827;
+  --color-text-light: #6b7280;
+  --color-border: #e5e7eb;
+
+  /* Typography */
+  --font-sans: 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Spacing & radii */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-pill: 100px;
+}
+
+[data-theme='dark'] {
+  --color-bg: #0f1117;
+  --color-bg-alt: #161922;
+  --color-text: #e8eaed;
+  --color-text-light: #8b8fa4;
+  --color-border: #2a2d3a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}

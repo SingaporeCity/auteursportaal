@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files (anon-key + service-role moeten NOOIT in git)
+.env
+.env.local
+.env.*.local
+.env.production
+# Behalve het template:
+!.env.example
+
+# Persoonsgegevens / documenten — onder geen beding committen
+*.pdf
+*.xlsx
+*.docx
+*.pptx
+*.csv
+
+# Test/coverage output
+coverage/
+playwright-report/
+test-results/
+.vitest/
+
+# Editor / IDE
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Supabase CLI tijdelijke bestanden
+supabase/.temp/
+supabase/.branches/
+
+# Misc
+*.tmp
+*.temp
+~$*
