@@ -50,12 +50,43 @@ jobs:
           VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
           VITE_ADMIN_SSO_ENABLED: 'false'
 
-      - name: Verify no secrets leaked
+      - name: Verify no service_role JWT or env-var name in bundle
         run: |
-          if grep -r 'service_role' dist/ 2>/dev/null; then
-            echo "::error::service_role string gevonden in dist/"
-            exit 1
-          fi
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const files = [];
+            (function walk(dir) {
+              for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                const p = path.join(dir, entry.name);
+                if (entry.isDirectory()) walk(p);
+                else if (/\.(js|css|html)$/.test(entry.name)) files.push(p);
+              }
+            })('dist');
+
+            const jwtRegex = /eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g;
+            let leaks = 0;
+            for (const file of files) {
+              const content = fs.readFileSync(file, 'utf8');
+              if (content.includes('SUPABASE_SERVICE_ROLE_KEY')) {
+                console.error('::error file=' + file + '::SUPABASE_SERVICE_ROLE_KEY in bundle');
+                leaks++;
+              }
+              const tokens = content.match(jwtRegex) || [];
+              for (const token of tokens) {
+                const parts = token.split('.');
+                try {
+                  const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
+                  if (payload.role === 'service_role') {
+                    console.error('::error file=' + file + '::service_role JWT in bundle');
+                    leaks++;
+                  }
+                } catch {}
+              }
+            }
+            if (leaks > 0) process.exit(1);
+            console.log('✓ Geen service_role leaks');
+          "
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
