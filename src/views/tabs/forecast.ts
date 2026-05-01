@@ -48,26 +48,23 @@ async function loadAndRender(container: HTMLElement): Promise<void> {
 
   const forecasts = forecastRes.data;
   const payments = paymentRes.error === null ? paymentRes.data : [];
-  const currentYear = new Date().getFullYear();
 
-  if (forecasts.length === 0) {
-    const empty = document.createElement('div');
-    empty.className = 'empty-state';
-    empty.textContent = t('forecast.empty');
-    container.appendChild(empty);
-    return;
-  }
+  // Forecast jaar: zoek het volgende ongepubliceerde jaar (default 2027)
+  const forecastYear = forecasts.find((f) => f.max_amount > 0)?.year ?? 2027;
+  const announcementDate = '31 oktober 2026';
 
-  const current = forecasts.find((f) => f.year === currentYear) ?? forecasts[0];
-  if (current === undefined) {
-    return;
-  }
-
-  // -- Top row: hero + payout
+  // Top row: pending-card (groot) + announcement-card (rechts)
   const topRow = document.createElement('div');
   topRow.className = 'forecast-top-row';
-  topRow.appendChild(buildHero(current));
-  topRow.appendChild(buildPayout(current));
+
+  const fc = forecasts.find((f) => f.year === forecastYear);
+  if (fc !== undefined && fc.max_amount > 0) {
+    topRow.appendChild(buildHero(fc));
+    topRow.appendChild(buildPayout(fc));
+  } else {
+    topRow.appendChild(buildPendingHero(forecastYear, announcementDate));
+    topRow.appendChild(buildAnnouncementCard(announcementDate));
+  }
   container.appendChild(topRow);
 
   // -- Chart card
@@ -77,6 +74,66 @@ async function loadAndRender(container: HTMLElement): Promise<void> {
   disclaimer.className = 'forecast-disclaimer';
   disclaimer.textContent = t('forecast.disclaimer');
   container.appendChild(disclaimer);
+}
+
+function buildPendingHero(year: number, announcementDate: string): HTMLElement {
+  const card = document.createElement('div');
+  card.className = 'forecast-hero forecast-hero-pending';
+
+  const eyebrow = document.createElement('div');
+  eyebrow.className = 'forecast-eyebrow';
+  eyebrow.textContent = `Verwachte royalties ${String(year)}`;
+  card.appendChild(eyebrow);
+
+  const headline = document.createElement('div');
+  headline.className = 'forecast-pending-headline';
+  headline.textContent = 'Wordt nog vastgesteld';
+  card.appendChild(headline);
+
+  const sub = document.createElement('p');
+  sub.className = 'forecast-pending-sub';
+  sub.innerHTML = '';
+  const span1 = document.createElement('span');
+  span1.textContent = 'De prognose voor ';
+  const yearStrong = document.createElement('strong');
+  yearStrong.textContent = String(year);
+  const span2 = document.createElement('span');
+  span2.textContent = ' wordt bekendgemaakt op ';
+  const dateStrong = document.createElement('strong');
+  dateStrong.textContent = announcementDate;
+  const span3 = document.createElement('span');
+  span3.textContent = '. Je krijgt automatisch bericht zodra hij beschikbaar is.';
+  sub.append(span1, yearStrong, span2, dateStrong, span3);
+  card.appendChild(sub);
+
+  return card;
+}
+
+function buildAnnouncementCard(announcementDate: string): HTMLElement {
+  const card = document.createElement('div');
+  card.className = 'forecast-payout';
+
+  const icon = document.createElement('div');
+  icon.className = 'forecast-payout-icon';
+  icon.textContent = '📅';
+  icon.setAttribute('aria-hidden', 'true');
+  card.appendChild(icon);
+
+  const inner = document.createElement('div');
+  inner.className = 'forecast-payout-inner';
+
+  const eyebrow = document.createElement('div');
+  eyebrow.className = 'forecast-eyebrow';
+  eyebrow.textContent = 'Bekendmaking';
+  inner.appendChild(eyebrow);
+
+  const value = document.createElement('div');
+  value.className = 'forecast-payout-month';
+  value.textContent = announcementDate;
+  inner.appendChild(value);
+
+  card.appendChild(inner);
+  return card;
 }
 
 function buildHero(forecast: ForecastRow): HTMLElement {

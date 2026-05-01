@@ -94,7 +94,139 @@ async function loadAndRender(container: HTMLElement): Promise<void> {
   }
 
   container.appendChild(buildRoyaltyChart(data, allYears));
+
+  // Events + News in 2-koloms grid
+  const eventsNewsGrid = document.createElement('div');
+  eventsNewsGrid.className = 'start-events-news';
+  eventsNewsGrid.appendChild(buildEventsTile());
+  eventsNewsGrid.appendChild(buildNewsTile());
+  container.appendChild(eventsNewsGrid);
+
   container.appendChild(buildAcademyTile());
+}
+
+// =============================================================================
+// Evenementen + Nieuws (statische placeholders)
+// =============================================================================
+interface EventItem {
+  day: string;
+  month: string;
+  title: string;
+  location?: string;
+}
+
+interface NewsItem {
+  title: string;
+  date: string;
+}
+
+const EVENTS: EventItem[] = [
+  {
+    day: '21',
+    month: 'jun',
+    title: 'Noordhoff 190 jaar — Jubileumfeest',
+    location: 'Martiniplaza Groningen',
+  },
+  { day: '5', month: 'jun', title: 'Auteursbijeenkomst: Nieuwe kerndoelen' },
+  { day: '15', month: 'mei', title: 'Workshop: Schrijven voor Learnbeat' },
+];
+
+const NEWS: NewsItem[] = [
+  { title: 'Moderne Wiskunde 14e editie verschijnt 1 juni', date: '8 april 2026' },
+  { title: 'Klaar voor de nieuwe kerndoelen met Noordhoff', date: '22 maart 2026' },
+  { title: 'Noordhoff viert 190-jarig bestaan in 2026', date: '5 maart 2026' },
+];
+
+function buildEventsTile(): HTMLElement {
+  const tile = document.createElement('section');
+  tile.className = 'dash-tile';
+
+  const header = document.createElement('div');
+  header.className = 'dash-tile-header';
+  const title = document.createElement('h3');
+  title.className = 'dash-tile-title';
+  title.textContent = 'Aankomende evenementen';
+  header.appendChild(title);
+  tile.appendChild(header);
+
+  const list = document.createElement('div');
+  list.className = 'events-list';
+
+  EVENTS.forEach((event) => {
+    const row = document.createElement('div');
+    row.className = 'event-row';
+
+    const date = document.createElement('div');
+    date.className = 'event-date';
+
+    const day = document.createElement('div');
+    day.className = 'event-day';
+    day.textContent = event.day;
+    date.appendChild(day);
+
+    const month = document.createElement('div');
+    month.className = 'event-month';
+    month.textContent = event.month;
+    date.appendChild(month);
+
+    row.appendChild(date);
+
+    const main = document.createElement('div');
+    main.className = 'event-main';
+    const titleEl = document.createElement('div');
+    titleEl.className = 'event-title';
+    titleEl.textContent = event.title;
+    main.appendChild(titleEl);
+
+    if (event.location !== undefined) {
+      const locEl = document.createElement('div');
+      locEl.className = 'event-location';
+      locEl.textContent = event.location;
+      main.appendChild(locEl);
+    }
+    row.appendChild(main);
+
+    list.appendChild(row);
+  });
+
+  tile.appendChild(list);
+  return tile;
+}
+
+function buildNewsTile(): HTMLElement {
+  const tile = document.createElement('section');
+  tile.className = 'dash-tile';
+
+  const header = document.createElement('div');
+  header.className = 'dash-tile-header';
+  const title = document.createElement('h3');
+  title.className = 'dash-tile-title';
+  title.textContent = 'Laatste nieuws';
+  header.appendChild(title);
+  tile.appendChild(header);
+
+  const list = document.createElement('div');
+  list.className = 'news-list';
+
+  NEWS.forEach((news) => {
+    const row = document.createElement('article');
+    row.className = 'news-row';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'news-title';
+    titleEl.textContent = news.title;
+    row.appendChild(titleEl);
+
+    const dateEl = document.createElement('div');
+    dateEl.className = 'news-date';
+    dateEl.textContent = news.date;
+    row.appendChild(dateEl);
+
+    list.appendChild(row);
+  });
+
+  tile.appendChild(list);
+  return tile;
 }
 
 // =============================================================================

@@ -223,6 +223,9 @@ function renderList(container: HTMLElement, state: State): void {
 function renderPaymentRow(payment: PaymentRow): HTMLElement {
   const row = document.createElement('div');
   row.className = 'payment-row';
+  if (payment.type === 'jaaropgave') {
+    row.classList.add('payment-row-jaaropgave');
+  }
 
   const icon = document.createElement('div');
   icon.className = `payment-icon payment-icon-${payment.type}`;

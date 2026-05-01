@@ -82,26 +82,72 @@ export function renderProfileTab(container: HTMLElement, author: AuthorRow): voi
   grid.className = 'profile-grid';
   container.appendChild(grid);
 
-  const formSlot = document.createElement('div');
-  container.appendChild(formSlot);
-
   void renderViewMode(grid, author);
 
   editBtn.addEventListener('click', () => {
-    if (formSlot.hasChildNodes()) {
-      formSlot.replaceChildren();
-      editBtn.textContent = t('common.edit');
-      return;
-    }
-    formSlot.appendChild(
-      buildEditForm(author, () => {
-        formSlot.replaceChildren();
-        editBtn.textContent = t('common.edit');
-        void renderViewMode(grid, author);
-      })
-    );
-    editBtn.textContent = t('common.cancel');
+    openEditModal(author, () => {
+      void renderViewMode(grid, author);
+    });
   });
+}
+
+function openEditModal(author: AuthorRow, onSaved: () => void): void {
+  // Voorkom dubbele modal
+  const existing = document.querySelector('.modal-overlay');
+  if (existing !== null) {
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  overlay.appendChild(modal);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'modal-close';
+  closeBtn.textContent = '×';
+  closeBtn.setAttribute('aria-label', 'Sluiten');
+  modal.appendChild(closeBtn);
+
+  modal.appendChild(
+    buildEditForm(author, () => {
+      overlay.remove();
+      document.removeEventListener('keydown', escHandler);
+      onSaved();
+    })
+  );
+
+  const close = (): void => {
+    overlay.remove();
+    document.removeEventListener('keydown', escHandler);
+  };
+
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      close();
+    }
+  });
+
+  const escHandler = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape') {
+      close();
+    }
+  };
+  document.addEventListener('keydown', escHandler);
+
+  document.body.appendChild(overlay);
+
+  // Focus eerste input
+  const firstInput = modal.querySelector<HTMLInputElement>('input');
+  if (firstInput !== null) {
+    firstInput.focus();
+  }
 }
 
 async function renderViewMode(grid: HTMLElement, author: AuthorRow): Promise<void> {

@@ -40,13 +40,21 @@ export function renderDashboardView(root: HTMLElement, author: AuthorRow): void 
 
   layout.appendChild(buildAppHeader(`${author.first_name} ${author.last_name}`));
 
+  const dashContent = document.createElement('div');
+  dashContent.className = 'dashboard-content';
+  layout.appendChild(dashContent);
+
+  const tabsContainer = document.createElement('section');
+  tabsContainer.className = 'tabs-container';
+  dashContent.appendChild(tabsContainer);
+
   const tabsNav = document.createElement('nav');
   tabsNav.className = 'tabs-nav';
-  layout.appendChild(tabsNav);
+  tabsContainer.appendChild(tabsNav);
 
   const content = document.createElement('main');
   content.className = 'tab-content';
-  layout.appendChild(content);
+  tabsContainer.appendChild(content);
 
   root.appendChild(layout);
 
