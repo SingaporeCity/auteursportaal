@@ -57,8 +57,8 @@ test.describe('RLS isolatie', () => {
     await page.fill('input[type="password"]', AUTHOR_PASSWORD);
     await page.click('button.auth-submit');
 
-    // Klik op Afrekeningen tab
-    await page.click('button.tab-btn:has-text("Afrekeningen")');
+    // Klik op Afrekeningen tab (taal-onafhankelijk via data-tab)
+    await page.click('button.tab-btn[data-tab="payments"]');
 
     // Charlotte zou 2 payment-rows moeten zien (Jaaropgave + Royalty), niet meer
     const rows = page.locator('.payment-row');

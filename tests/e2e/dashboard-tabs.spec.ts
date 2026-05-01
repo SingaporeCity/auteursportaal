@@ -19,38 +19,38 @@ test.describe('Dashboard tabs', () => {
   });
 
   test('Start tab toont KPI-cards', async ({ page }) => {
-    await page.click('button.tab-btn:has-text("Start")');
+    await page.click('button.tab-btn[data-tab="start"]');
     await expect(page.locator('.kpi-card')).toHaveCount(4, { timeout: 5000 });
   });
 
   test('Profiel tab toont ID-banner + grid', async ({ page }) => {
-    await page.click('button.tab-btn:has-text("Profiel")');
+    await page.click('button.tab-btn[data-tab="profile"]');
     await expect(page.locator('.id-banner')).toBeVisible();
     await expect(page.locator('.profile-grid')).toBeVisible();
   });
 
   test('Afrekeningen tab toont payment-list', async ({ page }) => {
-    await page.click('button.tab-btn:has-text("Afrekeningen")');
+    await page.click('button.tab-btn[data-tab="payments"]');
     await expect(page.locator('.payments-list')).toBeVisible();
   });
 
   test('Contracten tab toont empty-state of contracten', async ({ page }) => {
-    await page.click('button.tab-btn:has-text("Contracten")');
+    await page.click('button.tab-btn[data-tab="contracts"]');
     await expect(page.locator('.contracts-list, .empty-state').first()).toBeVisible();
   });
 
   test('Prognose tab laadt zonder errors', async ({ page }) => {
-    await page.click('button.tab-btn:has-text("Prognose")');
+    await page.click('button.tab-btn[data-tab="forecast"]');
     await expect(page.locator('.forecast-slot, .empty-state').first()).toBeVisible();
   });
 
   test('Declaraties tab toont indien-form', async ({ page }) => {
-    await page.click('button.tab-btn:has-text("Declaraties")');
+    await page.click('button.tab-btn[data-tab="expenses"]');
     await expect(page.locator('.expenses-form-card')).toBeVisible();
   });
 
   test('FAQ tab toont accordion items', async ({ page }) => {
-    await page.click('button.tab-btn:has-text("FAQ")');
+    await page.click('button.tab-btn[data-tab="faq"]');
     await expect(page.locator('.faq-item')).toHaveCount(5, { timeout: 5000 });
   });
 });

@@ -10,6 +10,7 @@ export default defineConfig({
 
   use: {
     baseURL: 'http://localhost:5173',
+    locale: 'nl-NL',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
