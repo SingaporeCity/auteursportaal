@@ -1,8 +1,9 @@
 name: Deploy to GitHub Pages
 
+# Auto-deploy bij push staat UIT tot Pages + secrets in repo settings zijn ingesteld.
+# Trigger handmatig via Actions tab → "Run workflow".
+# Wanneer Pages live moet: voeg `push: branches: [main]` weer toe.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
