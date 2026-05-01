@@ -18,6 +18,10 @@ import { t } from '@/lib/i18n';
 import type { Database, PaymentType } from '@/types/db';
 
 type PaymentRow = Database['public']['Tables']['payments']['Row'];
+type ForecastRow = Database['public']['Tables']['forecasts']['Row'];
+
+const FORECAST_YEAR = 2027;
+const FORECAST_ANNOUNCEMENT_DATE = '31-10-2026';
 
 const TYPE_LABEL: Record<PaymentType, string> = {
   royalty: 'Royalties',
@@ -57,25 +61,28 @@ export function renderStartTab(container: HTMLElement, author: AuthorRow): void 
 }
 
 async function loadAndRender(container: HTMLElement): Promise<void> {
-  const { data, error } = await supabase
-    .from('payments')
-    .select('*')
-    .order('payment_date', { ascending: false });
+  const [paymentRes, forecastRes] = await Promise.all([
+    supabase.from('payments').select('*').order('payment_date', { ascending: false }),
+    supabase.from('forecasts').select('*').order('year', { ascending: false }),
+  ]);
 
   container.replaceChildren();
 
-  if (error !== null) {
-    reportError('start.load', error);
-    container.textContent = `Kon Start niet laden: ${error.message}`;
+  if (paymentRes.error !== null) {
+    reportError('start.load', paymentRes.error);
+    container.textContent = `Kon Start niet laden: ${paymentRes.error.message}`;
     return;
   }
+
+  const data = paymentRes.data;
+  const forecasts = forecastRes.error === null ? forecastRes.data : [];
 
   // Year-in-Review (laatste afgesloten jaar)
   const allYears = [...new Set(data.map((p) => p.year))].sort((a, b) => b - a);
   const currentYear = new Date().getFullYear();
   const reviewYear = allYears.find((y) => y < currentYear) ?? allYears[0] ?? currentYear - 1;
 
-  container.appendChild(buildYearInReview(data, reviewYear));
+  container.appendChild(buildYearInReview(data, reviewYear, forecasts));
 
   if (allYears.length === 0) {
     const empty = document.createElement('div');
@@ -93,7 +100,11 @@ async function loadAndRender(container: HTMLElement): Promise<void> {
 // =============================================================================
 // Year-in-Review hero
 // =============================================================================
-function buildYearInReview(payments: PaymentRow[], reviewYear: number): HTMLElement {
+function buildYearInReview(
+  payments: PaymentRow[],
+  reviewYear: number,
+  forecasts: ForecastRow[]
+): HTMLElement {
   const card = document.createElement('section');
   card.className = 'yr-card';
 
@@ -145,36 +156,135 @@ function buildYearInReview(payments: PaymentRow[], reviewYear: number): HTMLElem
   const stats = document.createElement('div');
   stats.className = 'yr-stats';
 
-  const allTotal = payments.reduce((sum, p) => sum + p.amount, 0);
-  stats.appendChild(buildStatBlock('Totaal uitgekeerd', formatCurrency(allTotal)));
+  // -- 1. "Totaal vanaf [jaar-toggle]"
+  stats.appendChild(buildTotalFromBlock(payments));
 
-  stats.appendChild(buildStatBlock('Aantal afrekeningen', String(payments.length)));
+  // -- 2. "Laatste betaling" — datum + bedrag
+  stats.appendChild(buildLastPaymentBlock(payments));
 
-  const last = payments[0];
-  stats.appendChild(
-    buildStatBlock(
-      'Laatste afrekening',
-      last !== undefined && last.payment_date !== null ? formatDate(last.payment_date) : '—'
-    )
-  );
+  // -- 3. "Prognose: Verwacht in [jaar]"
+  stats.appendChild(buildForecastBlock(forecasts));
 
   card.appendChild(stats);
   return card;
 }
 
-function buildStatBlock(label: string, value: string): HTMLElement {
+function buildTotalFromBlock(payments: PaymentRow[]): HTMLElement {
   const block = document.createElement('div');
-  block.className = 'yr-stat';
+  block.className = 'yr-stat yr-stat-toggleable';
+
+  const labelRow = document.createElement('div');
+  labelRow.className = 'yr-stat-label-row';
+
+  const label = document.createElement('span');
+  label.className = 'yr-stat-label';
+  label.textContent = 'Totaal vanaf';
+  labelRow.appendChild(label);
+  block.appendChild(labelRow);
+
+  // Pill toggle voor jaren waar payments uit zijn (oudste eerst)
+  const yearsAvailable = [...new Set(payments.map((p) => p.year))].sort((a, b) => a - b);
 
   const valueEl = document.createElement('div');
   valueEl.className = 'yr-stat-value';
-  valueEl.textContent = value;
   block.appendChild(valueEl);
 
-  const labelEl = document.createElement('div');
-  labelEl.className = 'yr-stat-label';
-  labelEl.textContent = label;
-  block.appendChild(labelEl);
+  const pills = document.createElement('div');
+  pills.className = 'yr-from-pills';
+
+  // Default: oudste jaar (toont volledig totaal)
+  let activeFrom = yearsAvailable[0] ?? new Date().getFullYear();
+
+  const updateValue = (): void => {
+    const total = payments
+      .filter((p) => p.year >= activeFrom)
+      .reduce((sum, p) => sum + p.amount, 0);
+    valueEl.textContent = formatCurrency(total);
+  };
+  updateValue();
+
+  for (const yr of yearsAvailable) {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'yr-from-pill';
+    if (yr === activeFrom) {
+      pill.classList.add('active');
+    }
+    pill.textContent = String(yr);
+    pill.addEventListener('click', () => {
+      activeFrom = yr;
+      [...pills.children].forEach((node) => {
+        const p = node as HTMLButtonElement;
+        p.classList.toggle('active', p.textContent === String(yr));
+      });
+      updateValue();
+    });
+    pills.appendChild(pill);
+  }
+  block.appendChild(pills);
+
+  return block;
+}
+
+function buildLastPaymentBlock(payments: PaymentRow[]): HTMLElement {
+  const block = document.createElement('div');
+  block.className = 'yr-stat';
+
+  const label = document.createElement('div');
+  label.className = 'yr-stat-label';
+  label.textContent = 'Laatste betaling';
+  block.appendChild(label);
+
+  // Sorteer op payment_date (recentste eerst); skip jaaropgaves
+  const royalties = payments
+    .filter((p) => p.type !== 'jaaropgave' && p.payment_date !== null)
+    .sort((a, b) => (b.payment_date ?? '').localeCompare(a.payment_date ?? ''));
+
+  const last = royalties[0];
+
+  const valueEl = document.createElement('div');
+  valueEl.className = 'yr-stat-value';
+  valueEl.textContent = last !== undefined ? formatCurrency(last.amount) : '—';
+  block.appendChild(valueEl);
+
+  const sub = document.createElement('div');
+  sub.className = 'yr-stat-sub';
+  sub.textContent =
+    last !== undefined && last.payment_date !== null ? formatDate(last.payment_date) : '';
+  block.appendChild(sub);
+
+  return block;
+}
+
+function buildForecastBlock(forecasts: ForecastRow[]): HTMLElement {
+  const block = document.createElement('div');
+  block.className = 'yr-stat';
+
+  const label = document.createElement('div');
+  label.className = 'yr-stat-label';
+  label.textContent = `Verwacht in ${String(FORECAST_YEAR)}`;
+  block.appendChild(label);
+
+  const fc = forecasts.find((f) => f.year === FORECAST_YEAR);
+
+  const valueEl = document.createElement('div');
+  valueEl.className = 'yr-stat-value';
+  if (fc !== undefined && fc.max_amount > 0) {
+    valueEl.textContent = `${formatCurrency(fc.min_amount)} — ${formatCurrency(fc.max_amount)}`;
+    valueEl.classList.add('yr-stat-value-range');
+  } else {
+    valueEl.textContent = 'Wordt bekendgemaakt';
+    valueEl.classList.add('yr-stat-value-pending');
+  }
+  block.appendChild(valueEl);
+
+  const sub = document.createElement('div');
+  sub.className = 'yr-stat-sub';
+  sub.textContent =
+    fc !== undefined && fc.max_amount > 0
+      ? 'Indicatieve bandbreedte'
+      : `Op ${FORECAST_ANNOUNCEMENT_DATE}`;
+  block.appendChild(sub);
 
   return block;
 }

@@ -6,8 +6,9 @@
  */
 
 import { signOut } from '@/auth';
-import { t } from '@/lib/i18n';
+import { t, getLocale, setLocale, listSupportedLocales } from '@/lib/i18n';
 import { toggleTheme } from '@/lib/theme';
+import type { SupportedLocale } from '@/i18n/types';
 
 export function buildAppHeader(displayName: string): HTMLElement {
   const header = document.createElement('header');
@@ -43,6 +44,9 @@ export function buildAppHeader(displayName: string): HTMLElement {
   greeting.textContent = `${greetingFor(new Date())}, ${displayName}`;
   actions.appendChild(greeting);
 
+  // Taal-toggle (NL / EN / SV)
+  actions.appendChild(buildLangToggle());
+
   const themeBtn = document.createElement('button');
   themeBtn.type = 'button';
   themeBtn.className = 'theme-toggle';
@@ -64,6 +68,29 @@ export function buildAppHeader(displayName: string): HTMLElement {
 
   header.appendChild(actions);
   return header;
+}
+
+function buildLangToggle(): HTMLElement {
+  const wrap = document.createElement('div');
+  wrap.className = 'lang-toggle';
+  const current = getLocale();
+
+  for (const locale of listSupportedLocales()) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'lang-toggle-btn';
+    if (locale === current) {
+      btn.classList.add('active');
+    }
+    btn.textContent = locale.toUpperCase();
+    btn.addEventListener('click', () => {
+      setLocale(locale satisfies SupportedLocale);
+      // Hard reload zodat alle gerenderde labels meedoen
+      window.location.reload();
+    });
+    wrap.appendChild(btn);
+  }
+  return wrap;
 }
 
 function greetingFor(date: Date): string {

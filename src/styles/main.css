@@ -604,6 +604,38 @@ a:hover {
   border-color: var(--color-border-strong);
 }
 
+/* Taal-toggle pill (NL / EN / SV) */
+.lang-toggle {
+  display: inline-flex;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 2px;
+  overflow: hidden;
+}
+
+.lang-toggle-btn {
+  background: none;
+  border: none;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.7rem;
+  font-variation-settings: 'wght' 580;
+  letter-spacing: 0.06em;
+  color: var(--color-text-light);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.lang-toggle-btn:hover {
+  color: var(--color-text);
+}
+
+.lang-toggle-btn.active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
 /* Theme toggle pill */
 .theme-toggle {
   position: relative;
@@ -665,6 +697,24 @@ a:hover {
   position: relative;
   white-space: nowrap;
   transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.tab-icon {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.85;
+  transition: var(--transition);
+}
+
+.tab-btn.active .tab-icon {
+  opacity: 1;
+}
+
+.tab-btn:hover .tab-icon {
+  opacity: 1;
 }
 
 .tab-btn:hover {
@@ -955,9 +1005,12 @@ a:hover {
 
 .yr-stat {
   background: rgba(255, 255, 255, 0.04);
-  padding: 1rem 1.1rem;
+  padding: 1.1rem 1.1rem;
   text-align: center;
   transition: background 200ms ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
 .yr-stat:hover {
@@ -965,21 +1018,84 @@ a:hover {
 }
 
 .yr-stat-value {
-  font-size: 1.1rem;
-  font-variation-settings: 'wght' 620;
+  font-size: 1.15rem;
+  font-variation-settings:
+    'wght' 620,
+    'wdth' 100;
   color: #fff;
   letter-spacing: -0.02em;
   line-height: 1.15;
-  margin-bottom: 0.25rem;
   font-feature-settings: 'tnum';
+}
+
+.yr-stat-value-range {
+  font-size: 0.95rem;
+}
+
+.yr-stat-value-pending {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-variation-settings: 'wght' 500;
+  font-style: italic;
 }
 
 .yr-stat-label {
   font-size: 0.62rem;
   font-variation-settings: 'wght' 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.55);
+}
+
+.yr-stat-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yr-stat-sub {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-variation-settings: 'wght' 400;
+  font-feature-settings: 'tnum';
+}
+
+/* "Totaal vanaf" pill-toggle */
+.yr-stat-toggleable {
+  position: relative;
+}
+
+.yr-from-pills {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-top: 0.4rem;
+}
+
+.yr-from-pill {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.62rem;
+  font-variation-settings: 'wght' 540;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 180ms ease;
+  letter-spacing: 0.02em;
+  font-feature-settings: 'tnum';
+}
+
+.yr-from-pill:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.yr-from-pill.active {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-primary-dark);
+  border-color: rgba(255, 255, 255, 0.95);
+  font-variation-settings: 'wght' 620;
 }
 
 @media (max-width: 640px) {

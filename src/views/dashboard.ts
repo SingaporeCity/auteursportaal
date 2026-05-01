@@ -18,6 +18,7 @@ import { renderExpensesTab } from './tabs/expenses';
 import { renderFaqTab } from './tabs/faq';
 import { t } from '@/lib/i18n';
 import { buildAppHeader } from './shared/header';
+import { TAB_ICONS, type TabIconId } from './shared/tab-icons';
 
 type TabId = 'start' | 'payments' | 'contracts' | 'forecast' | 'expenses' | 'faq' | 'profile';
 
@@ -65,7 +66,18 @@ export function renderDashboardView(root: HTMLElement, author: AuthorRow): void 
     btn.type = 'button';
     btn.className = 'tab-btn';
     btn.dataset['tab'] = id;
-    btn.textContent = t(labelKey);
+
+    const iconWrap = document.createElement('span');
+    iconWrap.className = 'tab-icon';
+    // SVG-strings uit eigen module — niet gebruiker-gegenereerd
+    // eslint-disable-next-line no-unsanitized/property -- statische SVG uit code
+    iconWrap.innerHTML = TAB_ICONS[id satisfies TabIconId];
+    btn.appendChild(iconWrap);
+
+    const label = document.createElement('span');
+    label.textContent = t(labelKey);
+    btn.appendChild(label);
+
     btn.addEventListener('click', () => {
       switchTab(id);
     });
