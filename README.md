@@ -148,30 +148,77 @@ frame-ancestors 'none';
 
 ## 6. Onboarding-flow
 
+Vanaf iter 4 heeft elke auteur een `onboarding_status` (enum):
+
+| Status                 | Betekenis                                        | Wie zet 'm?                                                                    |
+| ---------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `pending_data`         | Auteur is uitgenodigd maar profiel is incompleet | Default bij INSERT (nieuwe auteur of CSV-row met gaten)                        |
+| `pending_admin_review` | Auteur heeft data ingediend, wacht op admin-OK   | Auteur klikt "Activeer mijn account" (DB-trigger zet `data_submitted_at`)      |
+| `active`               | Volledig portaal-toegang                         | Admin klikt "Activeer" (DB-trigger zet `activated_at` + sync `is_active=true`) |
+
+Drie paden, één codebase:
+
+### Pad A — handmatig nieuwe auteur (geen CSV beschikbaar)
+
 ```mermaid
 sequenceDiagram
-  actor Admin as Admin
-  participant Portal as Portaal
-  participant Edge as Edge Function<br/>create-accounts
-  participant DB as Supabase DB
-  participant Mail as Email
-  actor Auteur as Auteur
+  actor Admin
+  participant Portal
+  participant Edge as create-accounts<br/>mode=invite
+  participant DB
+  participant Mail
+  actor Auteur
 
-  Admin->>Portal: Maak nieuwe auteur aan (formulier)
-  Portal->>DB: INSERT authors (is_active=false)
-  Admin->>Portal: Upload statements/contracten
-  Portal->>DB: INSERT payments + Storage upload
-  Admin->>Portal: Klik "Activeer"
-  Portal->>Edge: POST { email, author_id }
+  Admin->>Portal: Klik "+ Nieuwe auteur" (email + voornaam + achternaam)
+  Portal->>DB: INSERT authors (status=pending_data)
+  Portal->>Edge: POST mode=invite
   Edge->>DB: auth.admin.createUser
-  Edge->>DB: UPDATE authors SET is_active=true
-  Edge->>Mail: generateLink(type=recovery)
-  Mail->>Auteur: "Stel uw wachtwoord in"
-  Auteur->>Portal: Klik link → set password
-  Auteur->>Portal: Login (email + password)
-  Portal->>DB: getSession + RLS-isolated SELECT
-  Portal->>Auteur: Toon eigen dashboard
+  Edge->>Mail: /auth/v1/recover (recovery-link)
+  Edge->>DB: UPDATE authors SET invited_at=now()
+  Mail->>Auteur: Set-password mail
+  Auteur->>Portal: Login → ziet ALLEEN profile-tab + banner
+  Auteur->>Portal: Vult ontbrekende velden, klikt "Activeer mijn account"
+  Portal->>DB: UPDATE authors SET status=pending_admin_review<br/>(DB-trigger zet data_submitted_at)
+  Admin->>Portal: Ziet "🟠 Wacht op review", klikt Activeer
+  Portal->>Edge: POST mode=activate
+  Edge->>DB: UPDATE authors SET status=active<br/>(DB-trigger zet activated_at)
+  Auteur->>Portal: Volgende login → alle 7 tabs
 ```
+
+### Pad B — incomplete CSV-import
+
+Identiek aan pad A vanaf het moment dat auteur inlogt — verschil zit in de aanmaak: admin uploadt CSV, rij krijgt `pending_data` (gaten in data), admin klikt per-rij **Stuur uitnodiging**.
+
+### Pad C — complete CSV-import (typisch bestaande auteurs uit NetSuite)
+
+```mermaid
+sequenceDiagram
+  actor Admin
+  participant Portal
+  participant Edge as create-accounts<br/>mode=activate
+  participant DB
+  actor Auteur
+
+  Admin->>Portal: Upload CSV (alle velden gevuld + valide)
+  Portal->>DB: INSERT authors (status=pending_admin_review)
+  Admin->>Portal: Reviewt + klikt Activeer
+  Portal->>Edge: POST mode=activate
+  Edge->>DB: auth.admin.createUser + UPDATE status=active
+  Edge->>Auteur: Recovery-mail
+  Auteur->>Portal: Login → alle 7 tabs direct
+```
+
+### Reminders
+
+Niet-gereageerd na 14 dagen? Admin filtert "Wacht op auteur", knop **Stuur reminder** verschijnt en triggert dezelfde Edge Function (`mode=invite`), die `reminder_sent_at` zet. Geen scheduler/cron — bewust manueel voor IT-review-vriendelijkheid.
+
+### CSV-format
+
+Zie [docs/onboarding-csv-import.md](docs/onboarding-csv-import.md) voor kolomvolgorde, validatie en flow per status. Template in [docs/netsuite-author-import-template.csv](docs/netsuite-author-import-template.csv).
+
+### Defense-in-depth via RLS
+
+`payments`/`contracts`/`forecasts`/`expenses` zijn **alleen leesbaar voor `active`-auteurs** dankzij RLS-policies (`is_active_author()` helper). Een auteur in onboarding-status ziet 0 rijen in deze tabellen, ook bij directe DB-query met JWT. Frontend tab-gating is daar bovenop een UX-laag.
 
 ## 7. Testing
 

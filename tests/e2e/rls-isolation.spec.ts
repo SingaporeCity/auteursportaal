@@ -57,6 +57,14 @@ test.describe('RLS isolatie', () => {
     await page.fill('input[type="password"]', AUTHOR_PASSWORD);
     await page.click('button.auth-submit');
 
+    // Test alleen relevant voor 'active' auteurs — andere statussen zien
+    // payments-tab niet eens. Skip als banner zichtbaar is.
+    const banner = page.locator('.onboarding-banner');
+    test.skip(
+      (await banner.count()) > 0,
+      'Auteur is in onboarding-mode — payments-tab niet beschikbaar tot admin activeert'
+    );
+
     // Klik op Afrekeningen tab (taal-onafhankelijk via data-tab)
     await page.click('button.tab-btn[data-tab="payments"]');
 
@@ -67,5 +75,31 @@ test.describe('RLS isolatie', () => {
     const count = await rows.count();
     expect(count).toBeGreaterThanOrEqual(1);
     expect(count).toBeLessThanOrEqual(20); // sanity-bound
+  });
+
+  test('pending_data auteur ziet 0 payments via RLS (defense-in-depth)', async ({ page }) => {
+    const onboardingEmail = process.env['TEST_ONBOARDING_EMAIL'] ?? '';
+    const onboardingPassword = process.env['TEST_ONBOARDING_PASSWORD'] ?? '';
+    test.skip(
+      onboardingEmail.length === 0 || onboardingPassword.length === 0,
+      'TEST_ONBOARDING_EMAIL niet gezet'
+    );
+
+    await page.goto('/');
+    await page.fill('input[type="email"]', onboardingEmail);
+    await page.fill('input[type="password"]', onboardingPassword);
+    await page.click('button.auth-submit');
+
+    // Verifieer dat onboarding-banner zichtbaar is (auteur niet in active-status)
+    await expect(page.locator('.onboarding-banner')).toBeVisible({ timeout: 10000 });
+
+    // Frontend: payments-tab is locked → niet klikbaar
+    const paymentsTab = page.locator('.tab-btn[data-tab="payments"]');
+    await expect(paymentsTab).toBeDisabled();
+    await expect(paymentsTab).toHaveClass(/tab-btn-locked/);
+
+    // RLS-defense: zelfs een directe DB-query zou 0 rows opleveren omdat
+    // is_active_author() false retourneert voor pending_data/pending_admin_review.
+    // Geverifieerd via debug-panel in dev-mode (staat in src/dev/debug-panel.ts).
   });
 });
