@@ -35,11 +35,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 declare const Deno: { env: { get: (key: string) => string | undefined } };
 
-const ALLOWED_ORIGINS = [
-  'https://mijn-noordhoff.nl',
-  'https://singaporecity.github.io',
-  'http://localhost:5173',
-];
+// CORS-whitelist (audit H11). Productie-domein + lokale dev-server.
+// `singaporecity.github.io` (oude demo) is verwijderd — daar draait niets meer.
+// Na DNS-cutover van mijn-noordhoff.nl: overweeg ook `localhost:5173` te
+// verwijderen en alleen via env-var ALLOWED_ORIGINS te overrulen voor dev.
+const ALLOWED_ORIGINS = ['https://mijn-noordhoff.nl', 'http://localhost:5173'];
 
 function corsHeaders(origin: string | null): Record<string, string> {
   const allow = origin !== null && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]!;

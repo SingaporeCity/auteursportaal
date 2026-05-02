@@ -32,11 +32,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 declare const Deno: { env: { get: (key: string) => string | undefined } };
 
-const ALLOWED_ORIGINS = [
-  'https://mijn-noordhoff.nl',
-  'https://singaporecity.github.io',
-  'http://localhost:5173',
-];
+// CORS-whitelist (audit H11). Zie create-accounts/index.ts voor toelichting.
+const ALLOWED_ORIGINS = ['https://mijn-noordhoff.nl', 'http://localhost:5173'];
 
 // CSV-format moet symmetrisch zijn met import-authors-csv
 const CSV_HEADERS = [

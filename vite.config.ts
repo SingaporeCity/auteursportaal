@@ -14,7 +14,10 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
-    sourcemap: true,
+    // Sourcemaps alleen lokaal/dev. Productie-build = false zodat de
+    // gecompileerde JS niet 1-op-1 reverse-mapt naar TypeScript-bron.
+    // Audit-finding C1 (docs/AUDIT-2026-05-02.md).
+    sourcemap: process.env['NODE_ENV'] !== 'production',
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
