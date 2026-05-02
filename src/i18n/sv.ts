@@ -65,6 +65,23 @@ export const sv: Translations = {
   'tabs.faq': 'FAQ',
   'tabs.profile': 'Profil',
 
+  'onboarding.banner_pending_data_title': 'Komplettera dina uppgifter',
+  'onboarding.banner_pending_data_text':
+    'Välkommen! Komplettera din profil för att aktivera ditt konto. Övriga flikar blir tillgängliga när Noordhoff har godkänt din ansökan.',
+  'onboarding.banner_pending_review_title': 'Din ansökan granskas',
+  'onboarding.banner_pending_review_text':
+    'Tack — dina uppgifter har mottagits. Noordhoff granskar din ansökan och du meddelas när ditt konto är aktivt.',
+  'onboarding.tab_disabled_tooltip': 'Tillgänglig när ditt konto har aktiverats',
+  'onboarding.activate_button': 'Aktivera mitt konto',
+  'onboarding.activate_button_disabled_hint':
+    'Fyll i alla obligatoriska fält innan du skickar din ansökan.',
+  'onboarding.activate_confirmation':
+    'Din ansökan har skickats. Du får ett e-postmeddelande när ditt konto är aktiverat.',
+  'onboarding.save_intermediate': 'Spara framsteg',
+  'onboarding.readonly_disclaimer': 'Din ansökan granskas. Ändringar kan inte göras just nu.',
+  'onboarding.required_field_hint': 'Obligatoriskt',
+  'onboarding.missing_fields_count': '{count} fält återstår',
+
   'profile.title': 'Dina uppgifter',
   'profile.id_vendor': 'Vendor ID',
   'profile.id_alliant': 'Alliant ID',

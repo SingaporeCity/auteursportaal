@@ -1,17 +1,21 @@
 /**
- * Auteur-dashboard skelet — header + tabs-nav + content area.
+ * Auteur-dashboard skelet — header + welcome + tabs-nav + content area.
  *
- * MVP-versie: tabs Profiel + Afrekeningen werken. Contracten / Prognose /
- * Declaraties / FAQ tonen een "binnenkort"-state. Volledige port van die
- * tabs is gepland in een latere iteratie (zie TaskList #13).
+ * Dual-mode (vanaf iter 4):
+ *  - `mode: 'full'` — alle 7 tabs actief, normale flow.
+ *  - `mode: 'onboarding'` — alleen profile-tab actief, andere tabs disabled met
+ *    tooltip; banner bovenaan toont status (pending_data of pending_admin_review).
+ *    Auteur kan in profile-tab zijn data aanvullen + activatie aanvragen.
  *
  * @module views/dashboard
  */
 
 import type { AuthorRow } from '@/auth';
+import type { AccessMode } from '@/auth/whitelist';
 import { buildWelcomeSection } from './shared/welcome-section';
 import { registerGlobalCmdKShortcut } from './shared/command-palette';
 import { buildMobileTabToggle } from './shared/mobile-tabs';
+import { buildOnboardingBanner } from './shared/onboarding-banner';
 import { renderProfileTab } from './tabs/profile';
 import { renderPaymentsTab } from './tabs/payments';
 import { renderStartTab } from './tabs/start';
@@ -35,8 +39,15 @@ const TABS: readonly { id: TabId; labelKey: Parameters<typeof t>[0] }[] = [
   { id: 'profile', labelKey: 'tabs.profile' },
 ];
 
-export function renderDashboardView(root: HTMLElement, author: AuthorRow): void {
+export function renderDashboardView(
+  root: HTMLElement,
+  author: AuthorRow,
+  mode: AccessMode = 'full'
+): void {
   root.replaceChildren();
+
+  const isOnboarding = mode === 'onboarding';
+  const initialTab: TabId = isOnboarding ? 'profile' : 'start';
 
   const layout = document.createElement('div');
   layout.className = 'app-shell';
@@ -50,17 +61,28 @@ export function renderDashboardView(root: HTMLElement, author: AuthorRow): void 
   // Welcome section staat boven de tabs (greeting + tagline)
   dashContent.appendChild(buildWelcomeSection(author));
 
+  // Onboarding-banner direct onder de welcome bij niet-active auteurs
+  if (isOnboarding) {
+    const banner = buildOnboardingBanner(author.onboarding_status);
+    if (banner !== null) {
+      dashContent.appendChild(banner);
+    }
+  }
+
   const tabsContainer = document.createElement('section');
   tabsContainer.className = 'tabs-container';
   dashContent.appendChild(tabsContainer);
 
-  registerGlobalCmdKShortcut();
+  // Command-palette is alleen zinvol in full-mode (zoekt over payments/contracts)
+  if (!isOnboarding) {
+    registerGlobalCmdKShortcut();
+  }
 
   const tabsNav = document.createElement('nav');
   tabsNav.className = 'tabs-nav';
 
-  const firstTab = TABS[0];
-  const initialLabel = firstTab !== undefined ? t(firstTab.labelKey) : '';
+  const initialTabConfig = TABS.find((tab) => tab.id === initialTab);
+  const initialLabel = initialTabConfig !== undefined ? t(initialTabConfig.labelKey) : '';
   const mobileToggleHandle = buildMobileTabToggle(tabsNav, initialLabel);
   tabsContainer.appendChild(mobileToggleHandle.toggle);
   tabsContainer.appendChild(tabsNav);
@@ -71,9 +93,13 @@ export function renderDashboardView(root: HTMLElement, author: AuthorRow): void 
 
   root.appendChild(layout);
 
-  let activeTab: TabId = 'start';
+  let activeTab: TabId = initialTab;
 
   function switchTab(target: TabId): void {
+    // In onboarding-mode: alleen 'profile' is klikbaar; negeer andere clicks
+    if (isOnboarding && target !== 'profile') {
+      return;
+    }
     activeTab = target;
     [...tabsNav.children].forEach((node) => {
       const btn = node as HTMLButtonElement;
@@ -92,6 +118,14 @@ export function renderDashboardView(root: HTMLElement, author: AuthorRow): void 
     btn.type = 'button';
     btn.className = 'tab-btn';
     btn.dataset['tab'] = id;
+
+    const isLocked = isOnboarding && id !== 'profile';
+    if (isLocked) {
+      btn.classList.add('tab-btn-locked');
+      btn.disabled = true;
+      btn.setAttribute('aria-disabled', 'true');
+      btn.title = t('onboarding.tab_disabled_tooltip');
+    }
 
     const iconWrap = document.createElement('span');
     iconWrap.className = 'tab-icon';

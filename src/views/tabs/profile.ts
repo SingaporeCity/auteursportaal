@@ -1,9 +1,17 @@
 /**
- * Profiel-tab: read-only weergave + "Wijzigen"-flow die change_requests maakt
- * voor admin-goedkeuring (geen directe writes naar `authors`).
+ * Profiel-tab — drie modi op basis van `author.onboarding_status`:
  *
- * Elk veld dat een pending change_request heeft, krijgt een "⏳ in behandeling"
- * badge — de auteur ziet zo direct welke wijzigingen nog wachten op admin.
+ *  - `pending_data` — onboarding-form: alle velden direct editable, tussentijds
+ *    opslaan via directe UPDATE op `authors` (RLS-policy `authors_update_own`),
+ *    "Activeer mijn account"-knop wordt enabled zodra alle 13 verplichte velden
+ *    valide ingevuld zijn. Klik triggert status-overgang naar `pending_admin_review`
+ *    (DB-trigger zet `data_submitted_at` automatisch).
+ *
+ *  - `pending_admin_review` — read-only weergave met disclaimer "uw aanvraag
+ *    wordt beoordeeld". Geen edit-knop.
+ *
+ *  - `active` — huidige flow: read-only met "Wijzigen"-knop die change_requests
+ *    aanmaakt voor admin-goedkeuring.
  *
  * @module views/tabs/profile
  */
@@ -14,6 +22,9 @@ import { t } from '@/lib/i18n';
 import { formatBSNMasked, formatIBAN, formatPhoneNL, formatDate } from '@/lib/format';
 import { reportError } from '@/dev/debug-panel';
 import { isValidEmail, isValidPostcodeNL, isValidIBAN, isValidBSN } from '@/lib/validate';
+import type { Database } from '@/types/db';
+
+type AuthorUpdate = Database['public']['Tables']['authors']['Update'];
 
 interface FieldDef {
   name: keyof AuthorRow;
@@ -21,35 +32,58 @@ interface FieldDef {
   format?: (value: string) => string;
   validate?: (value: string) => boolean;
   validationError?: string;
+  /** Verplicht voor activatie. */
+  required: boolean;
+  /** Niet bewerkbaar door auteur (bijv. email = auth-key). */
+  readonly?: boolean;
+  /** Input-type voor onboarding-form. */
+  inputType?: 'text' | 'email' | 'tel' | 'date';
 }
 
 const FIELDS: readonly FieldDef[] = [
-  { name: 'first_name', labelKey: 'profile.label_firstname' },
-  { name: 'last_name', labelKey: 'profile.label_lastname' },
+  { name: 'first_name', labelKey: 'profile.label_firstname', required: true },
+  { name: 'last_name', labelKey: 'profile.label_lastname', required: true },
   {
     name: 'email',
     labelKey: 'profile.label_email',
     validate: isValidEmail,
     validationError: 'Ongeldig e-mailadres',
+    required: true,
+    readonly: true,
+    inputType: 'email',
   },
-  { name: 'phone', labelKey: 'profile.label_phone', format: formatPhoneNL },
-  { name: 'street', labelKey: 'profile.label_address' },
-  { name: 'house_number', labelKey: 'profile.label_postcode' },
+  {
+    name: 'phone',
+    labelKey: 'profile.label_phone',
+    format: formatPhoneNL,
+    required: true,
+    inputType: 'tel',
+  },
+  { name: 'street', labelKey: 'profile.label_address', required: true },
+  { name: 'house_number', labelKey: 'profile.label_postcode', required: true },
   {
     name: 'postcode',
     labelKey: 'profile.label_postcode',
     validate: isValidPostcodeNL,
     validationError: 'Ongeldige postcode (verwacht: 1234 AB)',
+    required: true,
   },
-  { name: 'city', labelKey: 'profile.label_city' },
-  { name: 'country', labelKey: 'profile.label_country' },
-  { name: 'birth_date', labelKey: 'profile.label_birthdate', format: formatDate },
+  { name: 'city', labelKey: 'profile.label_city', required: true },
+  { name: 'country', labelKey: 'profile.label_country', required: true },
+  {
+    name: 'birth_date',
+    labelKey: 'profile.label_birthdate',
+    format: formatDate,
+    required: true,
+    inputType: 'date',
+  },
   {
     name: 'bsn',
     labelKey: 'profile.label_bsn',
     format: formatBSNMasked,
     validate: isValidBSN,
     validationError: 'Ongeldig BSN',
+    required: true,
   },
   {
     name: 'bank_account',
@@ -57,11 +91,14 @@ const FIELDS: readonly FieldDef[] = [
     format: formatIBAN,
     validate: isValidIBAN,
     validationError: 'Ongeldig IBAN',
+    required: true,
   },
-  { name: 'bic', labelKey: 'profile.label_bic' },
+  { name: 'bic', labelKey: 'profile.label_bic', required: true },
 ];
 
 export function renderProfileTab(container: HTMLElement, author: AuthorRow): void {
+  container.replaceChildren();
+
   const heading = document.createElement('h2');
   heading.textContent = t('profile.title');
   container.appendChild(heading);
@@ -72,6 +109,23 @@ export function renderProfileTab(container: HTMLElement, author: AuthorRow): voi
   banner.appendChild(idChip('profile.id_alliant', author.alliant_id));
   container.appendChild(banner);
 
+  if (author.onboarding_status === 'pending_data') {
+    renderOnboardingMode(container, author);
+    return;
+  }
+
+  if (author.onboarding_status === 'pending_admin_review') {
+    renderReviewPendingMode(container, author);
+    return;
+  }
+
+  renderActiveMode(container, author);
+}
+
+// =============================================================================
+// Mode: active — huidige change_requests-flow
+// =============================================================================
+function renderActiveMode(container: HTMLElement, author: AuthorRow): void {
   const editBtn = document.createElement('button');
   editBtn.type = 'button';
   editBtn.className = 'profile-edit-btn';
@@ -91,8 +145,257 @@ export function renderProfileTab(container: HTMLElement, author: AuthorRow): voi
   });
 }
 
+// =============================================================================
+// Mode: pending_admin_review — read-only met disclaimer
+// =============================================================================
+function renderReviewPendingMode(container: HTMLElement, author: AuthorRow): void {
+  const disclaimer = document.createElement('div');
+  disclaimer.className = 'profile-readonly-disclaimer';
+  disclaimer.textContent = t('onboarding.readonly_disclaimer');
+  container.appendChild(disclaimer);
+
+  const grid = document.createElement('div');
+  grid.className = 'profile-grid';
+  container.appendChild(grid);
+
+  void renderViewMode(grid, author);
+}
+
+// =============================================================================
+// Mode: pending_data — onboarding-form met directe UPDATE + activeer-knop
+// =============================================================================
+function renderOnboardingMode(container: HTMLElement, author: AuthorRow): void {
+  const form = document.createElement('form');
+  form.className = 'profile-onboarding-form';
+  form.noValidate = true;
+
+  const status = document.createElement('div');
+  status.className = 'admin-status';
+  status.hidden = true;
+  form.appendChild(status);
+
+  const inputs = new Map<keyof AuthorRow, HTMLInputElement>();
+
+  // Werkbare snapshot — wijzigt bij elke save zodat activeer-validatie klopt
+  const workingAuthor: AuthorRow = { ...author };
+
+  for (const field of FIELDS) {
+    const wrap = document.createElement('label');
+    wrap.className = 'auth-field';
+
+    const labelRow = document.createElement('span');
+    labelRow.className = 'auth-field-label';
+    labelRow.textContent = t(field.labelKey);
+    if (field.required) {
+      const required = document.createElement('span');
+      required.className = 'auth-field-required';
+      required.textContent = ' *';
+      required.title = t('onboarding.required_field_hint');
+      labelRow.appendChild(required);
+    }
+    wrap.appendChild(labelRow);
+
+    const input = document.createElement('input');
+    input.type = field.inputType ?? 'text';
+    input.name = field.name;
+    const raw = author[field.name];
+    input.value = typeof raw === 'string' ? raw : raw === null ? '' : String(raw);
+    if (field.readonly === true) {
+      input.readOnly = true;
+      input.classList.add('auth-field-readonly');
+    }
+    wrap.appendChild(input);
+
+    input.addEventListener('input', () => {
+      updateActivateButtonState();
+    });
+
+    inputs.set(field.name, input);
+    form.appendChild(wrap);
+  }
+
+  // Action-row: Tussentijds opslaan + Activeer mijn account
+  const actions = document.createElement('div');
+  actions.className = 'profile-onboarding-actions';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  saveBtn.className = 'auth-submit auth-submit-secondary';
+  saveBtn.textContent = t('onboarding.save_intermediate');
+  actions.appendChild(saveBtn);
+
+  const activateBtn = document.createElement('button');
+  activateBtn.type = 'button';
+  activateBtn.className = 'auth-submit';
+  activateBtn.textContent = t('onboarding.activate_button');
+  actions.appendChild(activateBtn);
+
+  const missingHint = document.createElement('p');
+  missingHint.className = 'profile-onboarding-missing-hint';
+  actions.appendChild(missingHint);
+
+  form.appendChild(actions);
+  container.appendChild(form);
+
+  function gatherInputValues(): Map<keyof AuthorRow, string> {
+    const out = new Map<keyof AuthorRow, string>();
+    for (const [name, input] of inputs) {
+      out.set(name, input.value.trim());
+    }
+    return out;
+  }
+
+  function countMissingOrInvalidRequired(): number {
+    const values = gatherInputValues();
+    let count = 0;
+    for (const field of FIELDS) {
+      if (!field.required) {
+        continue;
+      }
+      const val = values.get(field.name) ?? '';
+      if (val === '') {
+        count++;
+        continue;
+      }
+      if (field.validate !== undefined && !field.validate(val)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  function updateActivateButtonState(): void {
+    const missing = countMissingOrInvalidRequired();
+    if (missing === 0) {
+      activateBtn.disabled = false;
+      activateBtn.removeAttribute('aria-disabled');
+      missingHint.textContent = '';
+      return;
+    }
+    activateBtn.disabled = true;
+    activateBtn.setAttribute('aria-disabled', 'true');
+    missingHint.textContent = t('onboarding.missing_fields_count').replace(
+      '{count}',
+      String(missing)
+    );
+  }
+
+  saveBtn.addEventListener('click', () => {
+    void saveOnboardingData(workingAuthor, inputs, status, saveBtn, false);
+  });
+
+  activateBtn.addEventListener('click', () => {
+    void saveOnboardingData(workingAuthor, inputs, status, activateBtn, true).then((ok) => {
+      if (ok) {
+        void requestActivation(workingAuthor, status, activateBtn);
+      }
+      return undefined;
+    });
+  });
+
+  updateActivateButtonState();
+}
+
+async function saveOnboardingData(
+  author: AuthorRow,
+  inputs: Map<keyof AuthorRow, HTMLInputElement>,
+  status: HTMLElement,
+  submit: HTMLButtonElement,
+  silentOnSuccess: boolean
+): Promise<boolean> {
+  // Verzamel alleen-gewijzigde + valide velden in een type-safe Update-object
+  const update: AuthorUpdate = {};
+  let changed = 0;
+  for (const field of FIELDS) {
+    if (field.readonly === true) {
+      continue;
+    }
+    const input = inputs.get(field.name);
+    if (input === undefined) {
+      continue;
+    }
+    const newVal = input.value.trim();
+    const raw = author[field.name];
+    const oldVal = typeof raw === 'string' ? raw : raw === null ? '' : String(raw);
+
+    if (newVal === oldVal) {
+      continue;
+    }
+
+    if (field.validate !== undefined && newVal.length > 0 && !field.validate(newVal)) {
+      showStatus(
+        status,
+        'error',
+        field.validationError ?? `Ongeldige waarde voor ${t(field.labelKey)}`
+      );
+      return false;
+    }
+
+    assignAuthorField(update, field.name, newVal === '' ? null : newVal);
+    changed++;
+  }
+
+  if (changed === 0) {
+    if (!silentOnSuccess) {
+      showStatus(status, 'success', 'Niets te wijzigen.');
+    }
+    return true;
+  }
+
+  submit.disabled = true;
+  const { error } = await supabase.from('authors').update(update).eq('id', author.id);
+  submit.disabled = false;
+
+  if (error !== null) {
+    reportError('profile.onboardingSave', error);
+    showStatus(status, 'error', `Opslaan faalde: ${error.message}`);
+    return false;
+  }
+
+  // Update lokale snapshot zodat volgende save juiste oldVal heeft
+  for (const field of FIELDS) {
+    const input = inputs.get(field.name);
+    if (input === undefined) {
+      continue;
+    }
+    (author as Record<string, unknown>)[field.name] = input.value.trim();
+  }
+
+  if (!silentOnSuccess) {
+    showStatus(status, 'success', 'Wijzigingen opgeslagen.');
+  }
+  return true;
+}
+
+async function requestActivation(
+  author: AuthorRow,
+  status: HTMLElement,
+  submit: HTMLButtonElement
+): Promise<void> {
+  submit.disabled = true;
+  const { error } = await supabase
+    .from('authors')
+    .update({ onboarding_status: 'pending_admin_review' })
+    .eq('id', author.id);
+
+  if (error !== null) {
+    submit.disabled = false;
+    reportError('profile.requestActivation', error);
+    showStatus(status, 'error', `Activeren faalde: ${error.message}`);
+    return;
+  }
+
+  showStatus(status, 'success', t('onboarding.activate_confirmation'));
+  // Herlaad zodat decideAccess opnieuw evalueert + onboarding-banner update
+  setTimeout(() => {
+    window.location.reload();
+  }, 1500);
+}
+
+// =============================================================================
+// Modal-flow voor active-mode (change_requests)
+// =============================================================================
 function openEditModal(author: AuthorRow, onSaved: () => void): void {
-  // Voorkom dubbele modal
   const existing = document.querySelector('.modal-overlay');
   if (existing !== null) {
     return;
@@ -143,7 +446,6 @@ function openEditModal(author: AuthorRow, onSaved: () => void): void {
 
   document.body.appendChild(overlay);
 
-  // Focus eerste input
   const firstInput = modal.querySelector<HTMLInputElement>('input');
   if (firstInput !== null) {
     firstInput.focus();
@@ -151,7 +453,6 @@ function openEditModal(author: AuthorRow, onSaved: () => void): void {
 }
 
 async function renderViewMode(grid: HTMLElement, author: AuthorRow): Promise<void> {
-  // Pending change_requests ophalen om badges te kunnen zetten
   const { data: pending } = await supabase
     .from('change_requests')
     .select('field_name, new_value')
@@ -247,6 +548,9 @@ function buildEditForm(author: AuthorRow, onDone: () => void): HTMLElement {
 
   const inputs = new Map<string, HTMLInputElement>();
   for (const field of FIELDS) {
+    if (field.readonly === true) {
+      continue;
+    }
     const wrap = document.createElement('label');
     wrap.className = 'auth-field';
     const span = document.createElement('span');
@@ -254,7 +558,7 @@ function buildEditForm(author: AuthorRow, onDone: () => void): HTMLElement {
     wrap.appendChild(span);
 
     const input = document.createElement('input');
-    input.type = 'text';
+    input.type = field.inputType ?? 'text';
     input.name = field.name;
     const raw = author[field.name];
     input.value = typeof raw === 'string' ? raw : raw === null ? '' : String(raw);
@@ -288,6 +592,9 @@ async function submitChanges(
   const changes: { field_name: string; old_value: string | null; new_value: string }[] = [];
 
   for (const field of FIELDS) {
+    if (field.readonly === true) {
+      continue;
+    }
     const input = inputs.get(field.name);
     if (input === undefined) {
       continue;
@@ -300,7 +607,7 @@ async function submitChanges(
       continue;
     }
 
-    if (field.validate && newVal.length > 0 && !field.validate(newVal)) {
+    if (field.validate !== undefined && newVal.length > 0 && !field.validate(newVal)) {
       showStatus(
         status,
         'error',
@@ -352,4 +659,37 @@ function showStatus(box: HTMLElement, kind: 'error' | 'success', message: string
   box.className = `admin-status admin-status-${kind}`;
   box.textContent = message;
   box.hidden = false;
+}
+
+/**
+ * Type-safe assign: zet alleen velden die als `string | null` op `AuthorUpdate`
+ * staan. Onbekende velden worden stilzwijgend genegeerd (kan niet voorkomen in
+ * de FIELDS-array maar TS kan het niet bewijzen).
+ */
+function assignAuthorField(
+  update: AuthorUpdate,
+  name: keyof AuthorRow,
+  value: string | null
+): void {
+  // Whitelist van velden die we vanuit het profiel mogen schrijven.
+  // Email + ID-kolommen + status-velden niet via dit pad.
+  const writable: ReadonlySet<keyof AuthorRow> = new Set([
+    'first_name',
+    'last_name',
+    'phone',
+    'street',
+    'house_number',
+    'postcode',
+    'city',
+    'country',
+    'birth_date',
+    'bsn',
+    'bank_account',
+    'bic',
+  ]);
+  if (!writable.has(name)) {
+    return;
+  }
+  // We weten op basis van de set hierboven dat deze velden allemaal `string | null` zijn.
+  (update as Record<string, string | null>)[name] = value;
 }

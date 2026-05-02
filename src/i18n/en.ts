@@ -58,6 +58,24 @@ export const en: Translations = {
   'tabs.faq': 'FAQ',
   'tabs.profile': 'Profile',
 
+  'onboarding.banner_pending_data_title': 'Complete your profile',
+  'onboarding.banner_pending_data_text':
+    'Welcome! Please complete your profile to activate your account. The other tabs become available once Noordhoff has approved your request.',
+  'onboarding.banner_pending_review_title': 'Your request is being reviewed',
+  'onboarding.banner_pending_review_text':
+    'Thank you — your details have been received. Noordhoff is reviewing your request and you will be notified once your account is active.',
+  'onboarding.tab_disabled_tooltip': 'Available once your account is activated',
+  'onboarding.activate_button': 'Activate my account',
+  'onboarding.activate_button_disabled_hint':
+    'Please fill in all required fields before submitting your request.',
+  'onboarding.activate_confirmation':
+    'Your request has been sent. You will receive an email once your account is activated.',
+  'onboarding.save_intermediate': 'Save progress',
+  'onboarding.readonly_disclaimer':
+    'Your request is being reviewed. Changes cannot be made at this time.',
+  'onboarding.required_field_hint': 'Required',
+  'onboarding.missing_fields_count': '{count} field(s) remaining',
+
   'profile.title': 'Your details',
   'profile.id_vendor': 'Vendor ID',
   'profile.id_alliant': 'Alliant ID',

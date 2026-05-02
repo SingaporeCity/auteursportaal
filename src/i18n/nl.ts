@@ -58,6 +58,24 @@ export const nl: Translations = {
   'tabs.faq': 'FAQ',
   'tabs.profile': 'Profiel',
 
+  'onboarding.banner_pending_data_title': 'Vul uw gegevens aan',
+  'onboarding.banner_pending_data_text':
+    'Welkom! Vul uw profiel volledig aan om uw account te activeren. De andere tabbladen zijn beschikbaar zodra Noordhoff uw aanvraag heeft goedgekeurd.',
+  'onboarding.banner_pending_review_title': 'Uw aanvraag wordt beoordeeld',
+  'onboarding.banner_pending_review_text':
+    'Bedankt — uw gegevens zijn ontvangen. Noordhoff beoordeelt uw aanvraag en u krijgt bericht zodra uw account actief is.',
+  'onboarding.tab_disabled_tooltip': 'Beschikbaar zodra uw account is geactiveerd',
+  'onboarding.activate_button': 'Activeer mijn account',
+  'onboarding.activate_button_disabled_hint':
+    'Vul eerst alle verplichte velden in om uw aanvraag te kunnen versturen.',
+  'onboarding.activate_confirmation':
+    'Uw aanvraag is verstuurd. U ontvangt een e-mail zodra uw account is geactiveerd.',
+  'onboarding.save_intermediate': 'Tussentijds opslaan',
+  'onboarding.readonly_disclaimer':
+    'Uw aanvraag wordt beoordeeld. Wijzigingen zijn op dit moment niet mogelijk.',
+  'onboarding.required_field_hint': 'Verplicht',
+  'onboarding.missing_fields_count': 'Nog {count} veld(en) in te vullen',
+
   'profile.title': 'Uw gegevens',
   'profile.id_vendor': 'Vendor ID',
   'profile.id_alliant': 'Alliant ID',

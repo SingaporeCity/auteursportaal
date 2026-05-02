@@ -728,6 +728,174 @@ a:hover {
   max-width: 640px;
 }
 
+/* =============================================================================
+ * Onboarding banner — boven tabs zolang status != 'active'
+ * ============================================================================= */
+.onboarding-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  box-shadow: var(--shadow-soft);
+}
+
+.onboarding-banner-pending_data {
+  background: var(--color-accent-amber-light);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #78350f;
+}
+
+[data-theme='dark'] .onboarding-banner-pending_data {
+  color: #fcd34d;
+}
+
+.onboarding-banner-pending_admin_review {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+[data-theme='dark'] .onboarding-banner-pending_admin_review {
+  color: var(--color-primary-hover);
+}
+
+.onboarding-banner-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme='dark'] .onboarding-banner-icon {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.onboarding-banner-body {
+  flex: 1;
+}
+
+.onboarding-banner-title {
+  font-size: 1.05rem;
+  font-variation-settings: 'wght' 600;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.onboarding-banner-text {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin: 0;
+  opacity: 0.92;
+}
+
+/* Tab-buttons in onboarding-mode: gedimd + cursor not-allowed */
+.tab-btn-locked {
+  opacity: 0.45;
+  cursor: not-allowed !important;
+}
+
+.tab-btn-locked:hover {
+  background: transparent !important;
+  color: var(--color-text-light) !important;
+}
+
+.tab-btn-locked::after {
+  display: none !important;
+}
+
+/* Profile onboarding-form */
+.profile-onboarding-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem 1.25rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .profile-onboarding-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-onboarding-form .auth-field {
+  margin-bottom: 0;
+}
+
+.auth-field-label {
+  display: block;
+  font-size: 0.78rem;
+  font-variation-settings: 'wght' 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.auth-field-required {
+  color: var(--color-danger);
+  font-variation-settings: 'wght' 700;
+}
+
+.auth-field-readonly {
+  background: var(--color-bg) !important;
+  color: var(--color-text-light) !important;
+  cursor: not-allowed;
+}
+
+.profile-onboarding-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.profile-onboarding-actions .auth-submit {
+  width: auto;
+  min-width: 200px;
+  margin-top: 0;
+}
+
+.auth-submit-secondary {
+  background: var(--color-surface) !important;
+  color: var(--color-primary) !important;
+  border: 1.5px solid var(--color-primary) !important;
+  box-shadow: none !important;
+}
+
+.auth-submit-secondary:hover:not(:disabled) {
+  background: var(--color-primary-subtle) !important;
+  transform: none !important;
+}
+
+.profile-onboarding-missing-hint {
+  flex: 1;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  font-style: italic;
+}
+
+.profile-readonly-disclaimer {
+  margin: 1rem 0 1.5rem;
+  padding: 0.85rem 1rem;
+  background: var(--color-primary-subtle);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
 /* Dashboard content — gecentreerd container met tabs in card (demo design) */
 .dashboard-content {
   max-width: 1100px;

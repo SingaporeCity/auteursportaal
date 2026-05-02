@@ -84,6 +84,20 @@ export type TranslationKey =
   | 'tabs.faq'
   | 'tabs.profile'
 
+  // Onboarding
+  | 'onboarding.banner_pending_data_title'
+  | 'onboarding.banner_pending_data_text'
+  | 'onboarding.banner_pending_review_title'
+  | 'onboarding.banner_pending_review_text'
+  | 'onboarding.tab_disabled_tooltip'
+  | 'onboarding.activate_button'
+  | 'onboarding.activate_button_disabled_hint'
+  | 'onboarding.activate_confirmation'
+  | 'onboarding.save_intermediate'
+  | 'onboarding.readonly_disclaimer'
+  | 'onboarding.required_field_hint'
+  | 'onboarding.missing_fields_count'
+
   // Profiel
   | 'profile.title'
   | 'profile.id_vendor'

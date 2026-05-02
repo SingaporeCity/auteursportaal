@@ -61,11 +61,11 @@ async function render(rootEl: HTMLElement): Promise<void> {
   if (decision.role === 'admin') {
     renderAdminView(rootEl, decision.author);
   } else {
-    renderDashboardView(rootEl, decision.author);
+    renderDashboardView(rootEl, decision.author, decision.mode);
   }
 }
 
-function renderNoAccess(rootEl: HTMLElement, reason: 'no_profile' | 'not_active'): void {
+function renderNoAccess(rootEl: HTMLElement, reason: 'no_profile'): void {
   rootEl.replaceChildren();
 
   const card = document.createElement('div');
@@ -81,10 +81,8 @@ function renderNoAccess(rootEl: HTMLElement, reason: 'no_profile' | 'not_active'
 
   const reasonHint = document.createElement('small');
   reasonHint.className = 'no-access-reason';
-  reasonHint.textContent =
-    reason === 'no_profile'
-      ? '(geen profielregistratie gevonden voor dit account)'
-      : '(account is nog niet door de beheerder geactiveerd)';
+  reasonHint.textContent = '(geen profielregistratie gevonden voor dit account)';
+  void reason;
   card.appendChild(reasonHint);
 
   const logoutBtn = document.createElement('button');

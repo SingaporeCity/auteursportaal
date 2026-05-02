@@ -17,6 +17,7 @@ export type PaymentType = 'royalty' | 'subsidiary' | 'foreign' | 'jaaropgave';
 export type ChangeRequestStatus = 'pending' | 'approved' | 'rejected';
 export type ExpenseStatus = 'pending' | 'approved' | 'rejected' | 'paid';
 export type ExpenseType = 'onkosten' | 'idc';
+export type OnboardingStatus = 'pending_data' | 'pending_admin_review' | 'active';
 
 export interface Database {
   public: {
@@ -43,6 +44,10 @@ export interface Database {
           bic: string | null;
           is_admin: boolean;
           is_active: boolean;
+          onboarding_status: OnboardingStatus;
+          invited_at: string | null;
+          data_submitted_at: string | null;
+          reminder_sent_at: string | null;
           created_at: string;
           updated_at: string;
           activated_at: string | null;
@@ -68,6 +73,10 @@ export interface Database {
           bic?: string | null;
           is_admin?: boolean;
           is_active?: boolean;
+          onboarding_status?: OnboardingStatus;
+          invited_at?: string | null;
+          data_submitted_at?: string | null;
+          reminder_sent_at?: string | null;
           created_at?: string;
           updated_at?: string;
           activated_at?: string | null;
@@ -236,8 +245,14 @@ export interface Database {
         Args: Record<string, never>;
         Returns: boolean;
       };
+      is_active_author: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
     };
-    Enums: Record<string, never>;
+    Enums: {
+      onboarding_status: OnboardingStatus;
+    };
     CompositeTypes: Record<string, never>;
   };
 }
