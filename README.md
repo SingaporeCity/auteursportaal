@@ -243,8 +243,28 @@ Test-database: aparte Supabase test-project of ephemeral via `supabase db reset 
 
 ## 8. Bekende beperkingen
 
+> ⚠️ **BLOKKER VOOR PRODUCTIE-LAUNCH — externe SMTP-provider vereist**
+>
+> Het portaal verstuurt e-mails (invite-link, recovery, reminder) via Supabase's ingebouwde mailer. Die mailer is **niet productie-geschikt**:
+>
+> - **Rate limit**: 3 e-mails per uur per project. Bij bulk-onboarding van honderden auteurs is de limiet meteen vol → flow valt stil met `over_email_send_rate_limit`.
+> - **Volume nodig in productie**: ~5000+ e-mails per maand realistisch (2500 auteurs × invite + reminder + ad-hoc password-resets + activatiebevestigingen).
+> - **Deliverability**: Supabase-mailer stuurt vanaf `noreply@mail.app.supabase.io` — Outlook/Hotmail markeert dat vaak als spam.
+> - **Branding**: huidige mails komen niet vanuit `noordhoff.nl`-domein — slecht voor herkenning + vertrouwen door auteurs.
+>
+> **Vóór productie-launch moet Noordhoff IT een transactionele SMTP-provider kiezen + configureren.** Drie geschikte opties:
+>
+> | Provider     | Free tier              | Kosten productie    | Notities                                          |
+> | ------------ | ---------------------- | ------------------- | ------------------------------------------------- |
+> | **Resend**   | 3.000/maand            | ~$20 voor 50k mails | Modern, eenvoudige API, goede deliverability      |
+> | **SendGrid** | 100/dag (=3.000/maand) | ~$20 voor 50k mails | Veel features, complexer dashboard                |
+> | **AWS SES**  | 200/dag in sandbox     | ~$0,10 per 1k mails | Goedkoopst maar vereist AWS-account + meer config |
+>
+> **Configuratie**: na keuze van provider → Supabase Dashboard → Project Settings → Authentication → SMTP Settings → vul host/port/credentials in. Gebruik een DNS-geverifieerd `noreply@mijn-noordhoff.nl` of `noreply@noordhoff.nl` adres met SPF/DKIM/DMARC records (anders blijft spam-issue).
+
 | Item                          | Status                                   | Toelichting                                                                                                                                               |
 | ----------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Externe SMTP-provider**     | **BLOKKER — niet geconfigureerd**        | Zie waarschuwing hierboven. Productie-launch is afhankelijk van Resend/SendGrid/SES + DNS-records (SPF/DKIM/DMARC) op `noordhoff.nl`. Geen launch zonder. |
 | Microsoft Entra ID SSO        | **Placeholder**                          | OAuth-call zit achter feature-flag `VITE_ADMIN_SSO_ENABLED=false`. Zet op `true` zodra Infinitas IT de Azure-tenant + admin consent heeft geconfigureerd. |
 | Charlotte's BSN/geboortedatum | Placeholder (`000000000` / `1900-01-01`) | UI toont "ontbreekt" voor placeholderwaarden. Vervang met echte data zodra die intern bekend is.                                                          |
 | Charlotte's Alliant ID        | Open                                     | Veld `NL00117322` uit NetSuite — onduidelijk of dit Alliant-ID of ander intern Noordhoff-nummer is. Geverifieerd worden door admin.                       |
