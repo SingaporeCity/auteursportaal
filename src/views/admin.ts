@@ -13,6 +13,7 @@
 import type { AuthorRow } from '@/auth';
 import { supabase } from '@/lib/supabase';
 import { reportError } from '@/dev/debug-panel';
+import { t } from '@/lib/i18n';
 import { renderChangesSection } from './admin/changes';
 import { buildStatementUploadForm } from './admin/statement-upload';
 import { openCsvImportModal } from './admin/csv-import';
@@ -56,12 +57,12 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
 
   const overline = document.createElement('span');
   overline.className = 'admin-section-overline';
-  overline.textContent = 'Beheer';
+  overline.textContent = t('admin.section_overline');
   sectionHeader.appendChild(overline);
 
   const heading = document.createElement('h2');
   heading.className = 'admin-section-heading';
-  heading.textContent = 'Auteursbeheer';
+  heading.textContent = t('admin.section_heading');
   sectionHeader.appendChild(heading);
 
   main.appendChild(sectionHeader);
@@ -76,13 +77,13 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   toolbar.className = 'admin-toolbar';
   main.appendChild(toolbar);
 
-  const csvBtn = buildToolbarBtn('Importeer CSV', ICON_DOWNLOAD);
+  const csvBtn = buildToolbarBtn(t('admin.toolbar_csv_import'), ICON_DOWNLOAD);
   toolbar.appendChild(csvBtn);
 
-  const exportBtn = buildToolbarBtn('Export naar NetSuite', ICON_UPLOAD);
+  const exportBtn = buildToolbarBtn(t('admin.toolbar_csv_export'), ICON_UPLOAD);
   toolbar.appendChild(exportBtn);
 
-  const newAuthorBtn = buildToolbarBtn('Nieuwe auteur', ICON_PLUS);
+  const newAuthorBtn = buildToolbarBtn(t('admin.toolbar_new_author'), ICON_PLUS);
   toolbar.appendChild(newAuthorBtn);
 
   // Filter-tabs
@@ -92,7 +93,7 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
 
   const list = document.createElement('div');
   list.className = 'admin-author-list';
-  list.textContent = 'Laden…';
+  list.textContent = t('common.loading');
   main.appendChild(list);
 
   const state: ListState = { filter: 'all', authors: [] };
@@ -160,14 +161,14 @@ function renderFilterButtons(container: HTMLElement, state: ListState, onChange:
 
   const counts = countByStatus(state.authors);
   const items: { value: FilterValue; label: string; count: number }[] = [
-    { value: 'all', label: 'Alle', count: state.authors.length },
+    { value: 'all', label: t('admin.filter_all'), count: state.authors.length },
     {
       value: 'pending_admin_review',
-      label: 'Wacht op review',
+      label: t('admin.filter_pending_review'),
       count: counts.pending_admin_review,
     },
-    { value: 'pending_data', label: 'Wacht op auteur', count: counts.pending_data },
-    { value: 'active', label: 'Actief', count: counts.active },
+    { value: 'pending_data', label: t('admin.filter_pending_data'), count: counts.pending_data },
+    { value: 'active', label: t('admin.filter_active'), count: counts.active },
   ];
 
   for (const item of items) {
@@ -221,7 +222,7 @@ function renderList(container: HTMLElement, state: ListState, statusBox: HTMLEle
   if (filtered.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'admin-empty';
-    empty.textContent = 'Geen auteurs in dit filter.';
+    empty.textContent = t('admin.empty_filter');
     container.appendChild(empty);
     return;
   }
@@ -280,13 +281,13 @@ function renderAuthorCard(
     parts.push(`Vendor ${author.netsuite_vendor_id}`);
   }
   if (author.invited_at !== null) {
-    parts.push(`Uitgenodigd ${formatShortDate(author.invited_at)}`);
+    parts.push(t('admin.invited_at').replace('{date}', formatShortDate(author.invited_at)));
   }
   if (author.reminder_sent_at !== null) {
-    parts.push(`Reminder ${formatShortDate(author.reminder_sent_at)}`);
+    parts.push(t('admin.reminder_at').replace('{date}', formatShortDate(author.reminder_sent_at)));
   }
   if (author.activated_at !== null) {
-    parts.push(`Geactiveerd ${formatShortDate(author.activated_at)}`);
+    parts.push(t('admin.activated_at').replace('{date}', formatShortDate(author.activated_at)));
   }
   meta.textContent = parts.join(' · ');
   main.appendChild(meta);
@@ -305,27 +306,26 @@ function renderAuthorCard(
 
       if (author.invited_at === null) {
         actions.appendChild(
-          buildActionBtn('Stuur uitnodiging', () => {
+          buildActionBtn(t('admin.btn_send_invite'), () => {
             void invokeCreateAccounts(author, 'invite', statusBox).then(onChanged);
           })
         );
       } else if (isReminderEligible) {
         actions.appendChild(
-          buildActionBtn('Stuur reminder', () => {
+          buildActionBtn(t('admin.btn_send_reminder'), () => {
             void invokeCreateAccounts(author, 'invite', statusBox).then(onChanged);
           })
         );
       } else {
         const dim = document.createElement('span');
         dim.className = 'admin-author-hint';
-        dim.textContent = `Reminder beschikbaar over ${String(
-          REMINDER_THRESHOLD_DAYS - daysSince(author.invited_at)
-        )} dagen`;
+        const days = REMINDER_THRESHOLD_DAYS - daysSince(author.invited_at);
+        dim.textContent = t('admin.reminder_in_days').replace('{days}', String(days));
         actions.appendChild(dim);
       }
     } else if (author.onboarding_status === 'pending_admin_review') {
       actions.appendChild(
-        buildActionBtn('Activeer', () => {
+        buildActionBtn(t('admin.btn_activate'), () => {
           void invokeCreateAccounts(author, 'activate', statusBox).then(onChanged);
         })
       );
@@ -336,7 +336,7 @@ function renderAuthorCard(
     const expandBtn = document.createElement('button');
     expandBtn.type = 'button';
     expandBtn.className = 'admin-expand';
-    expandBtn.textContent = 'Statement uploaden';
+    expandBtn.textContent = t('admin.btn_upload_statement');
     expandBtn.addEventListener('click', () => {
       toggleUploadPanel(card, author);
     });
@@ -357,22 +357,22 @@ function buildStatusBadge(author: AuthorRow): HTMLElement {
   badge.className = 'admin-author-status';
 
   if (author.is_admin) {
-    badge.textContent = 'Admin';
+    badge.textContent = t('admin.status_admin');
     badge.classList.add('status-admin');
     return badge;
   }
 
   switch (author.onboarding_status) {
     case 'pending_data':
-      badge.textContent = 'Wacht op auteur';
+      badge.textContent = t('admin.status_pending_data');
       badge.classList.add('status-pending-data');
       break;
     case 'pending_admin_review':
-      badge.textContent = 'Wacht op review';
+      badge.textContent = t('admin.status_pending_review');
       badge.classList.add('status-pending-review');
       break;
     case 'active':
-      badge.textContent = 'Actief';
+      badge.textContent = t('admin.status_active');
       badge.classList.add('status-active');
       break;
   }
@@ -502,19 +502,33 @@ function openNewAuthorForm(
   form.className = 'admin-new-author-form';
 
   const heading = document.createElement('h3');
-  heading.textContent = 'Nieuwe auteur';
+  heading.textContent = t('admin.new_author_heading');
   form.appendChild(heading);
 
   const intro = document.createElement('p');
   intro.className = 'profile-edit-intro';
-  intro.textContent =
-    'Vul email + naam in. De auteur ontvangt direct een invite-mail en vult het profiel zelf aan voordat het account geactiveerd wordt.';
+  intro.textContent = t('admin.new_author_intro');
   form.appendChild(intro);
 
-  const emailField = labeledInput('email', 'E-mail', 'email', true);
-  const firstNameField = labeledInput('first_name', 'Voornaam', 'text', true);
-  const lastNameField = labeledInput('last_name', 'Achternaam', 'text', true);
-  const vendorField = labeledInput('netsuite_vendor_id', 'Vendor ID (optioneel)', 'text', false);
+  const emailField = labeledInput('email', t('admin.new_author_field_email'), 'email', true);
+  const firstNameField = labeledInput(
+    'first_name',
+    t('admin.new_author_field_firstname'),
+    'text',
+    true
+  );
+  const lastNameField = labeledInput(
+    'last_name',
+    t('admin.new_author_field_lastname'),
+    'text',
+    true
+  );
+  const vendorField = labeledInput(
+    'netsuite_vendor_id',
+    t('admin.new_author_field_vendor'),
+    'text',
+    false
+  );
 
   form.appendChild(emailField.field);
   form.appendChild(firstNameField.field);
@@ -524,7 +538,7 @@ function openNewAuthorForm(
   const submit = document.createElement('button');
   submit.type = 'submit';
   submit.className = 'auth-submit';
-  submit.textContent = 'Aanmaken & uitnodigen';
+  submit.textContent = t('admin.new_author_submit');
   form.appendChild(submit);
 
   form.addEventListener('submit', (event) => {
@@ -550,7 +564,7 @@ async function createAndInviteAuthor(
   onCreated: () => void
 ): Promise<void> {
   submit.disabled = true;
-  submit.textContent = 'Bezig…';
+  submit.textContent = t('common.busy');
 
   // Insert (status default = pending_data)
   const { data, error } = await supabase
@@ -564,7 +578,7 @@ async function createAndInviteAuthor(
 
   if (error !== null) {
     submit.disabled = false;
-    submit.textContent = 'Aanmaken & uitnodigen';
+    submit.textContent = t('admin.new_author_submit');
     reportError('admin.createAuthor', error);
     showStatus(statusBox, 'error', `Aanmaken faalde: ${error.message}`);
     return;
@@ -584,7 +598,7 @@ async function createAndInviteAuthor(
 
   if (failed) {
     submit.disabled = false;
-    submit.textContent = 'Aanmaken & uitnodigen';
+    submit.textContent = t('admin.new_author_submit');
     const reason = fnErr?.message ?? firstResult?.error ?? 'onbekend';
     showStatus(
       statusBox,

@@ -11,6 +11,7 @@
 import { supabase } from '@/lib/supabase';
 import { reportError } from '@/dev/debug-panel';
 import { formatDate } from '@/lib/format';
+import { t } from '@/lib/i18n';
 import type { Database } from '@/types/db';
 
 type ChangeRequestRow = Database['public']['Tables']['change_requests']['Row'];
@@ -22,7 +23,7 @@ export async function renderChangesSection(
   onUpdate: () => void
 ): Promise<void> {
   const heading = document.createElement('h3');
-  heading.textContent = 'Wachtende wijzigingsverzoeken';
+  heading.textContent = t('admin.changes_heading');
   container.appendChild(heading);
 
   const list = document.createElement('div');
@@ -55,7 +56,7 @@ async function loadAndRender(
   if (changes.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
-    empty.textContent = 'Geen wachtende verzoeken.';
+    empty.textContent = t('admin.changes_empty');
     container.appendChild(empty);
     return;
   }
@@ -114,7 +115,7 @@ function renderChangeRow(
   const approveBtn = document.createElement('button');
   approveBtn.type = 'button';
   approveBtn.className = 'change-approve';
-  approveBtn.textContent = 'Goedkeuren';
+  approveBtn.textContent = t('admin.changes_approve');
   approveBtn.addEventListener('click', () => {
     void approve(cr, adminId, approveBtn, onUpdate);
   });
@@ -122,7 +123,7 @@ function renderChangeRow(
   const rejectBtn = document.createElement('button');
   rejectBtn.type = 'button';
   rejectBtn.className = 'change-reject';
-  rejectBtn.textContent = 'Afwijzen';
+  rejectBtn.textContent = t('admin.changes_reject');
   rejectBtn.addEventListener('click', () => {
     void reject(cr, adminId, rejectBtn, onUpdate);
   });

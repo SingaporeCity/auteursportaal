@@ -10,6 +10,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { reportError } from '@/dev/debug-panel';
+import { t } from '@/lib/i18n';
 import type { Database, PaymentType } from '@/types/db';
 
 type AuthorRow = Database['public']['Tables']['authors']['Row'];
@@ -28,7 +29,7 @@ export function buildStatementUploadForm(author: AuthorRow, onSuccess: () => voi
   form.className = 'admin-upload-form';
 
   const heading = document.createElement('h4');
-  heading.textContent = 'Nieuw statement uploaden';
+  heading.textContent = t('admin.statement_upload_heading');
   form.appendChild(heading);
 
   const status = document.createElement('div');
@@ -53,7 +54,7 @@ export function buildStatementUploadForm(author: AuthorRow, onSuccess: () => voi
   const typeWrap = document.createElement('label');
   typeWrap.className = 'auth-field';
   const typeSpan = document.createElement('span');
-  typeSpan.textContent = 'Type';
+  typeSpan.textContent = t('admin.statement_upload_field_type');
   typeWrap.appendChild(typeSpan);
   const typeSelect = document.createElement('select');
   typeSelect.name = 'type';
@@ -69,7 +70,7 @@ export function buildStatementUploadForm(author: AuthorRow, onSuccess: () => voi
   const fileWrap = document.createElement('label');
   fileWrap.className = 'auth-field';
   const fileSpan = document.createElement('span');
-  fileSpan.textContent = 'PDF-bestand';
+  fileSpan.textContent = t('admin.statement_upload_field_file');
   fileWrap.appendChild(fileSpan);
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
@@ -87,7 +88,7 @@ export function buildStatementUploadForm(author: AuthorRow, onSuccess: () => voi
   const submit = document.createElement('button');
   submit.type = 'submit';
   submit.className = 'auth-submit';
-  submit.textContent = 'Uploaden';
+  submit.textContent = t('admin.statement_upload_submit');
   form.appendChild(submit);
 
   form.addEventListener('submit', (event) => {
@@ -145,7 +146,7 @@ async function doUpload(
   onSuccess: () => void
 ): Promise<void> {
   submitBtn.disabled = true;
-  showStatus(statusBox, 'info', 'Bezig met uploaden…');
+  showStatus(statusBox, 'info', t('admin.statement_upload_busy'));
 
   const filename = sanitize(input.file.name);
   const path = `${input.author.id}/${input.type}/${String(input.year)}/${filename}`;

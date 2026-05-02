@@ -347,7 +347,7 @@ async function saveOnboardingData(
 
   if (changed === 0) {
     if (!silentOnSuccess) {
-      showStatus(status, 'success', 'Niets te wijzigen.');
+      showStatus(status, 'success', t('profile.changes_nothing'));
     }
     return true;
   }
@@ -372,7 +372,7 @@ async function saveOnboardingData(
   }
 
   if (!silentOnSuccess) {
-    showStatus(status, 'success', 'Wijzigingen opgeslagen.');
+    showStatus(status, 'success', t('profile.changes_saved'));
   }
   return true;
 }
@@ -522,7 +522,7 @@ function buildRow(
   if (pending !== undefined) {
     const badge = document.createElement('span');
     badge.className = 'profile-pending-badge';
-    badge.textContent = `⏳ wijziging in behandeling: ${pending}`;
+    badge.textContent = t('profile.pending_change_badge').replace('{value}', pending);
     wrap.appendChild(badge);
   }
 
@@ -597,13 +597,12 @@ function buildEditForm(author: AuthorRow, onDone: () => void): HTMLElement {
   form.className = 'profile-edit-form';
 
   const heading = document.createElement('h3');
-  heading.textContent = 'Wijzigingen aanvragen';
+  heading.textContent = t('profile.changes_heading');
   form.appendChild(heading);
 
   const intro = document.createElement('p');
   intro.className = 'profile-edit-intro';
-  intro.textContent =
-    'Wijzigingen worden eerst door de uitgever beoordeeld. Pas na goedkeuring zijn ze definitief.';
+  intro.textContent = t('profile.changes_intro');
   form.appendChild(intro);
 
   const status = document.createElement('div');
@@ -700,7 +699,7 @@ async function submitChanges(
   }
 
   if (changes.length === 0) {
-    showStatus(status, 'error', 'Geen wijzigingen aangebracht.');
+    showStatus(status, 'error', t('profile.changes_empty'));
     return;
   }
 
@@ -726,7 +725,7 @@ async function submitChanges(
   showStatus(
     status,
     'success',
-    `${String(changes.length)} wijziging(en) ingediend. De uitgever beoordeelt deze.`
+    t('profile.changes_submitted').replace('{count}', String(changes.length))
   );
   setTimeout(onDone, 1500);
 }

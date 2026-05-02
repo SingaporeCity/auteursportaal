@@ -17,6 +17,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { reportError } from '@/dev/debug-panel';
+import { t } from '@/lib/i18n';
 import type { AuthorRow } from '@/auth';
 
 interface PreviewState {
@@ -56,13 +57,12 @@ export function openCsvExportModal(allAuthors: AuthorRow[], onDone: () => void):
   modal.appendChild(closeBtn);
 
   const heading = document.createElement('h3');
-  heading.textContent = 'Export naar NetSuite';
+  heading.textContent = t('admin.csv_export_heading');
   modal.appendChild(heading);
 
   const intro = document.createElement('p');
   intro.className = 'profile-edit-intro';
-  intro.textContent =
-    'Genereert een CSV met alle auteursgegevens die zijn gewijzigd of nieuw geactiveerd sinds vorige export. Bestand wordt gedownload — upload binnen enkele minuten naar Noordhoff SharePoint en verwijder lokaal.';
+  intro.textContent = t('admin.csv_export_intro');
   modal.appendChild(intro);
 
   const state: PreviewState = { rows: candidates };
@@ -77,11 +77,11 @@ export function openCsvExportModal(allAuthors: AuthorRow[], onDone: () => void):
   const reasonWrap = document.createElement('label');
   reasonWrap.className = 'auth-field';
   const reasonSpan = document.createElement('span');
-  reasonSpan.textContent = 'Reden / opmerking (optioneel — komt in audit-log)';
+  reasonSpan.textContent = t('admin.csv_export_reason_label');
   reasonWrap.appendChild(reasonSpan);
   const reasonInput = document.createElement('input');
   reasonInput.type = 'text';
-  reasonInput.placeholder = 'bv. Wekelijkse NetSuite-sync';
+  reasonInput.placeholder = t('admin.csv_export_reason_placeholder');
   reasonInput.maxLength = 500;
   reasonWrap.appendChild(reasonInput);
   modal.appendChild(reasonWrap);
@@ -100,7 +100,10 @@ export function openCsvExportModal(allAuthors: AuthorRow[], onDone: () => void):
   const submit = document.createElement('button');
   submit.type = 'button';
   submit.className = 'auth-submit';
-  submit.textContent = `Exporteer & download (${String(state.rows.length)} rijen)`;
+  submit.textContent = t('admin.csv_export_submit_count').replace(
+    '{count}',
+    String(state.rows.length)
+  );
   submit.disabled = state.rows.length === 0;
   modal.appendChild(submit);
 
@@ -137,28 +140,37 @@ function renderPreview(container: HTMLElement, state: PreviewState): void {
   if (state.rows.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'csv-export-empty';
-    empty.textContent = 'Geen wijzigingen sinds vorige export.';
+    empty.textContent = t('admin.csv_export_no_changes');
     container.appendChild(empty);
     return;
   }
 
   const summary = document.createElement('div');
   summary.className = 'csv-export-summary';
-  summary.textContent = `${String(state.rows.length)} auteur(s) komen in deze export:`;
+  summary.textContent = t('admin.csv_export_summary_count').replace(
+    '{count}',
+    String(state.rows.length)
+  );
   container.appendChild(summary);
 
   const list = document.createElement('ul');
   list.className = 'csv-export-row-list';
   for (const row of state.rows.slice(0, 50)) {
     const li = document.createElement('li');
-    const reason = row.last_exported_at === null ? 'nieuw' : 'gewijzigd';
+    const reason =
+      row.last_exported_at === null
+        ? t('admin.csv_export_row_new')
+        : t('admin.csv_export_row_changed');
     li.textContent = `${row.first_name} ${row.last_name} (${row.email}) — ${reason}`;
     list.appendChild(li);
   }
   if (state.rows.length > 50) {
     const more = document.createElement('li');
     more.className = 'csv-export-row-more';
-    more.textContent = `… en ${String(state.rows.length - 50)} meer`;
+    more.textContent = t('admin.csv_export_row_more').replace(
+      '{count}',
+      String(state.rows.length - 50)
+    );
     list.appendChild(more);
   }
   container.appendChild(list);
@@ -171,7 +183,7 @@ async function runExport(
   successBox: HTMLElement
 ): Promise<void> {
   submit.disabled = true;
-  submit.textContent = 'Bezig…';
+  submit.textContent = t('common.busy');
   status.hidden = true;
   successBox.hidden = true;
 
@@ -181,7 +193,7 @@ async function runExport(
     if (accessToken === undefined) {
       showStatus(status, 'error', 'Geen actieve sessie.');
       submit.disabled = false;
-      submit.textContent = 'Exporteer & download';
+      submit.textContent = t('admin.csv_export_submit');
       return;
     }
 
@@ -206,12 +218,12 @@ async function runExport(
       };
       const msg = errBody.error ?? errBody.message ?? 'unknown error';
       if (msg === 'no_changes') {
-        showStatus(status, 'error', 'Geen wijzigingen sinds vorige export.');
+        showStatus(status, 'error', t('admin.csv_export_no_changes'));
       } else {
         showStatus(status, 'error', `Export faalde: ${msg}`);
       }
       submit.disabled = false;
-      submit.textContent = 'Exporteer & download';
+      submit.textContent = t('admin.csv_export_submit');
       return;
     }
 
@@ -229,7 +241,7 @@ async function runExport(
     successBox.replaceChildren();
     const ok = document.createElement('div');
     ok.className = 'csv-export-success-heading';
-    ok.textContent = 'Export voltooid';
+    ok.textContent = t('admin.csv_export_success_heading');
     successBox.appendChild(ok);
 
     const meta = document.createElement('p');
@@ -239,8 +251,7 @@ async function runExport(
 
     const sub = document.createElement('p');
     sub.className = 'csv-export-success-text';
-    sub.textContent =
-      'Upload deze CSV nu naar Noordhoff SharePoint en verwijder lokaal. Audit-log:';
+    sub.textContent = t('admin.csv_export_success_text');
     successBox.appendChild(sub);
 
     const auditDl = document.createElement('dl');
@@ -251,7 +262,7 @@ async function runExport(
     }
     successBox.appendChild(auditDl);
 
-    submit.textContent = 'Sluiten';
+    submit.textContent = t('common.close');
     submit.disabled = false;
     submit.addEventListener('click', () => {
       const overlay = document.querySelector<HTMLElement>('.csv-export-overlay');

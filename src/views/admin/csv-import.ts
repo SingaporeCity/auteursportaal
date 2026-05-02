@@ -15,6 +15,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { reportError } from '@/dev/debug-panel';
+import { t } from '@/lib/i18n';
 
 interface ImportResult {
   created: number;
@@ -46,20 +47,19 @@ export function openCsvImportModal(onDone: () => void): void {
   modal.appendChild(closeBtn);
 
   const heading = document.createElement('h3');
-  heading.textContent = 'NetSuite CSV importeren';
+  heading.textContent = t('admin.csv_import_heading');
   modal.appendChild(heading);
 
   const intro = document.createElement('p');
   intro.className = 'profile-edit-intro';
-  intro.textContent =
-    'Upload een CSV met de juiste kolomvolgorde. Zie docs/netsuite-author-import-template.csv voor het format.';
+  intro.textContent = t('admin.csv_import_intro');
   modal.appendChild(intro);
 
   // -- File input
   const fileLabel = document.createElement('label');
   fileLabel.className = 'auth-field';
   const fileSpan = document.createElement('span');
-  fileSpan.textContent = 'CSV-bestand';
+  fileSpan.textContent = t('admin.csv_import_file_label');
   fileLabel.appendChild(fileSpan);
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
@@ -72,11 +72,16 @@ export function openCsvImportModal(onDone: () => void): void {
   const modeWrap = document.createElement('fieldset');
   modeWrap.className = 'csv-import-mode';
   const modeLegend = document.createElement('legend');
-  modeLegend.textContent = 'Modus';
+  modeLegend.textContent = t('admin.csv_import_mode_legend');
   modeWrap.appendChild(modeLegend);
 
-  const createOnly = buildRadio('mode', 'create_only', 'Alleen nieuwe auteurs aanmaken', true);
-  const upsert = buildRadio('mode', 'upsert', 'Bestaande bijwerken (upsert op email)', false);
+  const createOnly = buildRadio(
+    'mode',
+    'create_only',
+    t('admin.csv_import_mode_create_only'),
+    true
+  );
+  const upsert = buildRadio('mode', 'upsert', t('admin.csv_import_mode_upsert'), false);
   modeWrap.appendChild(createOnly.label);
   modeWrap.appendChild(upsert.label);
   modal.appendChild(modeWrap);
@@ -95,7 +100,7 @@ export function openCsvImportModal(onDone: () => void): void {
   const submit = document.createElement('button');
   submit.type = 'button';
   submit.className = 'auth-submit';
-  submit.textContent = 'Importeer';
+  submit.textContent = t('admin.csv_import_submit');
   modal.appendChild(submit);
 
   // -- Handlers
@@ -139,7 +144,7 @@ async function runImport(
   resultBox: HTMLElement
 ): Promise<void> {
   submit.disabled = true;
-  submit.textContent = 'Bezig…';
+  submit.textContent = t('common.busy');
   status.hidden = true;
   resultBox.hidden = true;
 
@@ -154,7 +159,7 @@ async function runImport(
       reportError('admin.csvImport', fnError);
       showStatus(status, 'error', `Importeren faalde: ${fnError.message}`);
       submit.disabled = false;
-      submit.textContent = 'Importeer';
+      submit.textContent = t('admin.csv_import_submit');
       return;
     }
 
@@ -162,18 +167,18 @@ async function runImport(
     if (data === null) {
       showStatus(status, 'error', 'Geen resultaat ontvangen van Edge Function.');
       submit.disabled = false;
-      submit.textContent = 'Importeer';
+      submit.textContent = t('admin.csv_import_submit');
       return;
     }
 
     renderResult(resultBox, data);
-    submit.textContent = 'Sluiten';
+    submit.textContent = t('admin.csv_import_close');
     submit.disabled = false;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     showStatus(status, 'error', `Onverwachte fout: ${message}`);
     submit.disabled = false;
-    submit.textContent = 'Importeer';
+    submit.textContent = t('admin.csv_import_submit');
   }
 }
 
@@ -185,12 +190,16 @@ function renderResult(box: HTMLElement, result: ImportResult): void {
   summary.className = 'csv-import-summary';
   summary.innerHTML = '';
   const items: { label: string; value: number; cls: string }[] = [
-    { label: 'Aangemaakt', value: result.created, cls: 'success' },
-    { label: 'Bijgewerkt', value: result.updated, cls: 'info' },
-    { label: 'Overgeslagen', value: result.skipped, cls: 'warning' },
+    { label: t('admin.csv_import_stat_created'), value: result.created, cls: 'success' },
+    { label: t('admin.csv_import_stat_updated'), value: result.updated, cls: 'info' },
+    { label: t('admin.csv_import_stat_skipped'), value: result.skipped, cls: 'warning' },
   ];
   if (result.bsn_skipped > 0) {
-    items.push({ label: 'BSN niet overschreven', value: result.bsn_skipped, cls: 'warning' });
+    items.push({
+      label: t('admin.csv_import_stat_bsn_skipped'),
+      value: result.bsn_skipped,
+      cls: 'warning',
+    });
   }
   for (const item of items) {
     const span = document.createElement('span');
@@ -202,7 +211,10 @@ function renderResult(box: HTMLElement, result: ImportResult): void {
 
   if (result.errors.length > 0) {
     const errHeading = document.createElement('h4');
-    errHeading.textContent = `Fouten (${String(result.errors.length)})`;
+    errHeading.textContent = t('admin.csv_import_errors_heading').replace(
+      '{count}',
+      String(result.errors.length)
+    );
     box.appendChild(errHeading);
 
     const list = document.createElement('ul');

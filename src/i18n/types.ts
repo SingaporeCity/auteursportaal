@@ -204,6 +204,95 @@ export type TranslationKey =
 
   // FAQ tab
   | 'faq.title'
-  | 'faq.intro';
+  | 'faq.intro'
+
+  // Common
+  | 'common.busy'
+  | 'common.close'
+
+  // Profile change-request flow
+  | 'profile.changes_heading'
+  | 'profile.changes_intro'
+  | 'profile.changes_empty'
+  | 'profile.changes_saved'
+  | 'profile.changes_nothing'
+  | 'profile.pending_change_badge'
+  | 'profile.changes_submitted'
+
+  // Admin — auteurs-overzicht
+  | 'admin.section_overline'
+  | 'admin.section_heading'
+  | 'admin.empty_filter'
+  | 'admin.toolbar_csv_import'
+  | 'admin.toolbar_csv_export'
+  | 'admin.toolbar_new_author'
+  | 'admin.filter_all'
+  | 'admin.filter_pending_review'
+  | 'admin.filter_pending_data'
+  | 'admin.filter_active'
+  | 'admin.btn_send_invite'
+  | 'admin.btn_send_reminder'
+  | 'admin.btn_activate'
+  | 'admin.btn_upload_statement'
+  | 'admin.status_admin'
+  | 'admin.status_pending_data'
+  | 'admin.status_pending_review'
+  | 'admin.status_active'
+  | 'admin.reminder_in_days'
+  | 'admin.invited_at'
+  | 'admin.reminder_at'
+  | 'admin.activated_at'
+
+  // Admin — nieuwe auteur form
+  | 'admin.new_author_heading'
+  | 'admin.new_author_intro'
+  | 'admin.new_author_field_email'
+  | 'admin.new_author_field_firstname'
+  | 'admin.new_author_field_lastname'
+  | 'admin.new_author_field_vendor'
+  | 'admin.new_author_submit'
+
+  // Admin — CSV import
+  | 'admin.csv_import_heading'
+  | 'admin.csv_import_intro'
+  | 'admin.csv_import_file_label'
+  | 'admin.csv_import_mode_legend'
+  | 'admin.csv_import_mode_create_only'
+  | 'admin.csv_import_mode_upsert'
+  | 'admin.csv_import_submit'
+  | 'admin.csv_import_close'
+  | 'admin.csv_import_stat_created'
+  | 'admin.csv_import_stat_updated'
+  | 'admin.csv_import_stat_skipped'
+  | 'admin.csv_import_stat_bsn_skipped'
+  | 'admin.csv_import_errors_heading'
+
+  // Admin — CSV export
+  | 'admin.csv_export_heading'
+  | 'admin.csv_export_intro'
+  | 'admin.csv_export_reason_label'
+  | 'admin.csv_export_reason_placeholder'
+  | 'admin.csv_export_submit_count'
+  | 'admin.csv_export_submit'
+  | 'admin.csv_export_no_changes'
+  | 'admin.csv_export_summary_count'
+  | 'admin.csv_export_row_more'
+  | 'admin.csv_export_success_heading'
+  | 'admin.csv_export_success_text'
+  | 'admin.csv_export_row_new'
+  | 'admin.csv_export_row_changed'
+
+  // Admin — statement upload
+  | 'admin.statement_upload_heading'
+  | 'admin.statement_upload_field_type'
+  | 'admin.statement_upload_field_file'
+  | 'admin.statement_upload_submit'
+  | 'admin.statement_upload_busy'
+
+  // Admin — change requests
+  | 'admin.changes_heading'
+  | 'admin.changes_empty'
+  | 'admin.changes_approve'
+  | 'admin.changes_reject';
 
 export type Translations = Record<TranslationKey, string>;
