@@ -6,6 +6,8 @@ Productie-versie van het Noordhoff Auteursportaal. Auteurs kunnen hun royalty-af
 
 Een TypeScript single-page applicatie die op GitHub Pages draait, met Supabase als backend voor authenticatie, database en file-storage. Het portaal vervangt de eerdere demo-versie (`SingaporeCity/Royaltyportaal`) en is opgezet voor security-review door Infinitas IT.
 
+> **IT-review begint hier**: zie [`docs/PORTAAL-OVERZICHT.md`](docs/PORTAAL-OVERZICHT.md) voor een gebundelde uitleg van wat het portaal functioneel doet, hoe het in elkaar zit en welke openstaande items bij IT/Legal liggen. Deze README is verder ontwikkelaar-gericht (setup, deploy, CI).
+
 **Stakeholders:**
 
 - **Charlotte Phillips** (eerste echte auteur)
