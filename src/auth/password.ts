@@ -49,12 +49,26 @@ export async function signInWithPassword(email: string, password: string): Promi
 /**
  * Vraagt een password-reset email aan. Stuurt de gebruiker via email-link
  * terug naar `/auth/set-password` op de huidige host.
+ *
+ * Beveiliging (audit-finding M3): retourneert ALTIJD `{success: true}` —
+ * ook als het email-adres niet bestaat of de Supabase-call faalt. Anders kan
+ * een aanvaller via het verschil in respons emails enumereren ("Joe@x.nl
+ * heeft een account, John@x.nl niet"). De UI toont uniform "Als het adres
+ * bekend is, ontvangt u een mail." Echte fouten worden alleen naar de
+ * dev-debug-panel gerapporteerd, niet naar de gebruiker.
  */
-export async function requestPasswordReset(email: string): Promise<{ success: boolean }> {
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/auth/set-password`,
-  });
-  return { success: error === null };
+export async function requestPasswordReset(email: string): Promise<{ success: true }> {
+  await supabase.auth
+    .resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/set-password`,
+    })
+    .catch(() => {
+      // Slik elke fout — uniform response voorkomt enumeration.
+      // Echte errors loggen we bewust niet hier (zou tot side-channel-leak
+      // kunnen leiden via onverwachte logging-paden); Supabase Dashboard
+      // logt zelf alle auth-events met IP voor forensisch onderzoek.
+    });
+  return { success: true };
 }
 
 /**

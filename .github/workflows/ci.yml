@@ -72,6 +72,29 @@ jobs:
           VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
           VITE_ADMIN_SSO_ENABLED: 'false'
 
+      - name: Verify no debug-panel in production bundle
+        # Audit-finding L2: dev/debug-panel.ts is achter `import.meta.env.DEV`
+        # en hoort tree-shaken te worden in productie-build. Als per ongeluk
+        # toch in dist/ komt zou het Supabase-URL + auth-status exposeren
+        # in browser-console — niet kritiek maar afwijking van design-intent.
+        run: |
+          if grep -rl "mountDebugPanel\|RLS test" dist/assets/*.js 2>/dev/null; then
+            echo "::error::debug-panel code in productie-bundle gevonden"
+            exit 1
+          fi
+          echo "✓ debug-panel niet in productie-bundle"
+
+      - name: Verify no source maps in production bundle
+        # Audit-finding C1: source-maps in dist/ leggen TS-bron volledig bloot.
+        # vite.config.ts heeft sourcemap env-gated; dit verifieert het.
+        run: |
+          if ls dist/assets/*.map 2>/dev/null | grep -q .; then
+            echo "::error::Source-maps in productie-bundle gevonden"
+            ls dist/assets/*.map
+            exit 1
+          fi
+          echo "✓ Geen source-maps in productie-bundle"
+
       - name: Verify no service_role JWT in bundle
         # Decodeert elk JWT-achtig token in dist/ en faalt als role=service_role.
         # Gebruikt Node ipv ruwe grep om false-positives op de string "service_role"

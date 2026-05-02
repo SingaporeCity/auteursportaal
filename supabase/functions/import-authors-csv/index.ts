@@ -140,6 +140,19 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
+    // Size-guard (audit-finding M9): voorkom geheugen-uitputting door
+    // gigantische payloads. 10 MB ruim genoeg voor 50k CSV-rijen.
+    const MAX_BODY_BYTES = 10 * 1024 * 1024;
+    const contentLength = Number(req.headers.get('Content-Length') ?? '0');
+    if (contentLength > MAX_BODY_BYTES) {
+      return new Response(
+        JSON.stringify({
+          error: `Body too large: ${String(contentLength)} > ${String(MAX_BODY_BYTES)} bytes`,
+        }),
+        { status: 413, headers }
+      );
+    }
+
     // Body
     const body = await req.json().catch(() => null);
     if (body === null || typeof body.csv !== 'string') {
@@ -148,6 +161,17 @@ serve(async (req: Request): Promise<Response> => {
         headers,
       });
     }
+
+    // CSV-string size-guard (Content-Length kan ontbreken bij chunked transfer)
+    if (body.csv.length > MAX_BODY_BYTES) {
+      return new Response(
+        JSON.stringify({
+          error: `CSV too large: ${String(body.csv.length)} chars (max ${String(MAX_BODY_BYTES)})`,
+        }),
+        { status: 413, headers }
+      );
+    }
+
     const mode: 'create_only' | 'upsert' = body.mode === 'upsert' ? 'upsert' : 'create_only';
 
     // Parse + valideer
