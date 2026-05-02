@@ -48,6 +48,7 @@ export interface Database {
           invited_at: string | null;
           data_submitted_at: string | null;
           reminder_sent_at: string | null;
+          last_exported_at: string | null;
           created_at: string;
           updated_at: string;
           activated_at: string | null;
@@ -77,6 +78,7 @@ export interface Database {
           invited_at?: string | null;
           data_submitted_at?: string | null;
           reminder_sent_at?: string | null;
+          last_exported_at?: string | null;
           created_at?: string;
           updated_at?: string;
           activated_at?: string | null;
@@ -202,6 +204,32 @@ export interface Database {
           ip_address?: string | null;
         };
         Update: Partial<Database['public']['Tables']['login_history']['Insert']>;
+        Relationships: [];
+      };
+      data_exports: {
+        Row: {
+          id: string;
+          exported_by: string;
+          exported_at: string;
+          row_count: number;
+          row_ids: string[];
+          file_hash: string;
+          file_name: string;
+          reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          exported_by: string;
+          exported_at?: string;
+          row_count: number;
+          row_ids: string[];
+          file_hash: string;
+          file_name: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['data_exports']['Insert']>;
         Relationships: [];
       };
       expenses: {

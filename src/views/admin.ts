@@ -16,6 +16,7 @@ import { reportError } from '@/dev/debug-panel';
 import { renderChangesSection } from './admin/changes';
 import { buildStatementUploadForm } from './admin/statement-upload';
 import { openCsvImportModal } from './admin/csv-import';
+import { openCsvExportModal } from './admin/csv-export';
 import { buildAppHeader } from './shared/header';
 import type { OnboardingStatus } from '@/types/db';
 
@@ -70,6 +71,12 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   csvBtn.textContent = '📥 Importeer NetSuite CSV';
   toolbar.appendChild(csvBtn);
 
+  const exportBtn = document.createElement('button');
+  exportBtn.type = 'button';
+  exportBtn.className = 'admin-action';
+  exportBtn.textContent = '📤 Export naar NetSuite';
+  toolbar.appendChild(exportBtn);
+
   const newAuthorBtn = document.createElement('button');
   newAuthorBtn.type = 'button';
   newAuthorBtn.className = 'admin-action';
@@ -97,6 +104,12 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
 
   csvBtn.addEventListener('click', () => {
     openCsvImportModal(() => {
+      void loadAuthors(state, rerender, statusBox);
+    });
+  });
+
+  exportBtn.addEventListener('click', () => {
+    openCsvExportModal(state.authors, () => {
       void loadAuthors(state, rerender, statusBox);
     });
   });

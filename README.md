@@ -220,6 +220,35 @@ Zie [docs/onboarding-csv-import.md](docs/onboarding-csv-import.md) voor kolomvol
 
 `payments`/`contracts`/`forecasts`/`expenses` zijn **alleen leesbaar voor `active`-auteurs** dankzij RLS-policies (`is_active_author()` helper). Een auteur in onboarding-status ziet 0 rijen in deze tabellen, ook bij directe DB-query met JWT. Frontend tab-gating is daar bovenop een UX-laag.
 
+## 6b. Round-trip-sync naar NetSuite (CSV-export)
+
+Het portaal is geen source-of-truth — NetSuite blijft dat. Nieuwe of gewijzigde auteursgegevens worden via een CSV terug-gesynchroniseerd:
+
+```
+Admin klikt "📤 Export naar NetSuite" in admin-portaal
+  ↓
+Edge Function `export-authors-csv`:
+  - Admin-check via JWT
+  - Selecteert rijen waar last_exported_at IS NULL OR last_exported_at < updated_at
+  - Bouwt CSV in zelfde 15-koloms format als import
+  - Schrijft audit-row in `data_exports`: admin_id, timestamp, row_ids, sha256, reason
+  - Update last_exported_at op de geëxporteerde rijen
+  - Streamt CSV terug (geen tussenopslag in Supabase Storage)
+  ↓
+Browser-download → admin uploadt direct naar Noordhoff SharePoint
+  ↓
+NetSuite-team verwerkt CSV (handmatig of via NetSuite-import-tool)
+```
+
+**Beveiligingsmaatregelen**:
+
+- **Admin-only**: Edge Function checkt `is_admin()` via JWT vóór query
+- **Audit-trail**: `data_exports` tabel met sha256-hash van CSV-content (anti-tamper)
+- **Geen dubbele exports**: `last_exported_at` per rij voorkomt dat dezelfde wijziging twee keer in CSV terechtkomt
+- **Geen tussenopslag**: CSV wordt gestreamd, niet permanent opgeslagen in Supabase
+- **AVG-retention**: admin uploadt + verwijdert lokaal binnen minuten; SharePoint-retention is verantwoordelijkheid van Noordhoff IT
+- **Dataminimalisatie open punt**: huidige export bevat alle 15 velden per rij. Voor strenger AVG-naleving op termijn: alleen daadwerkelijk-gewijzigde velden meesturen (vereist diff-tracking)
+
 ## 7. Testing
 
 ```bash

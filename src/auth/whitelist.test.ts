@@ -26,6 +26,7 @@ const baseAuthor: AuthorRow = {
   invited_at: null,
   data_submitted_at: null,
   reminder_sent_at: null,
+  last_exported_at: null,
   created_at: '2026-05-01T00:00:00Z',
   updated_at: '2026-05-01T00:00:00Z',
   activated_at: null,

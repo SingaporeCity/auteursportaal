@@ -1161,6 +1161,100 @@ a:hover {
   margin-bottom: 0.25rem;
 }
 
+/* CSV-export modal */
+.csv-export-modal {
+  max-width: 640px;
+}
+
+.csv-export-preview {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.csv-export-summary {
+  font-size: 0.9rem;
+  font-variation-settings: 'wght' 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+
+.csv-export-empty {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  font-style: italic;
+}
+
+.csv-export-row-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.csv-export-row-list li {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.csv-export-row-list li:last-child {
+  border-bottom: none;
+}
+
+.csv-export-row-more {
+  font-style: italic;
+  color: var(--color-text-light);
+}
+
+.csv-export-success {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-success-light);
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+.csv-export-success-heading {
+  font-variation-settings: 'wght' 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-success);
+}
+
+[data-theme='dark'] .csv-export-success-heading {
+  color: #34d399;
+}
+
+.csv-export-success-text {
+  margin: 0 0 0.5rem;
+  color: var(--color-text);
+}
+
+.csv-export-audit {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+
+.csv-export-audit dt {
+  color: var(--color-text-light);
+  font-variation-settings: 'wght' 600;
+}
+
+.csv-export-audit dd {
+  margin: 0;
+  color: var(--color-text);
+  word-break: break-all;
+}
+
 /* Dashboard content — gecentreerd container met tabs in card (demo design) */
 .dashboard-content {
   max-width: 1100px;

@@ -153,11 +153,27 @@ Cookies: Supabase auth gebruikt `localStorage`, geen cookies voor auth — geen 
 
 ## 8. Edge Functions
 
-| Function          | Doel                                                                      | Service-role gebruik                                                                              |
-| ----------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `create-accounts` | Auteur-activatie: auth-user aanmaken + recovery-mail + `is_active = true` | Ja, voor `auth.admin.createUser`. Wordt voorafgegaan door admin-JWT-verificatie via caller-client |
+| Function             | Doel                                                                                     | Service-role gebruik                                                                                        |
+| -------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `create-accounts`    | Auteur-invite + activatie: auth-user aanmaken + recovery-mail + status update            | Ja, voor `auth.admin.createUser` + UPDATE `onboarding_status`. Voorafgegaan door admin-JWT-check via caller |
+| `import-authors-csv` | Bulk-import vanuit NetSuite-CSV: validate + INSERT/upsert `authors`-rijen                | Ja, voor INSERT/UPDATE op `authors` (bypass RLS). Admin-JWT-check op caller                                 |
+| `export-authors-csv` | Round-trip-sync: CSV-export van gewijzigde rijen + audit-row + update `last_exported_at` | Ja, voor SELECT alle authors-rijen + INSERT in `data_exports`. Admin-JWT-check op caller                    |
 
 Edge Functions draaien in Supabase's Deno-runtime, server-side. CORS in de function is gelimiteerd tot `mijn-noordhoff.nl` + `localhost:5173`. Caller moet een geldige admin-JWT meesturen.
+
+### Data-egress: NetSuite-export
+
+CSV-export bevat **bijzondere persoonsgegevens** (BSN/IBAN/adres/geboortedatum). Beveiligingsmaatregelen:
+
+1. **Admin-only**: Edge Function `export-authors-csv` checkt `is_admin()` via caller-JWT vóór query.
+2. **Audit-trail**: elke export wordt vastgelegd in `data_exports`-tabel:
+   - `exported_by`, `exported_at`, `row_count`, `row_ids[]`, `file_hash` (sha256 hex), `file_name`, optionele `reason`
+   - SHA256-hash bewijst dat exact deze CSV is gegenereerd (anti-tamper-bewijs bij audit/incident)
+   - RLS: alleen admins lezen audit-rijen; INSERT/UPDATE/DELETE alleen via service-role
+3. **State-tracking**: `authors.last_exported_at` per rij voorkomt dubbele exports → dubbele NetSuite-updates
+4. **Geen tussenopslag**: CSV wordt gestreamd in HTTP-response, niet permanent in Supabase Storage
+5. **AVG-retention** (verantwoordelijkheid Noordhoff IT, niet portaal): SharePoint-retentie + lokale verwijdering door admin binnen minuten na upload
+6. **Open punt**: huidige export bevat alle 15 velden per gewijzigde rij. Voor strikter dataminimalisatie-principe op termijn: alleen daadwerkelijk-gewijzigde velden via diff-tracking op `change_requests`
 
 ## 9. CI/CD security
 
