@@ -235,12 +235,6 @@ function buildForm(statusBox: HTMLElement, onSuccess: () => void): HTMLElement {
   const dropzoneInner = document.createElement('div');
   dropzoneInner.className = 'expense-dropzone-inner';
 
-  const dropIcon = document.createElement('span');
-  dropIcon.className = 'expense-dropzone-icon';
-  dropIcon.textContent = '⬆';
-  dropIcon.setAttribute('aria-hidden', 'true');
-  dropzoneInner.appendChild(dropIcon);
-
   const dropText = document.createElement('div');
   dropText.className = 'expense-dropzone-text';
   dropText.textContent = t('expenses.dropzone_text');
