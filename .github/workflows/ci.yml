@@ -95,6 +95,34 @@ jobs:
           fi
           echo "✓ Geen source-maps in productie-bundle"
 
+      - name: Verify CSP excludes unsafe-inline in style-src
+        # Audit-finding H1: dev-CSP heeft 'unsafe-inline' voor HMR. Vite plugin
+        # (vite.config.ts:strictCspPlugin) hoort die te strippen in productie.
+        # Faal de build als CSP nog 'unsafe-inline' in style-src bevat —
+        # alleen style-src-attr 'unsafe-inline' is toegestaan (voor JS-API).
+        run: |
+          node -e "
+            const html = require('fs').readFileSync('dist/index.html', 'utf8');
+            const match = html.match(/Content-Security-Policy\"\s+content=\"([^\"]+)\"/);
+            if (!match) {
+              console.error('::error::CSP-meta tag niet gevonden in dist/index.html');
+              process.exit(1);
+            }
+            const csp = match[1];
+            // Splits in directives
+            const directives = csp.split(';').map(d => d.trim()).filter(Boolean);
+            for (const d of directives) {
+              const [name, ...values] = d.split(/\s+/);
+              // style-src en style-src-elem mogen GEEN 'unsafe-inline' hebben.
+              // style-src-attr mag het wel (nodig voor el.style.X = value).
+              if ((name === 'style-src' || name === 'style-src-elem') && values.includes(\"'unsafe-inline'\")) {
+                console.error('::error::CSP directive ' + name + ' bevat unsafe-inline (productie verboden): ' + d);
+                process.exit(1);
+              }
+            }
+            console.log('✓ Productie-CSP: style-src + style-src-elem zonder unsafe-inline');
+          "
+
       - name: Verify no service_role JWT in bundle
         # Decodeert elk JWT-achtig token in dist/ en faalt als role=service_role.
         # Gebruikt Node ipv ruwe grep om false-positives op de string "service_role"

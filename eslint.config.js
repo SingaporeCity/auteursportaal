@@ -95,9 +95,11 @@ export default tseslint.config(
   },
 
   // Config-files (vite, playwright, vitest) — Node-context, niet type-aware
+  // (geen project-service want geen baat bij type-checking voor build-config)
   {
     files: ['*.config.ts', '*.config.js'],
     languageOptions: {
+      parser: tseslint.parser,
       globals: {
         ...globals.node,
       },

@@ -139,6 +139,24 @@ serve(async (req: Request): Promise<Response> => {
         headers,
       });
     }
+    const actorId = callerData.user.id;
+
+    // Rate-limit (audit-finding H10): 10 imports/uur per admin. CSV-import is
+    // I/O-zwaar (parse + per-rij DB-roundtrips); meer dan 10/uur is bijna
+    // zeker een fout (script-loop) of misbruik.
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: rateOk, error: rateErr } = await adminClient.rpc('check_rate_limit', {
+      p_actor: actorId,
+      p_action: 'import_authors_csv',
+      p_max: 10,
+      p_window_seconds: 3600,
+    });
+    if (rateErr || rateOk !== true) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Probeer over een uur opnieuw.' }),
+        { status: 429, headers }
+      );
+    }
 
     // Size-guard (audit-finding M9): voorkom geheugen-uitputting door
     // gigantische payloads. 10 MB ruim genoeg voor 50k CSV-rijen.
@@ -180,7 +198,7 @@ serve(async (req: Request): Promise<Response> => {
       return new Response(JSON.stringify({ error: parsed.error }), { status: 400, headers });
     }
 
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    // adminClient hergebruikt vanuit rate-limit-stap
     const result: ImportResult = {
       created: 0,
       updated: 0,
@@ -207,50 +225,79 @@ serve(async (req: Request): Promise<Response> => {
       const status: 'pending_data' | 'pending_admin_review' =
         validation.missingRequired.length === 0 ? 'pending_admin_review' : 'pending_data';
 
-      // Check bestaand — fetch ook `bsn` voor immutability-check
-      const { data: existing } = await adminClient
-        .from('authors')
-        .select('id, bsn')
-        .eq('email', row.email)
-        .maybeSingle();
+      // Atomic upsert via RPC (audit-finding M8): SELECT+UPDATE/INSERT zat
+      // in race-window. RPC `import_author_row` doet alles in één
+      // transactie met SELECT FOR UPDATE — geen split-state mogelijk.
+      const { data: rpcResult, error: rpcErr } = await adminClient.rpc('import_author_row', {
+        p_email: row.email,
+        p_first_name: row.first_name,
+        p_last_name: row.last_name,
+        p_phone: row.phone,
+        p_street: row.street,
+        p_house_number: row.house_number,
+        p_postcode: row.postcode,
+        p_city: row.city,
+        p_country: row.country,
+        p_birth_date: row.birth_date === '' ? null : row.birth_date,
+        p_bsn: row.bsn,
+        p_bank_account: row.bank_account,
+        p_bic: row.bic,
+        p_vendor_id: row.vendor_id,
+        p_alliant_id: row.alliant_id,
+        p_status: status,
+        p_mode: mode,
+      });
 
-      const insertData = buildInsertData(row, status);
-
-      if (existing) {
-        if (mode === 'create_only') {
-          result.skipped++;
-          continue;
-        }
-
-        // BSN-immutability: als bestaand record een BSN heeft EN CSV-rij wil
-        // hem overschrijven met andere waarde, BSN-veld weglaten uit update.
-        // (DB-trigger 0010 zou de UPDATE alsnog blokkeren — dit voorkomt dat
-        // de hele rij faalt voor één onoverschrijfbaar veld.)
-        const existingBsn = (existing as { bsn: string | null }).bsn;
-        if (existingBsn !== null && existingBsn !== '' && existingBsn !== insertData.bsn) {
-          delete insertData.bsn;
-          result.bsn_skipped++;
-        }
-
-        const { error } = await adminClient
-          .from('authors')
-          .update(insertData)
-          .eq('id', existing.id);
-        if (error) {
-          result.errors.push({ row: lineNum, email: row.email, reason: error.message });
-          result.skipped++;
-        } else {
-          result.updated++;
-        }
-      } else {
-        const { error } = await adminClient.from('authors').insert(insertData);
-        if (error) {
-          result.errors.push({ row: lineNum, email: row.email, reason: error.message });
-          result.skipped++;
-        } else {
-          result.created++;
-        }
+      if (rpcErr) {
+        result.errors.push({ row: lineNum, email: row.email, reason: rpcErr.message });
+        result.skipped++;
+        continue;
       }
+
+      switch (rpcResult) {
+        case 'created':
+          result.created++;
+          break;
+        case 'updated':
+          result.updated++;
+          break;
+        case 'bsn_skipped':
+          result.updated++;
+          result.bsn_skipped++;
+          break;
+        case 'skipped':
+          result.skipped++;
+          break;
+        default:
+          result.errors.push({
+            row: lineNum,
+            email: row.email,
+            reason: `Unexpected RPC result: ${String(rpcResult)}`,
+          });
+          result.skipped++;
+      }
+    }
+
+    // Audit-log (H9/M10): één samenvattende rij voor de hele import-actie.
+    // Per-rij INSERTs worden via authors-trigger gelogd; dit is het
+    // hoge-niveau-event "admin draaide CSV-import" voor admin-overview.
+    try {
+      await adminClient.from('audit_actions').insert({
+        action_type: 'csv_imported',
+        actor_id: actorId,
+        target_table: 'authors',
+        metadata: {
+          mode,
+          rows_total: parsed.rows.length,
+          created: result.created,
+          updated: result.updated,
+          skipped: result.skipped,
+          bsn_skipped: result.bsn_skipped,
+          error_count: result.errors.length,
+        },
+      });
+    } catch {
+      // Audit-failure mag main-flow niet stoppen
     }
 
     return new Response(JSON.stringify(result), { headers });
@@ -405,30 +452,5 @@ function isValidIBAN(s: string): boolean {
   return remainder === 1;
 }
 
-// =============================================================================
-// Insert-mapping
-// =============================================================================
-function buildInsertData(
-  row: CsvRow,
-  status: 'pending_data' | 'pending_admin_review'
-): Record<string, string | null> {
-  const nilIfEmpty = (v: string): string | null => (v === '' ? null : v);
-  return {
-    email: row.email,
-    first_name: row.first_name,
-    last_name: row.last_name,
-    phone: nilIfEmpty(row.phone),
-    street: nilIfEmpty(row.street),
-    house_number: nilIfEmpty(row.house_number),
-    postcode: nilIfEmpty(row.postcode),
-    city: nilIfEmpty(row.city),
-    country: nilIfEmpty(row.country) ?? 'Nederland',
-    birth_date: nilIfEmpty(row.birth_date),
-    bsn: nilIfEmpty(row.bsn),
-    bank_account: nilIfEmpty(row.bank_account),
-    bic: nilIfEmpty(row.bic),
-    netsuite_vendor_id: nilIfEmpty(row.vendor_id),
-    alliant_id: nilIfEmpty(row.alliant_id),
-    onboarding_status: status,
-  };
-}
+// (Insert-mapping verwijderd: NULLIF/COALESCE-logica leeft nu in
+// import_author_row Postgres-functie zodat upsert atomair is.)

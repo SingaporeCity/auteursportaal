@@ -133,6 +133,19 @@ serve(async (req: Request): Promise<Response> => {
       return jsonError(baseHeaders, 403, 'Admin access required');
     }
 
+    // -- 1b. Rate-limit (audit-finding H10): 30 exports/uur per admin.
+    // Export levert plaintext-PII op; te veel exports/uur = misbruik-signaal.
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: rateOk, error: rateErr } = await adminClient.rpc('check_rate_limit', {
+      p_actor: callerId,
+      p_action: 'export_authors_csv',
+      p_max: 30,
+      p_window_seconds: 3600,
+    });
+    if (rateErr || rateOk !== true) {
+      return jsonError(baseHeaders, 429, 'Rate limit exceeded. Probeer over een uur opnieuw.');
+    }
+
     // -- 2. Body
     const body = await req.json().catch(() => ({}));
     const reason: string | null =
@@ -142,7 +155,7 @@ serve(async (req: Request): Promise<Response> => {
 
     // -- 3. Query alle non-admin auteurs, filter "sinds vorige export" in JS
     //    (PostgREST kan geen column-to-column comparisons in `.or()`)
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    //    adminClient hergebruikt vanuit rate-limit-stap
     const { data: rows, error: queryErr } = await adminClient
       .from('authors')
       .select(
@@ -209,6 +222,26 @@ serve(async (req: Request): Promise<Response> => {
       // Audit-row staat al; logfout maar return CSV alsnog (admin kan handmatig
       // herstellen via SQL editor). Beter dan dubbele export.
       console.error('last_exported_at update failed:', updErr.message);
+    }
+
+    // Mirror naar audit_actions (H9/M10) zodat één unified audit-overview
+    // alle high-level events toont. data_exports blijft de canonical source
+    // (sha256 + row_ids voor anti-tamper); deze rij is een index-pointer.
+    try {
+      await adminClient.from('audit_actions').insert({
+        action_type: 'csv_exported',
+        actor_id: callerId,
+        target_table: 'authors',
+        metadata: {
+          export_id: auditRow.id,
+          row_count: filtered.length,
+          file_hash: fileHash,
+          file_name: fileName,
+          reason,
+        },
+      });
+    } catch {
+      // Audit-failure mag main-flow niet stoppen
     }
 
     // -- 7. Stream CSV terug

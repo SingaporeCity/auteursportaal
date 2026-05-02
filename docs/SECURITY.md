@@ -119,21 +119,28 @@ BSN-masking via `formatBSNMasked` (laatste 4 cijfers zichtbaar) wordt overal geb
 
 ### Content-Security-Policy (CSP)
 
-In `index.html` als `<meta http-equiv>`:
+In `index.html` als `<meta http-equiv>`. Productie-build vervangt de dev-CSP via Vite-plugin (`vite.config.ts:strictCspPlugin`) zodat HMR in dev werkt zonder dat productie `'unsafe-inline'` op `style-src` heeft staan.
+
+**Productie-CSP** (CI-verified op elke build):
 
 ```
 default-src 'self';
 script-src 'self';
-style-src 'self' 'unsafe-inline';
+style-src 'self';
+style-src-elem 'self';
+style-src-attr 'unsafe-inline';
 img-src 'self' data: https:;
 connect-src 'self' https://*.supabase.co;
 font-src 'self' data:;
 object-src 'none';
 base-uri 'self';
 frame-ancestors 'none';
+frame-src 'self' https://*.supabase.co;
 ```
 
-`script-src 'self'` betekent: geen inline scripts, geen `eval`, geen externe CDN's. `frame-ancestors 'none'` voorkomt clickjacking.
+`script-src 'self'` betekent: geen inline scripts, geen `eval`, geen externe CDN's. `frame-ancestors 'none'` voorkomt clickjacking. `style-src 'self'` blokkeert injectie van `<style>`-blokken (een belangrijke CSS-exfiltration-vector via `:has()` + `background: url()`); `style-src-attr 'unsafe-inline'` blijft staan zodat `el.style.X = value` via DOM-API blijft werken (forecast-bars, payment-dot-colors). Inline-style-attribuut-injectie via `innerHTML` is reeds afgedekt door `eslint-plugin-no-unsanitized` + textContent-only DOM-mutaties.
+
+CI-job (`.github/workflows/ci.yml`) verifieert na elke build dat `style-src` en `style-src-elem` GEEN `'unsafe-inline'` bevatten in `dist/index.html`.
 
 ### Geen innerHTML
 
@@ -170,6 +177,33 @@ Cookies: Supabase auth gebruikt `localStorage`, geen cookies voor auth — geen 
 | `export-authors-csv` | Round-trip-sync: CSV-export van gewijzigde rijen + audit-row + update `last_exported_at` | Ja, voor SELECT alle authors-rijen + INSERT in `data_exports`. Admin-JWT-check op caller                    |
 
 Edge Functions draaien in Supabase's Deno-runtime, server-side. CORS in de function is gelimiteerd tot `mijn-noordhoff.nl` + `localhost:5173`. Caller moet een geldige admin-JWT meesturen.
+
+### Rate-limiting per Edge Function (audit H10, iter 9)
+
+Iedere Edge Function controleert per call een `check_rate_limit()`-RPC vóór het werk: atomic INSERT...ON CONFLICT op een `rate_limits`-tabel met fixed-window counter per (`actor_id`, `action_key`). Overschrijding → HTTP 429 zonder verdere DB-load.
+
+| Function             | Limiet   | Window | Rationale                                                                                    |
+| -------------------- | -------- | ------ | -------------------------------------------------------------------------------------------- |
+| `create-accounts`    | 60 / uur | 1u     | Genoeg voor normale onboarding-bursts; blokkeert mass-invite-misbruik                        |
+| `import-authors-csv` | 10 / uur | 1u     | I/O-zwaar (parse + per-rij DB-roundtrips); meer = bijna zeker script-loop of misbruik        |
+| `export-authors-csv` | 30 / uur | 1u     | Export levert plaintext-PII op; ratio 30/uur dekt normaal admin-werk maar pakt scrape-aanval |
+
+Limiet is per-actor (admin-UUID), niet per-IP — een admin met meerdere apparaten/tabbladen deelt de pool. Counter reset zodra window verloopt; geen onbeperkte tabel-groei via `cleanup_old_rate_limits()` (handmatig of via cron-job).
+
+### Audit-trail (audit H9 + M10, iter 9)
+
+Forensische audit-trail in `audit_actions`-tabel met 17-waardig action-type-enum. Twee bronnen:
+
+1. **DB-triggers** op `authors`, `change_requests`, `payments`, `expenses` (alle `SECURITY DEFINER`) — pakken automatisch elke INSERT/UPDATE/DELETE op die via portaal of admin-UI gaan, ongeacht of de aanroepende code een audit-row vergeet.
+2. **Edge Function-instrumentatie** voor hoge-niveau-events die geen direct DB-update veroorzaken: `author_invited`, `author_reminded` (`invited_at`/`reminder_sent_at` zijn niet gemonitord) en `csv_imported`/`csv_exported` (samenvattende rij voor de hele import-/export-actie).
+
+Schema: `(id, action_type, actor_id, target_table, target_id, before JSONB, after JSONB, metadata JSONB, created_at)`. PII-stripping via `audit_strip_pii()`-helper: BSN-veld wordt `•••••XXXX` (laatste 4 cijfers), `bank_account` wordt `••••XXXX`. Originele waarde komt nooit in audit-rij terecht.
+
+RLS: alleen admins SELECT (admin-overview UI). INSERT/UPDATE/DELETE alleen via service-role of trigger-functies (SECURITY DEFINER). 4 indexes voor efficiënte filtering: `created_at DESC`, `actor_id`, `action_type`, `(target_table, target_id)`.
+
+### Atomic CSV-import (audit M8, iter 9)
+
+CSV-import gebruikt nu een Postgres-functie `import_author_row()` per rij ipv inline SELECT+INSERT/UPDATE in de Edge Function. `SELECT ... FOR UPDATE` lockt bestaande rijen — geen race-window meer tussen `existing-check` en `apply`. BSN-immutability is intern in de RPC verwerkt (returnt `bsn_skipped` ipv exception). Dit voorkomt parallel-import-corruption en garandeert dat per-rij operaties atomair zijn.
 
 ### Data-egress: NetSuite-export
 
@@ -209,7 +243,7 @@ CSV-export bevat **bijzondere persoonsgegevens** (BSN/IBAN/adres/geboortedatum).
 | Custom domain TLS                    | Pending                   | DNS-CNAME-switch pas na go-live                                                                                                                                                                                      |
 | Playwright E2E tests                 | In progress               | Task #20                                                                                                                                                                                                             |
 | Email delivery (recovery + invite)   | Standaard Supabase mailer | Free tier: 3 emails/uur per project, vanaf `noreply@mail.app.supabase.io`. Hotmail/Outlook blokkeert vaak als spam. **Productie vereist eigen SMTP** (Resend / SendGrid / AWS SES) via Supabase Auth → SMTP settings |
-| Audit logging buiten `login_history` | Niet voor MVP             | Profile-changes worden via `change_requests`-tabel gelogd; admin-acties (statement upload, change approval) hebben geen aparte audit-trail tabel                                                                     |
+| Audit logging buiten `login_history` | ✅ Closed iter 9          | `audit_actions`-tabel met DB-triggers (authors/change_requests/payments/expenses) + Edge Function-instrumentatie (csv_imported/exported, author_invited/reminded). Zie sectie 8 hierboven                            |
 | Rate-limiting expense submissions    | Niet voor MVP             | Supabase platform-level rate-limiting; geen per-user throttle                                                                                                                                                        |
 | MFA voor admin                       | Niet voor MVP             | Komt automatisch met SSO (Entra ID)                                                                                                                                                                                  |
 | File-upload virusscan                | Niet voor MVP             | PDF-only enforcement; admin-only access. Voor zwaardere garantie: ClamAV-integratie via Edge Function                                                                                                                |

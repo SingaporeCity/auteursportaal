@@ -125,6 +125,22 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
+    // -- 1b. Rate-limit (audit-finding H10): 60 calls/uur per admin.
+    // Genoeg voor normale onboarding-bursts; blokkeert mass-invite-misbruik.
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: rateOk, error: rateErr } = await adminClient.rpc('check_rate_limit', {
+      p_actor: callerData.user.id,
+      p_action: 'create_accounts',
+      p_max: 60,
+      p_window_seconds: 3600,
+    });
+    if (rateErr || rateOk !== true) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Probeer over een uur opnieuw.' }),
+        { status: 429, headers }
+      );
+    }
+
     // -- 2. Parse body
     const body = await req.json().catch(() => null);
     if (body === null) {
@@ -151,12 +167,12 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // -- 3. Process
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    // -- 3. Process (adminClient hergebruikt vanuit rate-limit-stap)
+    const actorId = callerData.user.id;
     const results: ActivateResult[] = [];
 
     for (const input of inputs) {
-      results.push(await processOne(adminClient, input, mode));
+      results.push(await processOne(adminClient, input, mode, actorId));
     }
 
     return new Response(JSON.stringify({ results }), { headers });
@@ -215,10 +231,34 @@ async function ensureAuthUser(
   return { ok: true, created: true };
 }
 
+async function logAudit(
+  adminClient: ReturnType<typeof createClient>,
+  actorId: string,
+  actionType: 'author_invited' | 'author_reminded',
+  authorId: string,
+  email: string
+): Promise<void> {
+  // Best-effort — als audit-log faalt, blokkeren we niet de hoofdactie.
+  // De hoofdtransactie (mail + status-update) is leidend; een gemiste
+  // audit-row is acceptabeler dan een geblokkeerde invite.
+  try {
+    await adminClient.from('audit_actions').insert({
+      action_type: actionType,
+      actor_id: actorId,
+      target_table: 'authors',
+      target_id: authorId,
+      metadata: { email, source: 'create-accounts' },
+    });
+  } catch {
+    // swallow — audit-failure mag main-flow niet stoppen
+  }
+}
+
 async function processOne(
   adminClient: ReturnType<typeof createClient>,
   { author_id, email }: ActivateInput,
-  mode: Mode
+  mode: Mode,
+  actorId: string
 ): Promise<ActivateResult> {
   if (!author_id || !email) {
     return {
@@ -281,6 +321,17 @@ async function processOne(
           error: `Status field update failed: ${updErr.message}`,
         };
       }
+
+      // Audit-log (H9/M10): invited_at/reminder_sent_at zijn niet in de
+      // monitored-set van de authors-trigger, dus deze events komen alleen
+      // via Edge Function-instrumentatie in audit_actions terecht.
+      await logAudit(
+        adminClient,
+        actorId,
+        isReminder ? 'author_reminded' : 'author_invited',
+        author_id,
+        email
+      );
 
       return {
         author_id,

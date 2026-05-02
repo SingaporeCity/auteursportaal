@@ -125,19 +125,24 @@ Volledig overzicht (na schema-migratie): zie `supabase/migrations/`.
 
 ### Content Security Policy
 
-Strict CSP via meta-tag in `index.html`:
+Productie-CSP via Vite-plugin in `vite.config.ts:strictCspPlugin`. Dev-mode behoudt `'unsafe-inline'` voor HMR; productie-build vervangt het:
 
 ```
 default-src 'self';
 script-src 'self';
-style-src 'self' 'unsafe-inline';
+style-src 'self';
+style-src-elem 'self';
+style-src-attr 'unsafe-inline';
 img-src 'self' data: https:;
 connect-src 'self' https://*.supabase.co;
 font-src 'self' data:;
 object-src 'none';
 base-uri 'self';
 frame-ancestors 'none';
+frame-src 'self' https://*.supabase.co;
 ```
+
+`style-src-attr 'unsafe-inline'` blijft staan zodat `el.style.X = value` (forecast-bars, payment-dot-colors) blijft werken; inline `<style>`-blokken worden geblokkeerd. CI-job verifieert per build dat `style-src` en `style-src-elem` geen `'unsafe-inline'` bevatten.
 
 ### Inputvalidatie
 
