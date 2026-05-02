@@ -1004,45 +1004,88 @@ a:hover {
 }
 
 /* =============================================================================
- * Admin: toolbar + filters + status-badges + CSV-import-modal
+ * Admin (iter 6 redesign — editorial / refined)
+ *
+ * Aesthetic: weight-gedreven hierarchy, hairline-borders, monospace voor IDs
+ * en datums, uppercase-tracked labels, geen emoji. Past bij een 190-jaar-oude
+ * uitgever — volwassen, sober, vakkundig.
  * ============================================================================= */
+
+/* Section header met overline + heading */
+.admin-section-header {
+  margin: 2.5rem 0 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-section-overline {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-variation-settings: 'wght' 550;
+  color: var(--color-primary);
+  margin-bottom: 0.4rem;
+}
+
+.admin-section-heading {
+  font-size: 1.85rem;
+  font-variation-settings:
+    'wght' 620,
+    'wdth' 95;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* Toolbar: hairline-row met admin-actions */
 .admin-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin: 1rem 0;
-}
-
-.admin-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  padding: 0.5rem 0;
+  margin: 0 0 1.25rem;
+  padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--color-border);
 }
 
+/* Filters: refined uppercase-tracked pills */
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 1rem 0 1.5rem;
+}
+
 .admin-filter-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.1rem;
   border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  border-radius: var(--radius-pill);
-  font-size: 0.85rem;
-  font-variation-settings: 'wght' 500;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variation-settings: 'wght' 540;
   color: var(--color-text-light);
   cursor: pointer;
   transition: var(--transition);
+  font-feature-settings: 'tnum' 1;
 }
 
 .admin-filter-btn:hover {
-  border-color: var(--color-primary);
+  border-color: var(--color-text);
   color: var(--color-text);
 }
 
 .admin-filter-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: var(--color-surface);
+}
+
+[data-theme='dark'] .admin-filter-btn.active {
+  background: var(--color-text);
+  color: var(--color-bg);
 }
 
 .admin-author-actions {
@@ -1052,34 +1095,18 @@ a:hover {
 }
 
 .admin-author-hint {
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   color: var(--color-text-muted);
-  font-style: italic;
-}
-
-.status-pending-data {
-  background: var(--color-accent-amber-light) !important;
-  color: #78350f !important;
-}
-
-[data-theme='dark'] .status-pending-data {
-  color: #fcd34d !important;
-}
-
-.status-pending-review {
-  background: var(--color-accent-coral-light) !important;
-  color: var(--color-accent-coral) !important;
-}
-
-[data-theme='dark'] .status-pending-review {
-  color: #ff8a5b !important;
+  letter-spacing: 0.02em;
 }
 
 .admin-empty {
-  padding: 2rem 1rem;
+  padding: 3rem 1rem;
   text-align: center;
-  color: var(--color-text-light);
-  font-style: italic;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 /* CSV-import modal */
@@ -3507,84 +3534,137 @@ a:hover {
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
+/* Toolbar action button — refined hairline-stijl met SVG-icoon links + tracked label */
 .admin-action {
-  background: var(--color-primary);
-  color: #fff;
-  border: none;
-  padding: 0.65rem 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-size: 0.88rem;
-  font-variation-settings: 'wght' 540;
-  margin-bottom: var(--space-5);
-  box-shadow: var(--shadow-primary);
+  color: var(--color-text);
+  cursor: pointer;
   transition: var(--transition);
+  margin: 0;
+  box-shadow: none;
 }
 
 .admin-action:hover {
-  background: var(--color-primary-dark);
-  transform: translateY(-1px);
+  border-color: var(--color-text);
+  background: var(--color-bg);
+  transform: none;
 }
 
+.admin-action-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-primary);
+}
+
+.admin-action-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variation-settings: 'wght' 600;
+}
+
+/* Auteurs-lijst */
 .admin-author-list {
-  padding: var(--space-2) var(--space-6);
+  padding: 0;
+  margin: 0 0 2rem;
 }
 
 .admin-author-card {
   border-bottom: 1px solid var(--color-border);
+  transition: background 180ms ease;
 }
 
 .admin-author-card:last-child {
   border-bottom: none;
 }
 
+.admin-author-card:hover {
+  background: var(--color-bg);
+}
+
 .admin-author-row {
   display: grid;
-  grid-template-columns: 1fr auto auto auto;
-  gap: var(--space-3);
+  grid-template-columns: 1fr auto auto;
+  gap: 1.5rem;
   align-items: center;
-  padding: var(--space-4) 0;
+  padding: 1.25rem 1rem;
 }
 
 .admin-author-name {
-  font-variation-settings: 'wght' 500;
+  font-size: 1.05rem;
+  font-variation-settings:
+    'wght' 600,
+    'wdth' 100;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  font-feature-settings: 'tnum' 1;
 }
 
 .admin-author-meta {
   font-size: 0.78rem;
   color: var(--color-text-light);
-  margin-top: 0.2rem;
+  margin-top: 0.35rem;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: 0.01em;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
 }
 
+/* Status-badge: monochrome capsule met colored dot via ::before */
 .admin-author-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.7rem;
-  padding: 0.22rem 0.7rem;
-  border-radius: var(--radius-pill);
-  font-variation-settings: 'wght' 540;
-  letter-spacing: 0.04em;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  font-variation-settings: 'wght' 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: var(--color-text);
+  white-space: nowrap;
 }
 
-.status-admin {
-  background: var(--color-accent-purple-light);
-  color: #7c3aed;
+.admin-author-status::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  flex-shrink: 0;
 }
 
-[data-theme='dark'] .status-admin {
-  color: #c4b5fd;
+.admin-author-status.status-admin::before {
+  background: var(--color-accent-purple);
 }
 
-.status-active {
-  background: var(--color-success-light);
-  color: var(--color-success);
+.admin-author-status.status-active::before {
+  background: var(--color-success);
 }
 
-.status-inactive {
-  background: var(--color-accent-amber-light);
-  color: #b45309;
+.admin-author-status.status-pending-data::before {
+  background: var(--color-accent-amber);
 }
 
-[data-theme='dark'] .status-inactive {
-  color: #fbbf24;
+.admin-author-status.status-pending-review::before {
+  background: var(--color-accent-coral);
+}
+
+/* Geen aparte text-color overrides meer — alle status-text is var(--color-text) */
+.admin-author-status.status-admin,
+.admin-author-status.status-active,
+.admin-author-status.status-pending-data,
+.admin-author-status.status-pending-review,
+.admin-author-status.status-inactive {
+  color: var(--color-text);
+  background: transparent;
 }
 
 .admin-activate {

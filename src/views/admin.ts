@@ -51,9 +51,20 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   refreshChanges();
 
   // -- Auteursbeheer-sectie
+  const sectionHeader = document.createElement('header');
+  sectionHeader.className = 'admin-section-header';
+
+  const overline = document.createElement('span');
+  overline.className = 'admin-section-overline';
+  overline.textContent = 'Beheer';
+  sectionHeader.appendChild(overline);
+
   const heading = document.createElement('h2');
+  heading.className = 'admin-section-heading';
   heading.textContent = 'Auteursbeheer';
-  main.appendChild(heading);
+  sectionHeader.appendChild(heading);
+
+  main.appendChild(sectionHeader);
 
   const statusBox = document.createElement('div');
   statusBox.className = 'admin-status';
@@ -65,22 +76,13 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   toolbar.className = 'admin-toolbar';
   main.appendChild(toolbar);
 
-  const csvBtn = document.createElement('button');
-  csvBtn.type = 'button';
-  csvBtn.className = 'admin-action';
-  csvBtn.textContent = '📥 Importeer NetSuite CSV';
+  const csvBtn = buildToolbarBtn('Importeer CSV', ICON_DOWNLOAD);
   toolbar.appendChild(csvBtn);
 
-  const exportBtn = document.createElement('button');
-  exportBtn.type = 'button';
-  exportBtn.className = 'admin-action';
-  exportBtn.textContent = '📤 Export naar NetSuite';
+  const exportBtn = buildToolbarBtn('Export naar NetSuite', ICON_UPLOAD);
   toolbar.appendChild(exportBtn);
 
-  const newAuthorBtn = document.createElement('button');
-  newAuthorBtn.type = 'button';
-  newAuthorBtn.className = 'admin-action';
-  newAuthorBtn.textContent = '+ Nieuwe auteur';
+  const newAuthorBtn = buildToolbarBtn('Nieuwe auteur', ICON_PLUS);
   toolbar.appendChild(newAuthorBtn);
 
   // Filter-tabs
@@ -355,22 +357,22 @@ function buildStatusBadge(author: AuthorRow): HTMLElement {
   badge.className = 'admin-author-status';
 
   if (author.is_admin) {
-    badge.textContent = 'admin';
+    badge.textContent = 'Admin';
     badge.classList.add('status-admin');
     return badge;
   }
 
   switch (author.onboarding_status) {
     case 'pending_data':
-      badge.textContent = '🟡 Wacht op auteur';
+      badge.textContent = 'Wacht op auteur';
       badge.classList.add('status-pending-data');
       break;
     case 'pending_admin_review':
-      badge.textContent = '🟠 Wacht op review';
+      badge.textContent = 'Wacht op review';
       badge.classList.add('status-pending-review');
       break;
     case 'active':
-      badge.textContent = '🟢 Actief';
+      badge.textContent = 'Actief';
       badge.classList.add('status-active');
       break;
   }
@@ -633,6 +635,39 @@ function showStatus(box: HTMLElement, kind: 'error' | 'success', message: string
   box.className = `admin-status admin-status-${kind}`;
   box.textContent = message;
   box.hidden = false;
+}
+
+// =============================================================================
+// Inline SVG-icons — uniform 16×16, stroke 1.5, monochrome currentColor
+// =============================================================================
+const ICON_DOWNLOAD =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+
+const ICON_UPLOAD =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+
+const ICON_PLUS =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+
+function buildToolbarBtn(label: string, iconSvg: string): HTMLButtonElement {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'admin-action';
+
+  const iconWrap = document.createElement('span');
+  iconWrap.className = 'admin-action-icon';
+  iconWrap.setAttribute('aria-hidden', 'true');
+  // SVG-strings uit eigen module — niet gebruiker-gegenereerd
+  // eslint-disable-next-line no-unsanitized/property -- statische SVG uit code
+  iconWrap.innerHTML = iconSvg;
+  btn.appendChild(iconWrap);
+
+  const labelEl = document.createElement('span');
+  labelEl.className = 'admin-action-label';
+  labelEl.textContent = label;
+  btn.appendChild(labelEl);
+
+  return btn;
 }
 
 function daysSince(isoDate: string): number {

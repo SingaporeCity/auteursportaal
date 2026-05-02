@@ -229,8 +229,13 @@ async function runExport(
     successBox.replaceChildren();
     const ok = document.createElement('div');
     ok.className = 'csv-export-success-heading';
-    ok.textContent = `✅ ${rowCount} rijen geëxporteerd — ${filename}`;
+    ok.textContent = 'Export voltooid';
     successBox.appendChild(ok);
+
+    const meta = document.createElement('p');
+    meta.className = 'csv-export-success-meta';
+    meta.textContent = `${rowCount} rijen — ${filename}`;
+    successBox.appendChild(meta);
 
     const sub = document.createElement('p');
     sub.className = 'csv-export-success-text';
