@@ -65,12 +65,12 @@ export const sv: Translations = {
   'tabs.faq': 'FAQ',
   'tabs.profile': 'Profil',
 
-  'onboarding.banner_pending_data_title': 'Komplettera dina uppgifter',
+  'onboarding.banner_pending_data_title': 'Välkommen till din författarportal',
   'onboarding.banner_pending_data_text':
-    'Välkommen! Komplettera din profil för att aktivera ditt konto. Övriga flikar blir tillgängliga när Noordhoff har godkänt din ansökan.',
-  'onboarding.banner_pending_review_title': 'Din ansökan granskas',
+    'Komplettera din profil nedan så att Noordhoff kan aktivera ditt konto. De övriga delarna av portalen visas automatiskt när din ansökan har behandlats — det är inget fel om du för tillfället bara ser en flik.',
+  'onboarding.banner_pending_review_title': 'Din ansökan behandlas',
   'onboarding.banner_pending_review_text':
-    'Tack — dina uppgifter har mottagits. Noordhoff granskar din ansökan och du meddelas när ditt konto är aktivt.',
+    'Tack för att du fyllt i dina uppgifter. Noordhoff behandlar nu din information — det tar vanligtvis några arbetsdagar. När ditt konto är aktivt blir alla delar av portalen automatiskt tillgängliga. Du meddelas via e-post.',
   'onboarding.tab_disabled_tooltip': 'Tillgänglig när ditt konto har aktiverats',
   'onboarding.activate_button': 'Aktivera mitt konto',
   'onboarding.activate_button_disabled_hint':
@@ -81,6 +81,10 @@ export const sv: Translations = {
   'onboarding.readonly_disclaimer': 'Din ansökan granskas. Ändringar kan inte göras just nu.',
   'onboarding.required_field_hint': 'Obligatoriskt',
   'onboarding.missing_fields_count': '{count} fält återstår',
+  'onboarding.progress_step1_label': 'Fyll i profil',
+  'onboarding.progress_step2_label': 'Granskning av Noordhoff',
+  'onboarding.progress_step3_label': 'Portalen helt aktiv',
+  'onboarding.tab_lock_short': 'tillgänglig senare',
 
   'profile.title': 'Dina uppgifter',
   'profile.id_vendor': 'Vendor ID',

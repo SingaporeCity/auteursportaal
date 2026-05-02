@@ -58,12 +58,12 @@ export const en: Translations = {
   'tabs.faq': 'FAQ',
   'tabs.profile': 'Profile',
 
-  'onboarding.banner_pending_data_title': 'Complete your profile',
+  'onboarding.banner_pending_data_title': 'Welcome to your Author Portal',
   'onboarding.banner_pending_data_text':
-    'Welcome! Please complete your profile to activate your account. The other tabs become available once Noordhoff has approved your request.',
-  'onboarding.banner_pending_review_title': 'Your request is being reviewed',
+    'Please complete your profile below so Noordhoff can activate your account. The other sections of the portal will appear automatically once your request is processed — nothing is wrong if you currently only see one tab.',
+  'onboarding.banner_pending_review_title': 'Your request is being processed',
   'onboarding.banner_pending_review_text':
-    'Thank you — your details have been received. Noordhoff is reviewing your request and you will be notified once your account is active.',
+    'Thank you for completing your profile. Noordhoff is now processing your details — this usually takes a few working days. Once your account is active, all sections of the portal will become available automatically. You will be notified by email.',
   'onboarding.tab_disabled_tooltip': 'Available once your account is activated',
   'onboarding.activate_button': 'Activate my account',
   'onboarding.activate_button_disabled_hint':
@@ -75,6 +75,10 @@ export const en: Translations = {
     'Your request is being reviewed. Changes cannot be made at this time.',
   'onboarding.required_field_hint': 'Required',
   'onboarding.missing_fields_count': '{count} field(s) remaining',
+  'onboarding.progress_step1_label': 'Complete profile',
+  'onboarding.progress_step2_label': 'Noordhoff review',
+  'onboarding.progress_step3_label': 'Portal fully active',
+  'onboarding.tab_lock_short': 'available later',
 
   'profile.title': 'Your details',
   'profile.id_vendor': 'Vendor ID',

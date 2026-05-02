@@ -797,8 +797,9 @@ a:hover {
 
 /* Tab-buttons in onboarding-mode: gedimd + cursor not-allowed */
 .tab-btn-locked {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed !important;
+  position: relative;
 }
 
 .tab-btn-locked:hover {
@@ -808,6 +809,112 @@ a:hover {
 
 .tab-btn-locked::after {
   display: none !important;
+}
+
+.tab-btn-lock-icon {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+@media (max-width: 768px) {
+  .tab-btn-lock-icon {
+    position: static;
+    margin-left: auto;
+  }
+}
+
+/* Onboarding progress-indicator (3 stappen) */
+.onboarding-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+}
+
+.onboarding-progress-step {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.onboarding-progress-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-variation-settings: 'wght' 600;
+  flex-shrink: 0;
+}
+
+.onboarding-progress-step-done .onboarding-progress-marker {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.onboarding-progress-step-current .onboarding-progress-marker {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--color-primary-subtle);
+}
+
+.onboarding-progress-step-upcoming .onboarding-progress-marker {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.onboarding-progress-label {
+  font-size: 0.88rem;
+  font-variation-settings: 'wght' 500;
+}
+
+.onboarding-progress-step-done .onboarding-progress-label {
+  color: var(--color-text-light);
+}
+
+.onboarding-progress-step-current .onboarding-progress-label {
+  color: var(--color-text);
+  font-variation-settings: 'wght' 600;
+}
+
+.onboarding-progress-step-upcoming .onboarding-progress-label {
+  color: var(--color-text-muted);
+}
+
+.onboarding-progress-sep {
+  flex: 0 1 40px;
+  height: 1px;
+  background: var(--color-border);
+  min-width: 20px;
+}
+
+@media (max-width: 768px) {
+  .onboarding-progress {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+  }
+  .onboarding-progress-step {
+    justify-content: flex-start;
+  }
+  .onboarding-progress-sep {
+    width: 1px;
+    height: 16px;
+    margin-left: 13px;
+  }
 }
 
 /* Profile onboarding-form */

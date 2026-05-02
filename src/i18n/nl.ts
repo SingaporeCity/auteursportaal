@@ -58,12 +58,12 @@ export const nl: Translations = {
   'tabs.faq': 'FAQ',
   'tabs.profile': 'Profiel',
 
-  'onboarding.banner_pending_data_title': 'Vul uw gegevens aan',
+  'onboarding.banner_pending_data_title': 'Welkom bij uw Auteursportaal',
   'onboarding.banner_pending_data_text':
-    'Welkom! Vul uw profiel volledig aan om uw account te activeren. De andere tabbladen zijn beschikbaar zodra Noordhoff uw aanvraag heeft goedgekeurd.',
-  'onboarding.banner_pending_review_title': 'Uw aanvraag wordt beoordeeld',
+    'Vul hieronder uw profielgegevens aan zodat Noordhoff uw account kan activeren. De overige onderdelen van het portaal worden automatisch zichtbaar zodra uw aanvraag is verwerkt — er hoeft niets fout te zijn dat u nu maar één tabblad ziet.',
+  'onboarding.banner_pending_review_title': 'Uw aanvraag wordt verwerkt',
   'onboarding.banner_pending_review_text':
-    'Bedankt — uw gegevens zijn ontvangen. Noordhoff beoordeelt uw aanvraag en u krijgt bericht zodra uw account actief is.',
+    'Bedankt voor het invullen. Noordhoff verwerkt nu uw gegevens — dit duurt doorgaans enkele werkdagen. Zodra uw account actief is komen alle onderdelen van het portaal automatisch beschikbaar. U krijgt hierover bericht per e-mail.',
   'onboarding.tab_disabled_tooltip': 'Beschikbaar zodra uw account is geactiveerd',
   'onboarding.activate_button': 'Activeer mijn account',
   'onboarding.activate_button_disabled_hint':
@@ -75,6 +75,10 @@ export const nl: Translations = {
     'Uw aanvraag wordt beoordeeld. Wijzigingen zijn op dit moment niet mogelijk.',
   'onboarding.required_field_hint': 'Verplicht',
   'onboarding.missing_fields_count': 'Nog {count} veld(en) in te vullen',
+  'onboarding.progress_step1_label': 'Profiel invullen',
+  'onboarding.progress_step2_label': 'Beoordeling Noordhoff',
+  'onboarding.progress_step3_label': 'Portaal volledig actief',
+  'onboarding.tab_lock_short': 'later beschikbaar',
 
   'profile.title': 'Uw gegevens',
   'profile.id_vendor': 'Vendor ID',

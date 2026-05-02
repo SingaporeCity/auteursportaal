@@ -97,6 +97,10 @@ export type TranslationKey =
   | 'onboarding.readonly_disclaimer'
   | 'onboarding.required_field_hint'
   | 'onboarding.missing_fields_count'
+  | 'onboarding.progress_step1_label'
+  | 'onboarding.progress_step2_label'
+  | 'onboarding.progress_step3_label'
+  | 'onboarding.tab_lock_short'
 
   // Profiel
   | 'profile.title'

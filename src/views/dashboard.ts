@@ -16,6 +16,7 @@ import { buildWelcomeSection } from './shared/welcome-section';
 import { registerGlobalCmdKShortcut } from './shared/command-palette';
 import { buildMobileTabToggle } from './shared/mobile-tabs';
 import { buildOnboardingBanner } from './shared/onboarding-banner';
+import { buildOnboardingProgress } from './shared/onboarding-progress';
 import { renderProfileTab } from './tabs/profile';
 import { renderPaymentsTab } from './tabs/payments';
 import { renderStartTab } from './tabs/start';
@@ -61,11 +62,15 @@ export function renderDashboardView(
   // Welcome section staat boven de tabs (greeting + tagline)
   dashContent.appendChild(buildWelcomeSection(author));
 
-  // Onboarding-banner direct onder de welcome bij niet-active auteurs
+  // Onboarding-banner + progress-indicator direct onder de welcome bij niet-active auteurs
   if (isOnboarding) {
     const banner = buildOnboardingBanner(author.onboarding_status);
     if (banner !== null) {
       dashContent.appendChild(banner);
+    }
+    const progress = buildOnboardingProgress(author.onboarding_status);
+    if (progress !== null) {
+      dashContent.appendChild(progress);
     }
   }
 
@@ -137,6 +142,14 @@ export function renderDashboardView(
     const label = document.createElement('span');
     label.textContent = t(labelKey);
     btn.appendChild(label);
+
+    if (isLocked) {
+      const lockIcon = document.createElement('span');
+      lockIcon.className = 'tab-btn-lock-icon';
+      lockIcon.setAttribute('aria-hidden', 'true');
+      lockIcon.textContent = '🔒';
+      btn.appendChild(lockIcon);
+    }
 
     btn.addEventListener('click', () => {
       switchTab(id);

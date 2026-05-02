@@ -392,6 +392,15 @@ function toggleUploadPanel(card: HTMLElement, author: AuthorRow): void {
 // =============================================================================
 // Edge Function call
 // =============================================================================
+interface CreateAccountsResult {
+  results?: {
+    author_id?: string;
+    email?: string;
+    status: 'invited' | 'activated' | 'reminder_sent' | 'already_active' | 'failed';
+    error?: string;
+  }[];
+}
+
 async function invokeCreateAccounts(
   author: AuthorRow,
   mode: 'invite' | 'activate',
@@ -403,23 +412,31 @@ async function invokeCreateAccounts(
     return;
   }
 
-  const result = await supabase.functions.invoke<{ ok?: boolean }>('create-accounts', {
+  const result = await supabase.functions.invoke<CreateAccountsResult>('create-accounts', {
     body: { author_id: author.id, email: author.email, mode },
   });
 
-  const errVal: unknown = result.error;
-  let fnError: Error | null = null;
-  if (errVal instanceof Error) {
-    fnError = errVal;
-  } else if (typeof errVal === 'string') {
-    fnError = new Error(errVal);
-  } else if (errVal !== null && errVal !== undefined) {
-    fnError = new Error('Edge Function call failed');
-  }
-
+  const fnError = extractFnError(result.error);
   if (fnError !== null) {
     reportError('admin.invokeCreateAccounts', fnError);
     showStatus(statusBox, 'error', `Actie faalde: ${fnError.message}`);
+    return;
+  }
+
+  // Parse de results-array — Edge Function kan HTTP 200 returnen met per-row failures
+  const firstResult = result.data?.results?.[0];
+  if (firstResult === undefined) {
+    showStatus(statusBox, 'error', 'Onverwacht antwoord van Edge Function (geen results).');
+    return;
+  }
+
+  if (firstResult.status === 'failed') {
+    reportError('admin.invokeCreateAccounts', new Error(firstResult.error ?? 'unknown'));
+    showStatus(
+      statusBox,
+      'error',
+      `Actie faalde: ${firstResult.error ?? 'onbekende fout in Edge Function'}`
+    );
     return;
   }
 
@@ -430,6 +447,19 @@ async function invokeCreateAccounts(
         ? 'Uitnodiging verstuurd'
         : 'Geactiveerd';
   showStatus(statusBox, 'success', `${verb}: ${author.email}`);
+}
+
+function extractFnError(errVal: unknown): Error | null {
+  if (errVal instanceof Error) {
+    return errVal;
+  }
+  if (typeof errVal === 'string') {
+    return new Error(errVal);
+  }
+  if (errVal !== null && errVal !== undefined) {
+    return new Error('Edge Function call failed');
+  }
+  return null;
 }
 
 // =============================================================================
@@ -529,18 +559,22 @@ async function createAndInviteAuthor(
   const insertedId: string = data.id;
   const insertedEmail: string = data.email;
 
-  const inviteResult = await supabase.functions.invoke<{ ok?: boolean }>('create-accounts', {
+  const inviteResult = await supabase.functions.invoke<CreateAccountsResult>('create-accounts', {
     body: { author_id: insertedId, email: insertedEmail, mode: 'invite' },
   });
-  const fnErr: unknown = inviteResult.error;
 
-  if (fnErr !== null) {
+  const fnErr = extractFnError(inviteResult.error);
+  const firstResult = inviteResult.data?.results?.[0];
+  const failed = fnErr !== null || firstResult === undefined || firstResult.status === 'failed';
+
+  if (failed) {
     submit.disabled = false;
     submit.textContent = 'Aanmaken & uitnodigen';
+    const reason = fnErr?.message ?? firstResult?.error ?? 'onbekend';
     showStatus(
       statusBox,
       'error',
-      `Auteur aangemaakt maar invite-mail faalde: klik op "Stuur uitnodiging" in de lijst.`
+      `Auteur aangemaakt maar invite-mail faalde (${reason}). Klik op "Stuur uitnodiging" in de lijst.`
     );
     onCreated();
     return;
