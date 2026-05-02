@@ -896,6 +896,164 @@ a:hover {
   color: var(--color-text);
 }
 
+/* =============================================================================
+ * Admin: toolbar + filters + status-badges + CSV-import-modal
+ * ============================================================================= */
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-filter-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-variation-settings: 'wght' 500;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.admin-filter-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.admin-filter-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.admin-author-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.admin-author-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.status-pending-data {
+  background: var(--color-accent-amber-light) !important;
+  color: #78350f !important;
+}
+
+[data-theme='dark'] .status-pending-data {
+  color: #fcd34d !important;
+}
+
+.status-pending-review {
+  background: var(--color-accent-coral-light) !important;
+  color: var(--color-accent-coral) !important;
+}
+
+[data-theme='dark'] .status-pending-review {
+  color: #ff8a5b !important;
+}
+
+.admin-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--color-text-light);
+  font-style: italic;
+}
+
+/* CSV-import modal */
+.csv-import-modal {
+  max-width: 640px;
+}
+
+.csv-import-mode {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.csv-import-mode legend {
+  padding: 0 0.5rem;
+  font-size: 0.78rem;
+  font-variation-settings: 'wght' 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-light);
+}
+
+.csv-import-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.csv-import-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+
+.csv-import-summary {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.csv-import-stat {
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-variation-settings: 'wght' 600;
+}
+
+.csv-import-stat-success {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.csv-import-stat-info {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+.csv-import-stat-warning {
+  background: var(--color-accent-amber-light);
+  color: #b45309;
+}
+
+.csv-import-errors {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--color-danger);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.csv-import-errors li {
+  margin-bottom: 0.25rem;
+}
+
 /* Dashboard content — gecentreerd container met tabs in card (demo design) */
 .dashboard-content {
   max-width: 1100px;

@@ -1,15 +1,27 @@
 /**
  * Edge Function: create-accounts
  *
- * Activeert een auteur die door de admin is aangemaakt:
- *   1. Verifieert dat de aanroeper een admin is (via JWT)
- *   2. Maakt een Supabase auth-user aan met dezelfde UUID als het authors-record
- *   3. Stuurt een password-recovery email zodat de auteur een wachtwoord kan instellen
- *   4. Zet authors.is_active = true en authors.activated_at = now()
+ * Twee modi (vanaf iter 4):
  *
- * Body shapes (beide ondersteund):
- *   { author_id: string, email: string }                       — single (nieuwe flow)
- *   { accounts: Array<{ author_id: string, email: string }> }  — bulk (legacy)
+ *   mode='invite' — voor `pending_data` rijen:
+ *     1. Verifieer dat de aanroeper een admin is (via JWT)
+ *     2. Maak Supabase auth-user met dezelfde UUID als het authors-record
+ *        (alleen als nog niet bestaat)
+ *     3. Stuur recovery-mail zodat auteur wachtwoord kan instellen + inloggen
+ *     4. Zet `authors.invited_at = now()`. STATUS BLIJFT pending_data —
+ *        auteur vult eigen profiel aan + klikt "Activeer mijn account".
+ *     5. Indien `reminder_sent_at` al ingevuld: dit is een reminder-call,
+ *        update `reminder_sent_at` ipv `invited_at`.
+ *
+ *   mode='activate' (default — backward-compat):
+ *     1. Verifieer dat de aanroeper een admin is
+ *     2. Maak auth-user als die nog niet bestaat (anders skip)
+ *     3. Stuur recovery-mail
+ *     4. Zet `authors.onboarding_status='active'` (DB-trigger zet activated_at)
+ *
+ * Body shapes:
+ *   { author_id, email, mode? }                       — single
+ *   { accounts: [...], mode? }                        — bulk
  *
  * @module supabase/functions/create-accounts
  */
@@ -37,6 +49,8 @@ function corsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
+type Mode = 'invite' | 'activate';
+
 interface ActivateInput {
   author_id: string;
   email: string;
@@ -45,7 +59,7 @@ interface ActivateInput {
 interface ActivateResult {
   author_id: string;
   email: string;
-  status: 'activated' | 'already_active' | 'failed';
+  status: 'invited' | 'activated' | 'reminder_sent' | 'already_active' | 'failed';
   error?: string;
 }
 
@@ -83,7 +97,7 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // -- 1. Verify caller is admin (via own JWT)
+    // -- 1. Verify caller is admin
     const callerClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -109,7 +123,7 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // -- 2. Parse request body (accept single or bulk)
+    // -- 2. Parse body
     const body = await req.json().catch(() => null);
     if (body === null) {
       return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
@@ -117,6 +131,8 @@ serve(async (req: Request): Promise<Response> => {
         headers,
       });
     }
+
+    const mode: Mode = body.mode === 'invite' ? 'invite' : 'activate';
 
     const inputs: ActivateInput[] = Array.isArray(body.accounts)
       ? body.accounts
@@ -127,18 +143,18 @@ serve(async (req: Request): Promise<Response> => {
     if (inputs.length === 0) {
       return new Response(
         JSON.stringify({
-          error: 'Body must be { author_id, email } or { accounts: [...] }',
+          error: 'Body must be { author_id, email, mode? } or { accounts: [...], mode? }',
         }),
         { status: 400, headers }
       );
     }
 
-    // -- 3. Process each
+    // -- 3. Process
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
     const results: ActivateResult[] = [];
 
     for (const input of inputs) {
-      results.push(await activateOne(adminClient, input));
+      results.push(await processOne(adminClient, input, mode));
     }
 
     return new Response(JSON.stringify({ results }), { headers });
@@ -170,9 +186,37 @@ async function sendRecoveryEmail(email: string): Promise<{ ok: boolean; error?: 
   }
 }
 
-async function activateOne(
+async function ensureAuthUser(
   adminClient: ReturnType<typeof createClient>,
-  { author_id, email }: ActivateInput
+  author_id: string,
+  email: string
+): Promise<{ ok: boolean; created: boolean; error?: string }> {
+  // Check existing
+  const { data: existingUsers } = await adminClient.auth.admin.listUsers();
+  const existing = existingUsers?.users?.find(
+    (u: { email?: string }) => u.email?.toLowerCase() === email.toLowerCase()
+  );
+  if (existing) {
+    return { ok: true, created: false };
+  }
+
+  const randomPassword = crypto.randomUUID() + crypto.randomUUID();
+  const { error } = await adminClient.auth.admin.createUser({
+    id: author_id,
+    email,
+    password: randomPassword,
+    email_confirm: true,
+  });
+  if (error) {
+    return { ok: false, created: false, error: error.message };
+  }
+  return { ok: true, created: true };
+}
+
+async function processOne(
+  adminClient: ReturnType<typeof createClient>,
+  { author_id, email }: ActivateInput,
+  mode: Mode
 ): Promise<ActivateResult> {
   if (!author_id || !email) {
     return {
@@ -184,73 +228,79 @@ async function activateOne(
   }
 
   try {
-    // Check of auth user al bestaat
-    const { data: existingUsers } = await adminClient.auth.admin.listUsers();
-    const existing = existingUsers?.users?.find(
-      (u: { email?: string }) => u.email?.toLowerCase() === email.toLowerCase()
-    );
-
-    if (existing) {
-      // Auth user bestaat. Markeer als active als nog niet, en stuur opnieuw recovery
-      await adminClient
-        .from('authors')
-        .update({ is_active: true, activated_at: new Date().toISOString() })
-        .eq('id', author_id);
-
-      const sent = await sendRecoveryEmail(email);
-      if (!sent.ok) {
-        return { author_id, email, status: 'failed', error: sent.error };
-      }
-      return { author_id, email, status: 'already_active' };
+    // Maak/check auth-user (in beide modi nodig)
+    const ensure = await ensureAuthUser(adminClient, author_id, email);
+    if (!ensure.ok) {
+      return { author_id, email, status: 'failed', error: ensure.error };
     }
 
-    // Nieuwe user aanmaken met auteur-UUID
-    const randomPassword = crypto.randomUUID() + crypto.randomUUID();
-    const { error: createError } = await adminClient.auth.admin.createUser({
-      id: author_id,
-      email,
-      password: randomPassword,
-      email_confirm: true,
-    });
-
-    if (createError) {
-      return {
-        author_id,
-        email,
-        status: 'failed',
-        error: createError.message,
-      };
-    }
-
-    // Stuur recovery-mail via /auth/v1/recover REST endpoint — dezelfde route
-    // die het Supabase Dashboard gebruikt voor "Send password recovery", en
-    // robuuster dan auth.admin.generateLink() dat soms geen mail stuurt.
+    // Stuur recovery-mail (in beide modi)
     const sent = await sendRecoveryEmail(email);
     if (!sent.ok) {
       return {
         author_id,
         email,
         status: 'failed',
-        error: `Auth user created but recovery mail failed: ${sent.error}`,
+        error: `Auth user OK but recovery mail failed: ${sent.error}`,
       };
     }
 
-    // Markeer auteur als geactiveerd
-    const { error: updateError } = await adminClient
+    // Mode-specifieke side-effects
+    if (mode === 'invite') {
+      // Bepaal of dit een eerste invite of reminder is
+      const { data: row } = await adminClient
+        .from('authors')
+        .select('invited_at')
+        .eq('id', author_id)
+        .maybeSingle();
+
+      const isReminder = row?.invited_at !== null && row?.invited_at !== undefined;
+      const updateField = isReminder
+        ? { reminder_sent_at: new Date().toISOString() }
+        : { invited_at: new Date().toISOString() };
+
+      const { error: updErr } = await adminClient
+        .from('authors')
+        .update(updateField)
+        .eq('id', author_id);
+
+      if (updErr) {
+        return {
+          author_id,
+          email,
+          status: 'failed',
+          error: `Status field update failed: ${updErr.message}`,
+        };
+      }
+
+      return {
+        author_id,
+        email,
+        status: isReminder ? 'reminder_sent' : 'invited',
+      };
+    }
+
+    // mode === 'activate'
+    // DB-trigger zet activated_at automatisch + sync_is_active_with_status zet is_active=true
+    const { error: actErr } = await adminClient
       .from('authors')
-      .update({ is_active: true, activated_at: new Date().toISOString() })
+      .update({ onboarding_status: 'active' })
       .eq('id', author_id);
 
-    if (updateError) {
+    if (actErr) {
       return {
         author_id,
         email,
         status: 'failed',
-        error: `Activation flag update failed: ${updateError.message}`,
+        error: `Activation update failed: ${actErr.message}`,
       };
     }
 
-    return { author_id, email, status: 'activated' };
+    return {
+      author_id,
+      email,
+      status: ensure.created ? 'activated' : 'already_active',
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return { author_id, email, status: 'failed', error: message };
