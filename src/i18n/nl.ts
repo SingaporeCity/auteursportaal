@@ -95,6 +95,10 @@ export const nl: Translations = {
   'profile.label_bsn': 'BSN',
   'profile.label_iban': 'IBAN',
   'profile.label_bic': 'BIC',
+  'profile.bsn_show': 'Toon BSN',
+  'profile.bsn_hide': 'Verberg BSN',
+  'profile.bsn_immutable_hint':
+    'BSN kan niet worden gewijzigd. Voor correctie: rights@noordhoff.nl.',
 
   'greeting.morning': 'Goedemorgen',
   'greeting.afternoon': 'Goedemiddag',

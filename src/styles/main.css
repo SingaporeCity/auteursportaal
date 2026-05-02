@@ -2442,6 +2442,49 @@ a:hover {
   white-space: nowrap;
 }
 
+/* BSN-immutability UI (iter 7) */
+.bsn-toggle-btn {
+  display: inline-block;
+  margin-left: 0.6rem;
+  padding: 0.15rem 0.55rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-light);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variation-settings: 'wght' 540;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.bsn-toggle-btn:hover {
+  border-color: var(--color-text);
+  color: var(--color-text);
+}
+
+.bsn-revealed {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+  background: var(--color-accent-amber-light);
+  padding: 0.05rem 0.35rem;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+
+[data-theme='dark'] .bsn-revealed {
+  background: rgba(245, 158, 11, 0.18);
+}
+
+.profile-immutable-hint {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
 [data-theme='dark'] .profile-pending-badge {
   color: #fbbf24;
 }

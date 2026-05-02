@@ -101,6 +101,9 @@ export const sv: Translations = {
   'profile.label_bsn': 'BSN',
   'profile.label_iban': 'IBAN',
   'profile.label_bic': 'BIC',
+  'profile.bsn_show': 'Visa BSN',
+  'profile.bsn_hide': 'Dölj BSN',
+  'profile.bsn_immutable_hint': 'BSN kan inte ändras. För korrigeringar: rights@noordhoff.nl.',
 
   'greeting.morning': 'God morgon',
   'greeting.afternoon': 'God eftermiddag',

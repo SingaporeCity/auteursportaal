@@ -26,6 +26,16 @@ import type { Database } from '@/types/db';
 
 type AuthorUpdate = Database['public']['Tables']['authors']['Update'];
 
+/**
+ * Velden die NA eerste invoer niet meer wijzigbaar zijn (security-policy).
+ * Worden uitgesloten uit `change_requests`-flow en uit directe-write-pad.
+ * DB-trigger 0010 is de hardste laag — deze constante is defense-in-depth UX.
+ */
+const IMMUTABLE_FIELDS: ReadonlySet<keyof AuthorRow> = new Set(['bsn']);
+
+/** Hoe lang BSN zichtbaar blijft na "Toon BSN" klik (ms). */
+const BSN_REVEAL_MS = 30_000;
+
 interface FieldDef {
   name: keyof AuthorRow;
   labelKey: Parameters<typeof t>[0];
@@ -499,6 +509,15 @@ function buildRow(
   wrap.appendChild(label);
   wrap.appendChild(value);
 
+  // BSN: "Toon BSN" toggle (30s zichtbaar, dan auto-mask) + immutable-hint
+  if (field.name === 'bsn' && stringValue !== '') {
+    wrap.appendChild(buildBsnToggle(value, stringValue));
+    const hint = document.createElement('span');
+    hint.className = 'profile-immutable-hint';
+    hint.textContent = t('profile.bsn_immutable_hint');
+    wrap.appendChild(hint);
+  }
+
   const pending = pendingByField.get(field.name);
   if (pending !== undefined) {
     const badge = document.createElement('span');
@@ -508,6 +527,52 @@ function buildRow(
   }
 
   return wrap;
+}
+
+/**
+ * "Toon BSN" toggle — vervangt masked weergave kortstondig door volledige BSN.
+ * Geen audit-log: dit is eigen data, AVG-art-15 inzagerecht — geen administratieve
+ * actie die logging vereist.
+ */
+function buildBsnToggle(valueCell: HTMLElement, fullBsn: string): HTMLButtonElement {
+  const masked = formatBSNMasked(fullBsn);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'bsn-toggle-btn';
+  btn.textContent = t('profile.bsn_show');
+  btn.setAttribute('aria-label', t('profile.bsn_show'));
+
+  let revealed = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const mask = (): void => {
+    valueCell.textContent = masked;
+    valueCell.classList.remove('bsn-revealed');
+    btn.textContent = t('profile.bsn_show');
+    revealed = false;
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
+
+  const reveal = (): void => {
+    valueCell.textContent = fullBsn;
+    valueCell.classList.add('bsn-revealed');
+    btn.textContent = t('profile.bsn_hide');
+    revealed = true;
+    timer = setTimeout(mask, BSN_REVEAL_MS);
+  };
+
+  btn.addEventListener('click', () => {
+    if (revealed) {
+      mask();
+    } else {
+      reveal();
+    }
+  });
+
+  return btn;
 }
 
 function idChip(labelKey: Parameters<typeof t>[0], value: string | null): HTMLElement {
@@ -549,6 +614,11 @@ function buildEditForm(author: AuthorRow, onDone: () => void): HTMLElement {
   const inputs = new Map<string, HTMLInputElement>();
   for (const field of FIELDS) {
     if (field.readonly === true) {
+      continue;
+    }
+    // BSN + andere immutable-velden niet in change-request flow — kunnen niet
+    // gewijzigd worden na eerste invoer (DB-trigger 0010 enforced).
+    if (IMMUTABLE_FIELDS.has(field.name)) {
       continue;
     }
     const wrap = document.createElement('label');
@@ -593,6 +663,12 @@ async function submitChanges(
 
   for (const field of FIELDS) {
     if (field.readonly === true) {
+      continue;
+    }
+    if (IMMUTABLE_FIELDS.has(field.name)) {
+      // Defense-in-depth: voorkom change_request-INSERT met immutable veld zelfs
+      // als attacker DOM gemodificeerd heeft. DB-trigger 0010 zou de UPDATE
+      // alsnog blokkeren — dit voorkomt een onnodige rij in change_requests.
       continue;
     }
     const input = inputs.get(field.name);
@@ -672,7 +748,13 @@ function assignAuthorField(
   value: string | null
 ): void {
   // Whitelist van velden die we vanuit het profiel mogen schrijven.
-  // Email + ID-kolommen + status-velden niet via dit pad.
+  // Email + ID-kolommen + status-velden niet via dit pad. BSN is niet writable
+  // bij elke save — wel toegestaan op `pending_data` (eerste invoer) — daar
+  // wordt assignAuthorField uitsluitend tijdens onboarding aangeroepen, en
+  // DB-trigger 0010 forceert immutability bovendien op database-niveau.
+  // BSN staat hier nog wél in de set, omdat eerste invoer mogelijk moet zijn.
+  // Voor active-mode worden ALLE schrijfacties via change_requests gerouteerd
+  // (zie buildEditForm), waar IMMUTABLE_FIELDS BSN expliciet uitsluit.
   const writable: ReadonlySet<keyof AuthorRow> = new Set([
     'first_name',
     'last_name',

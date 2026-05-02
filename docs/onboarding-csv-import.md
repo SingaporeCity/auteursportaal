@@ -66,6 +66,7 @@ Zie `docs/netsuite-author-import-template.csv` voor twee voorbeeld-rijen:
 
 - **⚠️ Email rate-limit (BLOKKER bij bulk)**: Supabase's ingebouwde mailer doet 3 mails/uur. Bij bulk-onboarding (CSV met 100+ rijen + per-rij "Stuur uitnodiging") loopt dat na een paar klikken vast met `over_email_send_rate_limit`. **Configureer eerst een externe SMTP-provider** (Resend/SendGrid/SES) — zie README sectie 8.
 - **Email is auth-key**. Auteurs kunnen hun email NIET zelf wijzigen na invite — admin moet via NetSuite + nieuwe CSV-import bijwerken.
+- **BSN is na eerste invoer immutable** (iter 7). Als CSV een BSN bevat voor een bestaand record met al ingevulde BSN, wordt dat veld silent geskipt — `bsn_skipped` counter in result-modal toont hoeveel rijen dat betrof. Correcties van foutief ingevulde BSN: contact `rights@noordhoff.nl` (vereist directe DB-edit via Supabase Studio).
 - **Edge Function timeout**: standaard 60s. Voor zeer grote batches (2500+ rows) kan splitsen in chunks van ~500 nodig zijn.
 - **Email-mismatch met bestaand `auth.users`**: als CSV-email niet matcht een bestaand auth-account maakt het systeem een nieuwe auth-user. Dit kan tot duplicaten leiden bij hercreatie. Importeer dus alleen na zorgvuldige sync met NetSuite.
 

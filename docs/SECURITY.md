@@ -105,6 +105,16 @@ Locatie: `src/lib/validate.ts` met unit-tests in `src/lib/validate.test.ts`.
 
 Validatie gebeurt client-side voor UX **én** server-side via Postgres-constraints (`CHECK` op enum-velden, `UNIQUE` op Vendor ID, etc.). Frontend-validatie kan worden omzeild — Postgres geeft uiteindelijk de garantie.
 
+### BSN-immutability (iter 7, migration 0010)
+
+BSN is na eerste invoer onwijzigbaar. Drie verdedigingslagen:
+
+1. **Postgres trigger** `enforce_bsn_immutable` (`0010_bsn_immutable.sql`): blokkeert elke `UPDATE OF bsn` waarbij `OLD.bsn` non-null is en `NEW.bsn` afwijkt. Geen carve-out voor admin of service-role — correctie van een fout-ingevoerde BSN vereist directe SQL via Supabase Studio (auditeerbaar via Supabase platform-logs). Friction is hier feature.
+2. **Edge Function `import-authors-csv`** skipt BSN-veld in update-payload als bestaand record een BSN heeft. Result-object reporteert `bsn_skipped` aantal.
+3. **Frontend `profile.ts`**: `IMMUTABLE_FIELDS = {'bsn'}` — uitgesloten uit `change_requests`-flow + uit directe-write-pad in active-mode. Auteur kan eigen BSN inzien via "Toon BSN" toggle (30s zichtbaar, dan auto-mask) — AVG-art-15 inzagerecht eigen data.
+
+BSN-masking via `formatBSNMasked` (laatste 4 cijfers zichtbaar) wordt overal gebruikt waar BSN in browser-DOM komt, behalve tijdens eerste invoer (auteur typt BSN tijdens onboarding).
+
 ## 6. XSS-prevention
 
 ### Content-Security-Policy (CSP)

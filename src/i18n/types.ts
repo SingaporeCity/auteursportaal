@@ -118,6 +118,9 @@ export type TranslationKey =
   | 'profile.label_bsn'
   | 'profile.label_iban'
   | 'profile.label_bic'
+  | 'profile.bsn_show'
+  | 'profile.bsn_hide'
+  | 'profile.bsn_immutable_hint'
 
   // Greeting
   | 'greeting.morning'

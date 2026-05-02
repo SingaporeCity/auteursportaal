@@ -20,6 +20,7 @@ interface ImportResult {
   created: number;
   updated: number;
   skipped: number;
+  bsn_skipped: number;
   errors: { row: number; email: string; reason: string }[];
 }
 
@@ -188,6 +189,9 @@ function renderResult(box: HTMLElement, result: ImportResult): void {
     { label: 'Bijgewerkt', value: result.updated, cls: 'info' },
     { label: 'Overgeslagen', value: result.skipped, cls: 'warning' },
   ];
+  if (result.bsn_skipped > 0) {
+    items.push({ label: 'BSN niet overschreven', value: result.bsn_skipped, cls: 'warning' });
+  }
   for (const item of items) {
     const span = document.createElement('span');
     span.className = `csv-import-stat csv-import-stat-${item.cls}`;

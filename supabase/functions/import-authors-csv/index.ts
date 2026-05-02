@@ -71,6 +71,7 @@ interface ImportResult {
   created: number;
   updated: number;
   skipped: number;
+  bsn_skipped: number; // aantal rijen waar bestaand BSN niet werd overschreven
   errors: { row: number; email: string; reason: string }[];
 }
 
@@ -156,7 +157,13 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
-    const result: ImportResult = { created: 0, updated: 0, skipped: 0, errors: [] };
+    const result: ImportResult = {
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      bsn_skipped: 0,
+      errors: [],
+    };
 
     for (let i = 0; i < parsed.rows.length; i++) {
       const row = parsed.rows[i]!;
@@ -176,10 +183,10 @@ serve(async (req: Request): Promise<Response> => {
       const status: 'pending_data' | 'pending_admin_review' =
         validation.missingRequired.length === 0 ? 'pending_admin_review' : 'pending_data';
 
-      // Check bestaand
+      // Check bestaand — fetch ook `bsn` voor immutability-check
       const { data: existing } = await adminClient
         .from('authors')
-        .select('id')
+        .select('id, bsn')
         .eq('email', row.email)
         .maybeSingle();
 
@@ -190,6 +197,17 @@ serve(async (req: Request): Promise<Response> => {
           result.skipped++;
           continue;
         }
+
+        // BSN-immutability: als bestaand record een BSN heeft EN CSV-rij wil
+        // hem overschrijven met andere waarde, BSN-veld weglaten uit update.
+        // (DB-trigger 0010 zou de UPDATE alsnog blokkeren — dit voorkomt dat
+        // de hele rij faalt voor één onoverschrijfbaar veld.)
+        const existingBsn = (existing as { bsn: string | null }).bsn;
+        if (existingBsn !== null && existingBsn !== '' && existingBsn !== insertData.bsn) {
+          delete insertData.bsn;
+          result.bsn_skipped++;
+        }
+
         const { error } = await adminClient
           .from('authors')
           .update(insertData)
