@@ -15,8 +15,10 @@
  *
  *   mode='activate' (default — backward-compat):
  *     1. Verifieer dat de aanroeper een admin is
- *     2. Maak auth-user als die nog niet bestaat (anders skip)
- *     3. Stuur recovery-mail
+ *     2. Maak auth-user als die nog niet bestaat
+ *     3. Stuur recovery-mail ALLEEN als auth-user net is aangemaakt
+ *        (bestaande users hebben al een password — extra mail is verwarrend
+ *        + verbrandt onnodig de Supabase email-rate-limit)
  *     4. Zet `authors.onboarding_status='active'` (DB-trigger zet activated_at)
  *
  * Body shapes:
@@ -234,15 +236,22 @@ async function processOne(
       return { author_id, email, status: 'failed', error: ensure.error };
     }
 
-    // Stuur recovery-mail (in beide modi)
-    const sent = await sendRecoveryEmail(email);
-    if (!sent.ok) {
-      return {
-        author_id,
-        email,
-        status: 'failed',
-        error: `Auth user OK but recovery mail failed: ${sent.error}`,
-      };
+    // Mail-policy:
+    //  - mode='invite' → altijd sturen (de mail IS het doel van de invite)
+    //  - mode='activate' + nieuwe auth-user → sturen (nieuwe user moet password instellen)
+    //  - mode='activate' + bestaande auth-user → NIET sturen (user heeft al password,
+    //    extra mail verwart + verbrandt onnodig de Supabase email-rate-limit)
+    const shouldSendMail = mode === 'invite' || ensure.created;
+    if (shouldSendMail) {
+      const sent = await sendRecoveryEmail(email);
+      if (!sent.ok) {
+        return {
+          author_id,
+          email,
+          status: 'failed',
+          error: `Auth user OK but recovery mail failed: ${sent.error}`,
+        };
+      }
     }
 
     // Mode-specifieke side-effects
