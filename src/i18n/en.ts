@@ -17,6 +17,7 @@ export const en: Translations = {
   'auth.login.password_label': 'Password',
   'auth.login.submit': 'Sign in',
   'auth.login.forgot_password': 'Forgot password?',
+  'auth.login.forgot_submit': 'Reset password',
   'auth.login.forgot_back': '← back to sign in',
   'auth.login.forgot_sent':
     'If this email address is known to us, you will receive a link to set a new password within a few minutes.',

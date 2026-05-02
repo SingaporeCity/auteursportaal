@@ -17,6 +17,7 @@ export const nl: Translations = {
   'auth.login.password_label': 'Wachtwoord',
   'auth.login.submit': 'Inloggen',
   'auth.login.forgot_password': 'Wachtwoord vergeten?',
+  'auth.login.forgot_submit': 'Wachtwoord resetten',
   'auth.login.forgot_back': '← terug naar inloggen',
   'auth.login.forgot_sent':
     'Als dit e-mailadres bij ons bekend is, ontvangt u binnen enkele minuten een link om een nieuw wachtwoord in te stellen.',

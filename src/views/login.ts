@@ -231,7 +231,7 @@ function buildForgotForm({
 
   const submitBtn = el('button', 'auth-submit');
   submitBtn.setAttribute('type', 'submit');
-  submitBtn.textContent = t('auth.login.submit');
+  submitBtn.textContent = t('auth.login.forgot_submit');
   form.appendChild(submitBtn);
 
   const cancelBtn = el('button', 'auth-link');

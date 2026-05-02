@@ -24,6 +24,7 @@ export const sv: Translations = {
   'auth.login.password_label': 'Lösenord',
   'auth.login.submit': 'Logga in',
   'auth.login.forgot_password': 'Glömt lösenord?',
+  'auth.login.forgot_submit': 'Återställ lösenord',
   'auth.login.forgot_back': '← tillbaka till inloggning',
   'auth.login.forgot_sent':
     'Om denna e-postadress finns hos oss får du en länk inom några minuter för att ange ett nytt lösenord.',

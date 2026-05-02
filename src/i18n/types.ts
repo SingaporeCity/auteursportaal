@@ -42,6 +42,7 @@ export type TranslationKey =
   | 'auth.login.password_label'
   | 'auth.login.submit'
   | 'auth.login.forgot_password'
+  | 'auth.login.forgot_submit'
   | 'auth.login.forgot_back'
   | 'auth.login.forgot_sent'
   | 'auth.login.error_invalid'
