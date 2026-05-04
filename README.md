@@ -43,45 +43,7 @@ Een TypeScript single-page applicatie die op GitHub Pages draait, met Supabase a
 - **[docs/adr/0001-typescript-strict-vanilla.md](docs/adr/0001-typescript-strict-vanilla.md)** — waarom geen framework
 - **[docs/adr/0002-rls-whitelist-via-is-active.md](docs/adr/0002-rls-whitelist-via-is-active.md)** — toegangscontrole-aanpak
 
-## 3. Lokale setup
-
-**Vereisten**: Node.js 20+, een lokale `.env` (zie `.env.example`).
-
-```bash
-# 1. Clone (na repo aanmaak)
-git clone git@github.com:SingaporeCity/auteursportaal.git
-cd auteursportaal
-
-# 2. Installeer dependencies
-npm install
-
-# 3. Maak .env aan op basis van het template
-cp .env.example .env
-# Vul de Supabase URL + anon key in (vraag bij Patrick voor productie-keys)
-
-# 4. Start de dev-server
-npm run dev
-# → http://localhost:5173
-```
-
-**Beschikbare scripts:**
-
-| Script                  | Doel                                              |
-| ----------------------- | ------------------------------------------------- |
-| `npm run dev`           | Start Vite dev-server met HMR                     |
-| `npm run build`         | Productie-build naar `dist/`                      |
-| `npm run preview`       | Lokale preview van de build                       |
-| `npm run typecheck`     | TypeScript strict-check (geen output bij succes)  |
-| `npm run lint`          | ESLint (incl. security + secret-detection regels) |
-| `npm run lint:fix`      | Auto-fixable lint-issues fixen                    |
-| `npm run format`        | Prettier op alle bestanden                        |
-| `npm run test`          | Vitest unit-tests                                 |
-| `npm run test:coverage` | Tests met coverage-rapport                        |
-| `npm run test:e2e`      | Playwright E2E-tests                              |
-
-Pre-commit-hook (Husky + lint-staged) draait automatisch ESLint + Prettier op staged files.
-
-## 4. Deploy
+## 3. Deploy
 
 **Productie** wordt automatisch gedeployed bij elke push naar `main`:
 
@@ -103,7 +65,7 @@ Service-role-key staat NIET in repo-secrets — alleen lokaal en (waar nodig) in
 supabase functions deploy create-accounts --project-ref qcqjurglmrhdiuhawfee
 ```
 
-## 5. Security
+## 4. Security
 
 ### Secret-management
 
@@ -153,7 +115,7 @@ frame-src 'self' https://*.supabase.co;
 - Email-validatie.
 - Alle wijzigingen door auteurs gaan via `change_requests`-tabel met admin-approval (geen directe writes naar `authors`).
 
-## 6. Onboarding-flow
+## 5. Onboarding-flow
 
 Elke auteur doorloopt een statemachine met drie statussen op de `authors`-tabel. Een DB-trigger (`enforce_onboarding_transition`, migration `0006`) blokkeert ongeoorloofde overgangen ongeacht of de UPDATE via portaal, Edge Function of directe service-role-call binnenkomt.
 
@@ -244,7 +206,7 @@ Elke onboardings-handeling resulteert in minstens één rij in `audit_actions`. 
 
 PII-velden (BSN, IBAN) worden vóór opslag automatisch gemaskeerd via de `audit_strip_pii()`-helper — laatste vier cijfers blijven leesbaar voor herkenning, de rest wordt vervangen door bullets. Alleen admins kunnen `audit_actions` lezen; INSERT/UPDATE/DELETE is alleen mogelijk via service-role of trigger met `SECURITY DEFINER`. Volledige audit-architectuur in `docs/SECURITY.md` § 8.
 
-## 6b. Round-trip-sync naar NetSuite (CSV-export)
+## 5b. Round-trip-sync naar NetSuite (CSV-export)
 
 Het portaal is geen source-of-truth — NetSuite blijft dat. Nieuwe of gewijzigde auteursgegevens worden via een CSV terug-gesynchroniseerd:
 
@@ -273,7 +235,7 @@ NetSuite-team verwerkt CSV (handmatig of via NetSuite-import-tool)
 - **AVG-retention**: admin uploadt + verwijdert lokaal binnen minuten; SharePoint-retention is verantwoordelijkheid van Noordhoff IT
 - **Dataminimalisatie open punt**: huidige export bevat alle 15 velden per rij. Voor strenger AVG-naleving op termijn: alleen daadwerkelijk-gewijzigde velden meesturen (vereist diff-tracking)
 
-## 7. Testing
+## 6. Testing
 
 ```bash
 # Unit-tests (Vitest, jsdom)
@@ -294,7 +256,7 @@ E2E-scenarios:
 
 Test-database: aparte Supabase test-project of ephemeral via `supabase db reset --local`.
 
-## 8. Bekende beperkingen
+## 7. Bekende beperkingen
 
 > ⚠️ **BLOKKER VOOR PRODUCTIE-LAUNCH — externe SMTP-provider vereist**
 >
