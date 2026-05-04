@@ -115,6 +115,29 @@ Admin-login werkt vandaag ook met e-mail + wachtwoord. Microsoft Entra ID is in 
 
 **Hosting.** Frontend op GitHub Pages onder de eigen repo `SingaporeCity/auteursportaal` (publiek voor IT-review). Custom domain `mijn-noordhoff.nl` met TLS-certificaat dat automatisch verlengt; volgende verloopdatum 22 juli 2026. Geen ander hosting-component — Supabase host de hele backend.
 
+**Stack op één pagina:**
+
+```
+┌────────────────┐      ┌──────────────────────┐      ┌─────────────────┐
+│  Browser       │ HTTPS│  GitHub Pages        │      │ Supabase        │
+│  (auteur of    │─────▶│  mijn-noordhoff.nl   │─────▶│ - Auth          │
+│   admin)       │      │  (statisch SPA)      │      │ - Postgres+RLS  │
+└────────────────┘      └──────────────────────┘      │ - Storage       │
+                                                       │ - Edge Functions│
+                                                       └─────────────────┘
+```
+
+| Laag           | Stack                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------- |
+| Frontend       | TypeScript (strict), Vite, vanilla DOM, geen UI-framework                               |
+| Auth admin     | Microsoft Entra ID (OAuth, **placeholder** — pas actief na IT-config)                   |
+| Auth auteur    | Supabase email + password met activate-email                                            |
+| Database       | Postgres met Row Level Security (RLS) op alle tabellen                                  |
+| File storage   | Supabase Storage buckets `statements` + `expense-receipts` (private, UUID-pad-isolatie) |
+| Edge Functions | Deno TypeScript (server-side, gebruikt service_role)                                    |
+| CI/CD          | GitHub Actions: lint + typecheck + tests + GH Pages deploy                              |
+| Custom domain  | `mijn-noordhoff.nl` (CNAME → GitHub Pages, TLS auto-renew)                              |
+
 ---
 
 ## 4. Beveiliging — samenvatting
@@ -160,50 +183,179 @@ Zonder bovenstaande items kan het portaal in technische zin live, maar niet vold
 
 ---
 
-## 6. Bekende beperkingen en voortgang
+## 6. Bekende beperkingen en open punten
 
-Sinds de initiële audit op 2 mei 2026 is het volgende gesloten:
+Sinds 2 mei 2026 zijn 9 audit-findings gesloten in iter 7-9 (zie `docs/AUDIT-2026-05-02.md` voor de afzonderlijke status). Hieronder de huidige openstaande lijst — onderverdeeld in blokkers, randvoorwaarden en kleinere observaties.
 
-- Iter 7: BSN-immutability (M4)
-- Iter 8: `last_exported_at`-lock, e-mail-enumeration-fix, CSV-size-guard, dist/-CI-checks (M1, M3, M9, L2)
-- Iter 9: complete audit-trail, rate-limiting, atomic CSV-import, strikte productie-CSP (H1, H9, H10, M8, M10)
+### Blokker voor productie-launch (alleen pilot acceptabel)
 
-Nog open in `docs/AUDIT-2026-05-02.md`:
+> **Externe SMTP-provider vereist.** Het portaal verstuurt e-mails (invite-link, recovery, reminder) via de standaard Supabase-mailer. Die is niet productie-geschikt:
+>
+> - Rate-limit van 3 e-mails per uur per project — bij bulk-onboarding loopt dat meteen vast met `over_email_send_rate_limit`
+> - Volume in productie: ~5.000 e-mails per maand bij 2.500 auteurs (invite + reminder + recovery + bevestigingen)
+> - Deliverability: Supabase verstuurt vanuit `noreply@mail.app.supabase.io`; Outlook/Hotmail markeert dat vaak als spam
+> - Branding: huidige mails komen niet vanuit `noordhoff.nl` — slecht voor herkenning en vertrouwen
+>
+> **Vóór productie-uitrol moet Infinitas IT een transactionele SMTP-provider configureren.** Drie opties:
+>
+> | Provider     | Free tier              | Kosten productie    | Notities                                      |
+> | ------------ | ---------------------- | ------------------- | --------------------------------------------- |
+> | **Resend**   | 3.000/maand            | ~$20 voor 50k mails | Modern, eenvoudige API, goede deliverability  |
+> | **SendGrid** | 100/dag (=3.000/maand) | ~$20 voor 50k mails | Veel features, complexer dashboard            |
+> | **AWS SES**  | 200/dag in sandbox     | ~$0,10 per 1k mails | Goedkoopst, vereist AWS-account + meer config |
+>
+> **Configuratie**: Supabase Dashboard → Project Settings → Authentication → SMTP Settings → host/port/credentials. Plus een DNS-geverifieerd `noreply@mijn-noordhoff.nl`-adres met SPF/DKIM/DMARC op `noordhoff.nl`. Zie audit-finding H13.
 
-- 2 Critical (sourcemaps al opgelost in iter 0; DPA's wachten op Legal — zie sectie 5)
-- 8 High openstaand, allemaal bij Infinitas IT of Legal (zie sectie 5)
-- 6 Medium openstaand, voornamelijk procedurele items
-- 5 Low openstaand, kosmetisch of nice-to-have
+### Randvoorwaarden bij IT en Legal
 
-Operationele beperkingen vandaag:
+Zie sectie 5 hierboven voor de volledige lijst (DPA's, Microsoft Entra SSO, MFA voor admin, Privacy Policy, retention-policy, Right-to-Erasure, branch-protection). Deze items horen niet in de codebase thuis maar moeten geleverd worden voor AVG-naleving bij uitrol naar 2.500 auteurs.
 
-- Charlotte's BSN, geboortedatum en Alliant-id zijn placeholders (`000000000` / `1900-01-01` / dummy-id). Charlotte vult deze zelf in zodra ze het portaal ingaat — het portaal valideert ze dan automatisch (BSN 11-proef + IBAN mod-97).
-- Supabase Auth Redirect URL-allowlist is op 2 mei bijgewerkt naar `https://mijn-noordhoff.nl/**`; `http://localhost:5173/**` blijft staan voor lokale ontwikkeling.
-- Productie-mail loopt nog via standaard Supabase-mailer. Voldoende voor één test-auteur, niet voor uitrol.
+### Architectuur-observaties (geaccepteerd voor pilot, te heroverwegen bij schaal)
+
+- **JWT in localStorage.** Auth-tokens worden in `localStorage` opgeslagen — Supabase JS SDK-default. Geen HttpOnly cookie. Een DOM-XSS in om het even welk pad zou tot token-exfiltratie kunnen leiden. Mitigaties draaien (strikte CSP, alle DOM-mutaties via `textContent`, ESLint `no-unsanitized`); voor productie-schaal is server-side cookie-flow via Cloudflare Workers de upgrade-route. Zie audit-finding H1.
+- **Geen application-level encryption van BSN/IBAN.** Supabase doet volume-level disk-encryption. Application-level encryption (BSN alleen decryptbaar voor `is_admin()`-rol) is overwogen maar niet geïmplementeerd vanwege impact op IBAN-validatie + admin-overzicht. Audit-finding M5.
+- **JWT-sessie blijft tot expiry geldig na logout.** `signOut()` ruimt lokale token op maar revoked de server-side JWT niet. Audit-finding M6.
+- **`*.csv` blanket-rule in `.gitignore`** met whitelist-uitzondering voor de admin-import-template — bewust om te voorkomen dat ooit een echte auteur-CSV in git belandt.
+
+### Operationele staat vandaag
+
+- Charlotte's BSN, geboortedatum en Alliant-id zijn placeholders (`000000000` / `1900-01-01` / dummy-id). Charlotte vult deze zelf in zodra ze het portaal ingaat; validatie via 11-proef (BSN) en mod-97 (IBAN) gebeurt automatisch.
+- Supabase Auth Redirect URL-allowlist is op 2 mei 2026 bijgewerkt naar `https://mijn-noordhoff.nl/**`; `http://localhost:5173/**` blijft staan voor lokale ontwikkeling.
+- Productie-mail loopt nog via standaard Supabase-mailer (zie blokker hierboven).
+- `sync-netsuite` Edge Function is bewust niet geport vanuit de oude demo-codebase — CSV-roundtrip is voldoende voor de pilot.
 
 ---
 
 ## 7. Onboarding van nieuwe auteurs
 
-Drie paden, afhankelijk van waar de auteur-data vandaan komt:
+Elke auteur doorloopt een statemachine met drie statussen op de `authors`-tabel. Een DB-trigger (`enforce_onboarding_transition`, migration `0006`) blokkeert ongeoorloofde overgangen ongeacht of de UPDATE via portaal, Edge Function of directe service-role-call binnenkomt.
 
-**Pad A — handmatig.** Admin maakt 1 auteur aan via een form in het admin-portaal: e-mail, voornaam, achternaam, optioneel vendor-id. Het systeem stuurt direct een invite-mail. De auteur logt in, vult zelf de overige 9 verplichte velden in en klikt "Activeer mijn account". Admin reviewt en activeert.
+| Status                 | Betekenis                                        | Wie zet 'm?                                                                    |
+| ---------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `pending_data`         | Auteur is uitgenodigd maar profiel is incompleet | Default-waarde bij INSERT (handmatig of CSV-row met ontbrekende velden)        |
+| `pending_admin_review` | Auteur heeft data ingediend, wacht op admin-OK   | Auteur klikt "Activeer mijn account" (DB-trigger zet `data_submitted_at`)      |
+| `active`               | Volledig portaal-toegang                         | Admin klikt "Activeer" (DB-trigger zet `activated_at` + sync `is_active=true`) |
 
-**Pad B — incomplete CSV-import.** Admin importeert een NetSuite-CSV waarin sommige velden leeg zijn. Het systeem maakt de auteurs aan in de status `pending_data` en de admin kan er per rij of in bulk een invite-mail uit sturen. Verder identiek aan pad A.
+Drie paden door dezelfde statemachine. Welk pad doorlopen wordt hangt af van waar de auteur-data vandaan komt:
 
-**Pad C — complete CSV-import.** Admin importeert een NetSuite-CSV waarin alle 13 verplichte velden zijn ingevuld. Auteurs landen direct in `pending_admin_review`; admin hoeft alleen nog te reviewen en op activeren te klikken. De auteur ontvangt dan een recovery-mail om een wachtwoord in te stellen en kan direct alle tabbladen gebruiken.
+### Pad A — handmatig nieuwe auteur (geen CSV beschikbaar)
 
-De drie statussen — `pending_data`, `pending_admin_review`, `active` — zijn op database-niveau afgedwongen via een trigger die ongeoorloofde overgangen blokkeert, en op UI-niveau via een dual-mode dashboard dat tabbladen pas vrijgeeft zodra de status `active` is.
+Gebruikt voor net-getekende auteurs of voor correcties waar admin een formulier prettiger vindt dan een CSV-export.
 
-Volledig schema, voorbeeld-CSV en validatie-regels in `docs/onboarding-csv-import.md`.
+1. **Admin** opent het admin-portaal en klikt "+ Nieuwe auteur". Het formulier vraagt e-mail, voornaam, achternaam en optioneel een NetSuite-vendor-id.
+2. **Frontend** voert een INSERT uit op `authors` met de default-status `pending_data`.
+3. **Frontend** roept Edge Function `create-accounts` aan met `mode='invite'`. Die functie:
+   - controleert via JWT dat de aanroeper admin is;
+   - maakt een Supabase Auth-user aan met dezelfde UUID als de authors-rij (`auth.admin.createUser`);
+   - vraagt Supabase een recovery-mail te versturen via het `/auth/v1/recover`-endpoint;
+   - schrijft `invited_at = now()` terug op de authors-rij;
+   - schrijft een `author_invited`-rij in `audit_actions`.
+4. **Auteur** ontvangt een set-password-mail, klikt de link, kiest een wachtwoord en logt in.
+5. **Auteur** ziet alleen het Profiel-tabblad. De zes andere tabs staan disabled met een slot-icoon. Een banner bovenaan legt uit dat de overige onderdelen vrijkomen zodra Noordhoff de aanvraag heeft beoordeeld.
+6. **Auteur** vult de overige verplichte velden in. Pas wanneer alle 13 velden valide zijn (IBAN-mod-97, BSN-11-proef, postcode-NL, datum-format, e-mail-format) wordt de "Activeer mijn account"-knop enabled.
+7. **Auteur** klikt op activeren. **Frontend** doet UPDATE `onboarding_status = 'pending_admin_review'`. De DB-trigger vult `data_submitted_at` met de huidige tijd en schrijft via een tweede trigger een `author_status_changed`-rij in `audit_actions`.
+8. **Admin** ziet de auteur in het admin-overzicht met status-badge "Wacht op review". Admin reviewt de gegevens (vooral BSN en IBAN omdat die later onveranderlijk zijn) en klikt "Activeer".
+9. **Frontend** roept `create-accounts` aan met `mode='activate'`. Die doet UPDATE `onboarding_status = 'active'`; de DB-trigger zet `activated_at` en synct `is_active = true`.
+10. **Auteur** logt opnieuw in en heeft toegang tot alle zeven tabs.
+
+**Wat kan fout gaan:**
+
+- Recovery-mail komt niet aan (Supabase mailer-rate-limit, spam-filter): admin klikt opnieuw op "Stuur uitnodiging"; idempotent, schrijft een `author_reminded`-rij in plaats van `author_invited`.
+- Auteur typt verkeerd BSN: na eerste opslag is BSN onveranderlijk (drie verdedigingslagen). Correctie alleen via Supabase Studio door de admin — bewust een hoge drempel.
+- Edge Function timeout of 5xx: de frontend toont expliciet de foutmelding; status blijft op `pending_data` zodat retry mogelijk is. De rate-limiter telt mislukte calls niet anders dan succesvolle.
+
+### Pad B — incomplete CSV-import
+
+Gebruikt wanneer een NetSuite-export voor een batch auteurs deels lege velden heeft (bijvoorbeeld: BSN of geboortedatum is niet bekend in NetSuite).
+
+Stappen 1-2 worden vervangen door een CSV-import-modal: admin kiest het bestand, het systeem valideert per rij en doet een INSERT op `authors` met `onboarding_status = 'pending_data'`. Voor elke import-actie schrijft de Edge Function één samenvattende `csv_imported`-rij in `audit_actions` met aantal-aangemaakt, aantal-bijgewerkt en eventuele fout-rijen.
+
+Vanaf stap 3 (admin verstuurt invite) is de flow identiek aan pad A. Het verschil zit alleen in de **aanmaak**: in plaats van per auteur op "+ Nieuwe auteur" te klikken, krijgt admin een lijst rijen met een "Stuur uitnodiging"-knop per rij of in bulk.
+
+### Pad C — complete CSV-import
+
+Gebruikt voor de bulk-migratie van bestaande NetSuite-auteurs waarvoor alle 13 verplichte velden al bekend zijn. De stappen waarin de auteur zelf data invult worden overgeslagen.
+
+1. **Admin** uploadt een CSV-export uit NetSuite met alle vereiste velden gevuld.
+2. **Edge Function** `import-authors-csv` valideert per rij (e-mail-format, IBAN-mod-97, postcode-NL, BSN-11-proef, datum-format).
+3. Voor elke valide rij wordt een INSERT op `authors` gedaan met `onboarding_status = 'pending_admin_review'`. De Edge Function herkent dat data compleet is en slaat de invite-stap over.
+4. **Admin** ziet de geïmporteerde rijen in het admin-overzicht. Per rij of in bulk klikt admin op "Activeer".
+5. **Frontend** roept `create-accounts` aan met `mode='activate'`. Voor auteurs zonder bestaande Auth-user wordt die alsnog aangemaakt en een eenmalige recovery-mail verstuurd. Voor auteurs die al een Auth-user hadden (bijvoorbeeld na een herstart van de migratie): alleen status-update, geen tweede mail.
+6. **Auteur** ontvangt eenmalig de recovery-mail, kiest wachtwoord en heeft direct toegang tot alle zeven tabs.
+
+**Wat kan fout gaan:**
+
+- Eén rij bevat een ongeldig veld: andere rijen worden alsnog geïmporteerd; foutrijen komen in het rapport met regelnummer en foutreden. Admin repareert de CSV en importeert opnieuw met `mode='upsert'`; bestaande rijen worden bijgewerkt.
+- BSN-clash bij upsert: BSN is onveranderlijk na eerste invoer. De Edge Function laat het BSN-veld in dat geval bewust over en verhoogt de `bsn_skipped`-teller in het rapport.
+- CSV groter dan 10 MB: HTTP 413 zonder de import te proberen. Admin splitst de export en herhaalt.
+
+### Reminders
+
+Geen scheduler-infrastructuur. Admin gebruikt het filter "Wacht op auteur (>14d)" in het admin-overzicht. Naast elke gefilterde rij verschijnt een "Stuur reminder"-knop die `create-accounts` opnieuw aanroept met `mode='invite'`. Hierdoor wordt `reminder_sent_at = now()` gezet en een `author_reminded`-rij in `audit_actions` geschreven. De keuze voor handmatig is bewust: minder afhankelijkheden om te reviewen voor IT, en in praktijk goed werkbaar voor één admin met enkele tientallen open uitnodigingen.
+
+### CSV-format
+
+Volledige kolom-spec, validatie-regels per veld en voorbeeld-data: [`docs/onboarding-csv-import.md`](onboarding-csv-import.md). Voorbeeld-template met dummy-data: [`docs/netsuite-author-import-template.csv`](netsuite-author-import-template.csv).
+
+### Toegangsbescherming op database-niveau
+
+Frontend tab-gating is uitsluitend een UX-laag — niet de eigenlijke beveiliging. De data-tabellen `payments`, `contracts`, `forecasts` en `expenses` hebben een RLS-policy die SELECT alleen toelaat wanneer de aanroepende auteur status `active` heeft (via helper `is_active_author()`). Een auteur in `pending_data` of `pending_admin_review` die de Supabase API direct aanroept met zijn eigen JWT, krijgt nul rijen terug uit deze tabellen. Defense-in-depth: zelfs als de frontend door een bug een tab vrijgeeft, blokkeert RLS de query.
+
+### Audit-trail per onboardings-actie
+
+Elke onboardings-handeling resulteert in minstens één rij in `audit_actions`. Dit maakt forensische reconstructie mogelijk ("wie wijzigde Charlotte's IBAN op 2026-04-15?").
+
+| Handeling                                  | `action_type`            | Geschreven door                                                           |
+| ------------------------------------------ | ------------------------ | ------------------------------------------------------------------------- |
+| Admin maakt auteur aan + verstuurt invite  | `author_invited`         | Edge Function `create-accounts` (mode=invite, eerste)                     |
+| Admin verstuurt reminder                   | `author_reminded`        | Edge Function `create-accounts` (mode=invite, met `invited_at` al gevuld) |
+| Auteur dient gegevens in                   | `author_status_changed`  | DB-trigger op `authors` (pending_data → pending_admin_review)             |
+| Admin activeert                            | `author_status_changed`  | DB-trigger op `authors` (pending_admin_review → active)                   |
+| CSV-import                                 | `csv_imported`           | Edge Function `import-authors-csv` (één samenvattende rij)                |
+| Profiel-veld direct aangepast (onboarding) | `profile_updated_direct` | DB-trigger op `authors`                                                   |
+| Wijzigingsverzoek aangemaakt/afgehandeld   | `change_request_*`       | DB-trigger op `change_requests`                                           |
+
+PII-velden (BSN, IBAN) worden vóór opslag automatisch gemaskeerd via de `audit_strip_pii()`-helper — laatste vier cijfers blijven leesbaar voor herkenning, de rest wordt vervangen door bullets. Alleen admins kunnen `audit_actions` lezen; INSERT/UPDATE/DELETE is alleen mogelijk via service-role of trigger met `SECURITY DEFINER`. Volledige audit-architectuur in `docs/SECURITY.md` § 8.
 
 ---
 
-## 8. Bijlagen
+## 8. Round-trip-sync naar NetSuite (CSV-export)
+
+Het portaal is geen source-of-truth — NetSuite blijft dat. Nieuwe of gewijzigde auteursgegevens worden via een CSV terug-gesynchroniseerd:
+
+```
+Admin klikt "Export naar NetSuite" in admin-portaal
+  ↓
+Edge Function `export-authors-csv`:
+  - Admin-check via JWT
+  - Selecteert rijen waar last_exported_at IS NULL OR last_exported_at < updated_at
+  - Bouwt CSV in zelfde 15-koloms format als import
+  - Schrijft audit-row in `data_exports`: admin_id, timestamp, row_ids, sha256, reason
+  - Update last_exported_at op de geëxporteerde rijen
+  - Streamt CSV terug (geen tussenopslag in Supabase Storage)
+  ↓
+Browser-download → admin uploadt direct naar Noordhoff SharePoint
+  ↓
+NetSuite-team verwerkt CSV (handmatig of via NetSuite-import-tool)
+```
+
+**Beveiligingsmaatregelen:**
+
+- **Admin-only**: Edge Function checkt `is_admin()` via JWT vóór query
+- **Audit-trail**: `data_exports`-tabel met SHA-256-hash van CSV-content (anti-tamper)
+- **Geen dubbele exports**: `last_exported_at` per rij voorkomt dat dezelfde wijziging twee keer in CSV terechtkomt
+- **Geen tussenopslag**: CSV wordt gestreamd, niet permanent opgeslagen in Supabase
+- **Rate-limit**: 30 exports per uur per admin; daarboven HTTP 429
+- **AVG-retention**: admin uploadt + verwijdert lokaal binnen minuten; SharePoint-retention is verantwoordelijkheid van Noordhoff IT
+- **Open punt — dataminimalisatie**: huidige export bevat alle 15 velden per rij. Voor strenger AVG-naleving op termijn: alleen daadwerkelijk-gewijzigde velden meesturen (vereist diff-tracking via `change_requests`-tabel; zie audit-finding H7)
+
+---
+
+## 9. Bijlagen
 
 Voor IT-reviewers die dieper willen graven:
 
-- **`README.md`** — lokale setup, deploy-pipeline, CI-checks, ontwikkelaars-instructies
+- **`README.md`** — repo-introductie, deploy-pipeline, CI-checks, repo-structuur (developer-gericht)
 - **`docs/SECURITY.md`** — bedreigingsmodel, RLS-policies per tabel, secret-management, Edge Function-architectuur, audit-trail, rate-limiting
 - **`docs/AUDIT-2026-05-02.md`** — interne audit van 32 findings met severity, exploitation-pad, mitigatie en huidige status
 - **`docs/onboarding-csv-import.md`** — NetSuite-CSV-flow, kolom-schema, validatie-regels, voorbeelden
@@ -215,6 +367,6 @@ De repository staat op `https://github.com/SingaporeCity/auteursportaal` (publie
 
 ---
 
-## 9. Contact
+## 10. Contact
 
 Vragen over dit document, het portaal of de review zelf — graag mailen naar **patrick.jeeninga@noordhoff.nl**.

@@ -234,21 +234,7 @@ CSV-export bevat **bijzondere persoonsgegevens** (BSN/IBAN/adres/geboortedatum).
 - Same secret-scan
 - Deploy naar GH Pages alleen als alles slaagt
 
-## 10. Bekende beperkingen / open punten
-
-| Item                                 | Status                    | Toelichting                                                                                                                                                                                                          |
-| ------------------------------------ | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Microsoft Entra SSO                  | Placeholder               | Wacht op Infinitas IT: Azure tenant-ID + OAuth client-ID/secret + admin consent                                                                                                                                      |
-| BSN/geboortedatum Charlotte          | Onbekend                  | Default placeholders (`000000000` / `1900-01-01`) — UI toont "ontbreekt"                                                                                                                                             |
-| Custom domain TLS                    | Pending                   | DNS-CNAME-switch pas na go-live                                                                                                                                                                                      |
-| Playwright E2E tests                 | In progress               | Task #20                                                                                                                                                                                                             |
-| Email delivery (recovery + invite)   | Standaard Supabase mailer | Free tier: 3 emails/uur per project, vanaf `noreply@mail.app.supabase.io`. Hotmail/Outlook blokkeert vaak als spam. **Productie vereist eigen SMTP** (Resend / SendGrid / AWS SES) via Supabase Auth → SMTP settings |
-| Audit logging buiten `login_history` | ✅ Closed iter 9          | `audit_actions`-tabel met DB-triggers (authors/change_requests/payments/expenses) + Edge Function-instrumentatie (csv_imported/exported, author_invited/reminded). Zie sectie 8 hierboven                            |
-| Rate-limiting expense submissions    | Niet voor MVP             | Supabase platform-level rate-limiting; geen per-user throttle                                                                                                                                                        |
-| MFA voor admin                       | Niet voor MVP             | Komt automatisch met SSO (Entra ID)                                                                                                                                                                                  |
-| File-upload virusscan                | Niet voor MVP             | PDF-only enforcement; admin-only access. Voor zwaardere garantie: ClamAV-integratie via Edge Function                                                                                                                |
-
-## 11. Verificatie / hoe te testen
+## 10. Verificatie / hoe te testen
 
 ### Live RLS-isolatie
 
