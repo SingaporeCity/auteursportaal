@@ -67,13 +67,10 @@ async function loadAndRender(container: HTMLElement): Promise<void> {
   }
   container.appendChild(topRow);
 
-  // History-bars: daadwerkelijke uitbetalingen per jaar (zelfde data als afrekeningen)
+  // History-bars: uitbetaling per jaar (zelfde data als afrekeningen)
   if (payments.length > 0) {
     container.appendChild(buildHistoryBars(payments));
   }
-
-  // -- Chart card
-  container.appendChild(buildChart(payments, forecasts));
 
   const disclaimer = document.createElement('p');
   disclaimer.className = 'forecast-disclaimer';
@@ -235,113 +232,4 @@ function buildPayout(forecast: ForecastRow): HTMLElement {
 
   card.appendChild(inner);
   return card;
-}
-
-function buildChart(payments: PaymentRow[], forecasts: ForecastRow[]): HTMLElement {
-  const card = document.createElement('div');
-  card.className = 'forecast-chart-card';
-
-  const heading = document.createElement('h3');
-  heading.className = 'dash-tile-title';
-  heading.textContent = t('forecast.chart_title');
-  card.appendChild(heading);
-
-  // Verzamel historische totalen per jaar uit payments (alleen years zonder forecast)
-  const forecastYears = new Set(forecasts.map((f) => f.year));
-  const historic = new Map<number, number>();
-  for (const p of payments) {
-    if (forecastYears.has(p.year)) {
-      continue;
-    }
-    historic.set(p.year, (historic.get(p.year) ?? 0) + p.amount);
-  }
-
-  const allMaxes = [...[...historic.values()], ...forecasts.map((f) => f.max_amount)];
-  const maxAmount = allMaxes.length > 0 ? Math.max(...allMaxes) : 1;
-  const scale = maxAmount * 1.15;
-
-  const rows = document.createElement('div');
-  rows.className = 'forecast-rows';
-
-  // Combineer historische + forecast jaren, sorteer aflopend
-  const allYears = [...new Set([...historic.keys(), ...forecasts.map((f) => f.year)])].sort(
-    (a, b) => b - a
-  );
-
-  for (const year of allYears) {
-    const fc = forecasts.find((f) => f.year === year);
-    if (fc !== undefined) {
-      rows.appendChild(buildForecastBar(fc, scale));
-    } else {
-      const total = historic.get(year) ?? 0;
-      rows.appendChild(buildHistoricBar(year, total, scale));
-    }
-  }
-  card.appendChild(rows);
-  return card;
-}
-
-function buildHistoricBar(year: number, amount: number, scale: number): HTMLElement {
-  const row = document.createElement('div');
-  row.className = 'forecast-bar-row';
-
-  const yearEl = document.createElement('span');
-  yearEl.className = 'forecast-bar-year';
-  yearEl.textContent = String(year);
-  row.appendChild(yearEl);
-
-  const track = document.createElement('div');
-  track.className = 'forecast-bar-track';
-
-  const fill = document.createElement('div');
-  fill.className = 'forecast-bar-fill';
-  fill.style.width = `${String((amount / scale) * 100)}%`;
-  track.appendChild(fill);
-
-  row.appendChild(track);
-
-  const value = document.createElement('span');
-  value.className = 'forecast-bar-value';
-  value.textContent = formatCurrency(amount);
-  row.appendChild(value);
-
-  return row;
-}
-
-function buildForecastBar(forecast: ForecastRow, scale: number): HTMLElement {
-  const row = document.createElement('div');
-  row.className = 'forecast-bar-row forecast-bar-row-projection';
-
-  const yearEl = document.createElement('span');
-  yearEl.className = 'forecast-bar-year';
-  yearEl.textContent = t('forecast.bar_year_projection').replace('{year}', String(forecast.year));
-  row.appendChild(yearEl);
-
-  const track = document.createElement('div');
-  track.className = 'forecast-bar-track';
-
-  const minPct = (forecast.min_amount / scale) * 100;
-  const maxPct = (forecast.max_amount / scale) * 100;
-
-  // Lichte vulling tot max
-  const light = document.createElement('div');
-  light.className = 'forecast-bar-fill forecast-bar-fill-light';
-  light.style.width = `${String(maxPct)}%`;
-  track.appendChild(light);
-
-  // Donkere range overlay min→max
-  const range = document.createElement('div');
-  range.className = 'forecast-bar-range';
-  range.style.left = `${String(minPct)}%`;
-  range.style.width = `${String(maxPct - minPct)}%`;
-  track.appendChild(range);
-
-  row.appendChild(track);
-
-  const value = document.createElement('span');
-  value.className = 'forecast-bar-value forecast-bar-value-range';
-  value.textContent = `${formatCurrency(forecast.min_amount)} — ${formatCurrency(forecast.max_amount)}`;
-  row.appendChild(value);
-
-  return row;
 }

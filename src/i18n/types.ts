@@ -179,10 +179,8 @@ export type TranslationKey =
   | 'forecast.history_title'
   | 'forecast.range_sub'
   | 'forecast.payout_label'
-  | 'forecast.chart_title'
   | 'forecast.eyebrow_year'
   | 'forecast.payout_month'
-  | 'forecast.bar_year_projection'
 
   // Expenses tab
   | 'expenses.title'
