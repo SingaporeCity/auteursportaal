@@ -185,7 +185,7 @@ Zonder bovenstaande items kan het portaal in technische zin live, maar niet vold
 
 ## 6. Bekende beperkingen en open punten
 
-Sinds 2 mei 2026 zijn 9 audit-findings gesloten in iter 7-9 (zie `docs/AUDIT-2026-05-02.md` voor de afzonderlijke status). Hieronder de huidige openstaande lijst — onderverdeeld in blokkers, randvoorwaarden en kleinere observaties.
+Sinds 2 mei 2026 zijn 12 audit-findings gesloten in iter 7-9 (sourcemaps uit productie, CSP zonder unsafe-inline op style-src, complete audit-trail, rate-limiting, atomic CSV-import, BSN-immutability, en meer — zie git-history van `docs/AUDIT-2026-05-02.md` voor het origineel). Hieronder de huidige openstaande lijst — onderverdeeld in blokkers, randvoorwaarden en kleinere observaties.
 
 ### Blokker voor productie-launch (alleen pilot acceptabel)
 
@@ -357,7 +357,7 @@ Voor IT-reviewers die dieper willen graven:
 
 - **`README.md`** — repo-introductie, deploy-pipeline, CI-checks, repo-structuur (developer-gericht)
 - **`docs/SECURITY.md`** — bedreigingsmodel, RLS-policies per tabel, secret-management, Edge Function-architectuur, audit-trail, rate-limiting
-- **`docs/AUDIT-2026-05-02.md`** — interne audit van 32 findings met severity, exploitation-pad, mitigatie en huidige status
+- **`docs/AUDIT-2026-05-02.md`** — interne auditrapport met openstaande findings (Critical/High/Medium/Low + Informational) met severity, exploit-pad en mitigatie. Gesloten findings uit iter 7-9 zijn weggehaald — voor de oorspronkelijke complete versie zie git-history.
 - **`docs/onboarding-csv-import.md`** — NetSuite-CSV-flow, kolom-schema, validatie-regels, voorbeelden
 - **`docs/netsuite-author-import-template.csv`** — kant-en-klaar template voor admin
 - **`docs/adr/0001-typescript-strict-vanilla.md`** — onderbouwing van de framework-keuze

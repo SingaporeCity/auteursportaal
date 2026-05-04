@@ -99,7 +99,7 @@ Test-database: aparte Supabase test-project of ephemeral via `supabase db reset 
 
 Productie-launch wordt **geblokkeerd door de standaard Supabase-mailer** (3 e-mails per uur, geen `noordhoff.nl`-branding). Vóór uitrol moet Infinitas IT een transactionele SMTP-provider configureren met SPF/DKIM/DMARC.
 
-Volledige actuele lijst van openstaande items, randvoorwaarden bij IT/Legal en architectuur-observaties: [`docs/PORTAAL-OVERZICHT.md`](docs/PORTAAL-OVERZICHT.md) § 6. Audit-snapshot met alle 32 findings en hun status: [`docs/AUDIT-2026-05-02.md`](docs/AUDIT-2026-05-02.md).
+Volledige actuele lijst van openstaande items, randvoorwaarden bij IT/Legal en architectuur-observaties: [`docs/PORTAAL-OVERZICHT.md`](docs/PORTAAL-OVERZICHT.md) § 6. Auditrapport met openstaande findings (Critical/High/Medium/Low + Informational): [`docs/AUDIT-2026-05-02.md`](docs/AUDIT-2026-05-02.md).
 
 ## Repo-structuur
 
