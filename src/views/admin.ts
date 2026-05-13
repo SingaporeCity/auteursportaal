@@ -1,11 +1,16 @@
 /**
- * Admin-pagina (uitgebreid in iter 4):
- *  - Pending wijzigingsverzoeken (alle auteurs)
- *  - Toolbar: filter (alle / wacht-review / wacht-auteur) + acties (CSV-import, nieuwe auteur)
- *  - Auteurslijst met:
- *      - Status-badge per auteur (geel pending_data / oranje pending_admin_review / groen active)
- *      - Per status passende actie-knop (Stuur uitnodiging / Activeer / Stuur reminder)
- *      - Inline statement-upload voor active auteurs
+ * Admin-pagina.
+ *
+ * Statussen (volgorde-ladder, eerste match wint):
+ *   1. Persoonsgegevens nog toe te voegen — naam/adres/IBAN/BIC ontbreekt
+ *   2. Statements nog toe te voegen        — geen enkele `payments`-rij
+ *   3. Gereed voor activatie               — data + statements klaar, niet active
+ *   4. Actief                              — `onboarding_status='active'`
+ *
+ * Auteurs gesorteerd op `created_at` DESC (nieuwste boven). Cards tonen
+ * status-pill prominent rechts; actieknop hangt af van de status. Geen
+ * 2FA-/wachtwoord-flags meer in de meta-tekst (alleen waar relevant via
+ * een aparte indicator).
  *
  * @module views/admin
  */
@@ -15,22 +20,23 @@ import { supabase } from '@/lib/supabase';
 import { reportError } from '@/dev/debug-panel';
 import { t } from '@/lib/i18n';
 import { renderChangesSection } from './admin/changes';
-import { buildStatementUploadForm } from './admin/statement-upload';
 import { openCsvExportModal } from './admin/csv-export';
 import { openExcelImportModal } from './admin/excel-import';
 import { openBulkStatementUploadModal } from './admin/bulk-statement-upload';
 import { extractFnError, formatFnErrorMessage } from '@/lib/edge-function-errors';
 import { buildAppHeader } from './shared/header';
-import type { OnboardingStatus } from '@/types/db';
 
-type FilterValue = 'all' | 'pending_admin_review' | 'pending_data' | 'active';
+/** Vier statussen die de admin in de UI ziet. */
+type AdminStatus = 'persoonsgegevens' | 'statements' | 'gereed' | 'actief';
+
+type FilterValue = 'all' | AdminStatus;
 
 interface ListState {
   filter: FilterValue;
   authors: AuthorRow[];
+  /** Set van author-IDs die ten minste één `payments`-rij hebben. */
+  paymentsByAuthor: Set<string>;
 }
-
-const REMINDER_THRESHOLD_DAYS = 14;
 
 export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   root.replaceChildren();
@@ -79,16 +85,32 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   toolbar.className = 'admin-toolbar';
   main.appendChild(toolbar);
 
-  const excelBtn = buildToolbarBtn(t('admin.toolbar_excel_import'), ICON_DOWNLOAD);
+  const excelBtn = buildToolbarBtn(
+    t('admin.toolbar_excel_import'),
+    ICON_DOWNLOAD,
+    t('admin.tooltip_excel_import')
+  );
   toolbar.appendChild(excelBtn);
 
-  const bulkStmtBtn = buildToolbarBtn(t('admin.toolbar_bulk_statements'), ICON_UPLOAD);
+  const bulkStmtBtn = buildToolbarBtn(
+    t('admin.toolbar_bulk_statements'),
+    ICON_UPLOAD,
+    t('admin.tooltip_bulk_statements')
+  );
   toolbar.appendChild(bulkStmtBtn);
 
-  const exportBtn = buildToolbarBtn(t('admin.toolbar_csv_export'), ICON_UPLOAD);
+  const exportBtn = buildToolbarBtn(
+    t('admin.toolbar_csv_export'),
+    ICON_UPLOAD,
+    t('admin.tooltip_csv_export')
+  );
   toolbar.appendChild(exportBtn);
 
-  const newAuthorBtn = buildToolbarBtn(t('admin.toolbar_new_author'), ICON_PLUS);
+  const newAuthorBtn = buildToolbarBtn(
+    t('admin.toolbar_new_author'),
+    ICON_PLUS,
+    t('admin.tooltip_new_author')
+  );
   toolbar.appendChild(newAuthorBtn);
 
   // Filter-tabs
@@ -101,7 +123,7 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   list.textContent = t('common.loading');
   main.appendChild(list);
 
-  const state: ListState = { filter: 'all', authors: [] };
+  const state: ListState = { filter: 'all', authors: [], paymentsByAuthor: new Set() };
 
   function rerender(): void {
     renderFilterButtons(filters, state, () => {
@@ -147,21 +169,78 @@ async function loadAuthors(
   onLoaded: () => void,
   statusBox: HTMLElement
 ): Promise<void> {
-  const { data, error } = await supabase
-    .from('authors')
-    .select('*')
-    .order('last_name', { ascending: true });
+  // Twee queries: authors (nieuwste eerst) + alle payment-author_ids zodat we
+  // de status "Statements nog toe te voegen" client-side kunnen afleiden
+  // zonder per-rij round-trip. Volume in test-fase laag genoeg om alles op
+  // te halen; voor schaalbaarheid later vervangen door een aggregate-RPC.
+  const [authorsResp, paymentsResp] = await Promise.all([
+    supabase.from('authors').select('*').order('created_at', { ascending: false }),
+    supabase.from('payments').select('author_id'),
+  ]);
 
-  if (error !== null) {
-    reportError('admin.loadAuthors', error);
-    showStatus(statusBox, 'error', `Auteurs laden faalde: ${error.message}`);
+  if (authorsResp.error !== null) {
+    reportError('admin.loadAuthors', authorsResp.error);
+    showStatus(statusBox, 'error', `Auteurs laden faalde: ${authorsResp.error.message}`);
     state.authors = [];
     onLoaded();
     return;
   }
 
-  state.authors = data;
+  const paymentsByAuthor = new Set<string>();
+  if (paymentsResp.error === null) {
+    for (const row of paymentsResp.data) {
+      paymentsByAuthor.add(row.author_id);
+    }
+  } else {
+    reportError('admin.loadPayments', paymentsResp.error);
+    // Niet-fataal: zonder payment-info zal alles als "Statements nog toe te
+    // voegen" weergegeven worden. Admin-functionaliteit blijft werken.
+  }
+
+  state.authors = authorsResp.data;
+  state.paymentsByAuthor = paymentsByAuthor;
   onLoaded();
+}
+
+// =============================================================================
+// Status-derivatie
+// =============================================================================
+/**
+ * Bepaalt de UI-status voor één auteur volgens de prioriteits-ladder:
+ *   1. `actief` als onboarding_status = 'active' (admin heeft expliciet
+ *      geactiveerd; vanaf hier is verder check niet meer relevant).
+ *   2. `persoonsgegevens` als naam/adres/IBAN/BIC ontbreekt.
+ *   3. `statements` als er nog geen enkele payment-rij is.
+ *   4. `gereed` — alles compleet, wacht op admin-activatie.
+ *
+ * Admins krijgen `actief` (los van checks) zodat ze niet in een verkeerde
+ * filter belanden.
+ */
+export function deriveAdminStatus(author: AuthorRow, hasPayments: boolean): AdminStatus {
+  if (author.is_admin || author.onboarding_status === 'active') {
+    return 'actief';
+  }
+  if (!hasCompletePersonData(author)) {
+    return 'persoonsgegevens';
+  }
+  if (!hasPayments) {
+    return 'statements';
+  }
+  return 'gereed';
+}
+
+function hasCompletePersonData(a: AuthorRow): boolean {
+  const filled = (v: string | null): boolean => v !== null && v.trim().length > 0;
+  return (
+    filled(a.first_name) &&
+    filled(a.last_name) &&
+    filled(a.street) &&
+    filled(a.house_number) &&
+    filled(a.postcode) &&
+    filled(a.city) &&
+    filled(a.bank_account) &&
+    filled(a.bic)
+  );
 }
 
 // =============================================================================
@@ -170,16 +249,25 @@ async function loadAuthors(
 function renderFilterButtons(container: HTMLElement, state: ListState, onChange: () => void): void {
   container.replaceChildren();
 
-  const counts = countByStatus(state.authors);
+  const counts = countByDerivedStatus(state);
   const items: { value: FilterValue; label: string; count: number }[] = [
     { value: 'all', label: t('admin.filter_all'), count: state.authors.length },
     {
-      value: 'pending_admin_review',
-      label: t('admin.filter_pending_review'),
-      count: counts.pending_admin_review,
+      value: 'persoonsgegevens',
+      label: t('admin.status_persoonsgegevens_short'),
+      count: counts.persoonsgegevens,
     },
-    { value: 'pending_data', label: t('admin.filter_pending_data'), count: counts.pending_data },
-    { value: 'active', label: t('admin.filter_active'), count: counts.active },
+    {
+      value: 'statements',
+      label: t('admin.status_statements_short'),
+      count: counts.statements,
+    },
+    {
+      value: 'gereed',
+      label: t('admin.status_gereed_short'),
+      count: counts.gereed,
+    },
+    { value: 'actief', label: t('admin.status_actief_short'), count: counts.actief },
   ];
 
   for (const item of items) {
@@ -198,17 +286,16 @@ function renderFilterButtons(container: HTMLElement, state: ListState, onChange:
   }
 }
 
-function countByStatus(authors: AuthorRow[]): Record<OnboardingStatus, number> {
-  const counts: Record<OnboardingStatus, number> = {
-    pending_data: 0,
-    pending_admin_review: 0,
-    active: 0,
+function countByDerivedStatus(state: ListState): Record<AdminStatus, number> {
+  const counts: Record<AdminStatus, number> = {
+    persoonsgegevens: 0,
+    statements: 0,
+    gereed: 0,
+    actief: 0,
   };
-  for (const a of authors) {
-    if (a.is_admin) {
-      continue;
-    }
-    counts[a.onboarding_status]++;
+  for (const a of state.authors) {
+    const status = deriveAdminStatus(a, state.paymentsByAuthor.has(a.id));
+    counts[status]++;
   }
   return counts;
 }
@@ -220,14 +307,10 @@ function renderList(container: HTMLElement, state: ListState, statusBox: HTMLEle
   container.replaceChildren();
 
   const filtered = state.authors.filter((a) => {
-    if (a.is_admin) {
-      // Admins altijd zichtbaar in 'all' + 'active'
-      return state.filter === 'all' || state.filter === 'active';
-    }
     if (state.filter === 'all') {
       return true;
     }
-    return a.onboarding_status === state.filter;
+    return deriveAdminStatus(a, state.paymentsByAuthor.has(a.id)) === state.filter;
   });
 
   if (filtered.length === 0) {
@@ -239,44 +322,60 @@ function renderList(container: HTMLElement, state: ListState, statusBox: HTMLEle
   }
 
   for (const author of filtered) {
-    container.appendChild(
-      renderAuthorCard(
-        author,
-        () => {
-          // Refresh na actie
-          void supabase
-            .from('authors')
-            .select('*')
-            .eq('id', author.id)
-            .maybeSingle()
-            .then((r) => {
-              if (r.data !== null) {
-                const idx = state.authors.findIndex((a) => a.id === author.id);
-                if (idx >= 0) {
-                  state.authors[idx] = r.data;
-                  renderList(container, state, statusBox);
-                }
-              }
-              return undefined;
-            });
-        },
-        statusBox
-      )
-    );
+    const onChanged = (): void => {
+      refreshOne(state, author.id, container, statusBox);
+    };
+    container.appendChild(renderAuthorCard(author, state, onChanged, statusBox));
   }
+}
+
+/** Vervang één auteur-rij in state na een actie, daarna re-render de lijst. */
+function refreshOne(
+  state: ListState,
+  authorId: string,
+  container: HTMLElement,
+  statusBox: HTMLElement
+): void {
+  void supabase
+    .from('authors')
+    .select('*')
+    .eq('id', authorId)
+    .maybeSingle()
+    .then((r) => {
+      if (r.data !== null) {
+        const idx = state.authors.findIndex((a) => a.id === authorId);
+        if (idx >= 0) {
+          state.authors[idx] = r.data;
+        }
+      }
+      // Ook payments opnieuw ophalen — bv. na een activatie of een upload
+      return supabase.from('payments').select('author_id');
+    })
+    .then((pResp) => {
+      if (pResp.error === null) {
+        const set = new Set<string>();
+        for (const row of pResp.data) {
+          set.add(row.author_id);
+        }
+        state.paymentsByAuthor = set;
+      }
+      renderList(container, state, statusBox);
+    });
 }
 
 function renderAuthorCard(
   author: AuthorRow,
+  state: ListState,
   onChanged: () => void,
   statusBox: HTMLElement
 ): HTMLElement {
+  const hasPayments = state.paymentsByAuthor.has(author.id);
+  const status = deriveAdminStatus(author, hasPayments);
+
   const card = document.createElement('div');
-  card.className = 'admin-author-card';
+  card.className = `admin-author-card admin-author-card--${status}`;
 
-  const row = document.createElement('div');
-  row.className = 'admin-author-row';
-
+  // -- Hoofd-info-kolom (naam + meta)
   const main = document.createElement('div');
   main.className = 'admin-author-main';
 
@@ -285,123 +384,111 @@ function renderAuthorCard(
   name.textContent = `${author.first_name} ${author.last_name}`;
   main.appendChild(name);
 
+  const email = document.createElement('div');
+  email.className = 'admin-author-email';
+  email.textContent = author.email;
+  main.appendChild(email);
+
   const meta = document.createElement('div');
   meta.className = 'admin-author-meta';
-  const parts: string[] = [author.email];
+  const parts: string[] = [
+    t('admin.created_at').replace('{date}', formatShortDate(author.created_at)),
+  ];
   if (author.netsuite_vendor_id !== null) {
     parts.push(`Vendor ${author.netsuite_vendor_id}`);
   }
-  if (author.invited_at !== null) {
-    parts.push(t('admin.invited_at').replace('{date}', formatShortDate(author.invited_at)));
-  }
-  if (author.reminder_sent_at !== null) {
-    parts.push(t('admin.reminder_at').replace('{date}', formatShortDate(author.reminder_sent_at)));
-  }
   if (author.activated_at !== null) {
     parts.push(t('admin.activated_at').replace('{date}', formatShortDate(author.activated_at)));
-  }
-  parts.push(author.mfa_enrolled ? t('admin.mfa_status_on') : t('admin.mfa_status_off'));
-  if (author.must_change_password) {
-    parts.push(t('admin.must_change_password_flag'));
+  } else if (author.reminder_sent_at !== null) {
+    parts.push(t('admin.reminder_at').replace('{date}', formatShortDate(author.reminder_sent_at)));
+  } else if (author.invited_at !== null) {
+    parts.push(t('admin.invited_at').replace('{date}', formatShortDate(author.invited_at)));
   }
   meta.textContent = parts.join(' · ');
   main.appendChild(meta);
 
-  row.appendChild(main);
+  card.appendChild(main);
 
-  // Actie-knoppen rechts
+  // -- Rechter-kolom: status-pill + actie
+  const right = document.createElement('div');
+  right.className = 'admin-author-right';
+
+  right.appendChild(buildStatusPill(author, status));
+
   const actions = document.createElement('div');
   actions.className = 'admin-author-actions';
 
+  // Per-status actie-knop
   if (!author.is_admin) {
-    if (author.onboarding_status === 'pending_data') {
-      // Eerste invite OF reminder
-      const isReminderEligible =
-        author.invited_at !== null && daysSince(author.invited_at) >= REMINDER_THRESHOLD_DAYS;
-
-      if (author.invited_at === null) {
-        actions.appendChild(
-          buildActionBtn(t('admin.btn_send_invite'), () => {
-            void invokeCreateAccounts(author, 'invite', statusBox).then(onChanged);
-          })
-        );
-      } else if (isReminderEligible) {
-        actions.appendChild(
-          buildActionBtn(t('admin.btn_send_reminder'), () => {
-            void invokeCreateAccounts(author, 'invite', statusBox).then(onChanged);
-          })
-        );
-      } else {
-        const dim = document.createElement('span');
-        dim.className = 'admin-author-hint';
-        const days = REMINDER_THRESHOLD_DAYS - daysSince(author.invited_at);
-        dim.textContent = t('admin.reminder_in_days').replace('{days}', String(days));
-        actions.appendChild(dim);
-      }
-    } else if (author.onboarding_status === 'pending_admin_review') {
+    if (status === 'persoonsgegevens') {
       actions.appendChild(
-        buildActionBtn(t('admin.btn_activate'), () => {
-          void invokeCreateAccounts(author, 'activate', statusBox).then(onChanged);
-        })
+        buildActionBtn(
+          t('admin.btn_send_reminder_label'),
+          () => {
+            void invokeCreateAccounts(author, 'invite', statusBox).then(onChanged);
+          },
+          t('admin.tooltip_send_reminder')
+        )
+      );
+    } else if (status === 'gereed') {
+      actions.appendChild(
+        buildActionBtn(
+          t('admin.btn_activate'),
+          () => {
+            void invokeCreateAccounts(author, 'activate', statusBox).then(onChanged);
+          },
+          t('admin.tooltip_activate')
+        )
       );
     }
   }
 
-  if (!author.is_admin && author.onboarding_status === 'active') {
-    const expandBtn = document.createElement('button');
-    expandBtn.type = 'button';
-    expandBtn.className = 'admin-expand';
-    expandBtn.textContent = t('admin.btn_upload_statement');
-    expandBtn.addEventListener('click', () => {
-      toggleUploadPanel(card, author);
-    });
-    actions.appendChild(expandBtn);
-  }
-
-  // Reset-2FA-knop: alleen relevant als auteur al een verified factor heeft.
-  // Bij volgende inlog wordt automatisch nieuwe enrollment afgedwongen.
+  // Reset-2FA-knop blijft beschikbaar voor accounts met verified factor.
   if (author.mfa_enrolled) {
     actions.appendChild(
-      buildActionBtn(t('admin.btn_reset_mfa'), () => {
-        void resetMfaForAuthor(author, statusBox).then(onChanged);
-      })
+      buildActionBtn(
+        t('admin.btn_reset_mfa'),
+        () => {
+          void resetMfaForAuthor(author, statusBox).then(onChanged);
+        },
+        t('admin.tooltip_reset_mfa')
+      )
     );
   }
 
-  row.appendChild(actions);
+  right.appendChild(actions);
+  card.appendChild(right);
 
-  // Status-badge
-  row.appendChild(buildStatusBadge(author));
-
-  card.appendChild(row);
   return card;
 }
 
-function buildStatusBadge(author: AuthorRow): HTMLElement {
-  const badge = document.createElement('span');
-  badge.className = 'admin-author-status';
+/** Status-pill rechtsboven in de card. Kleur via modifier-class in CSS. */
+function buildStatusPill(author: AuthorRow, status: AdminStatus): HTMLElement {
+  const pill = document.createElement('span');
+  pill.className = `admin-status-pill admin-status-pill--${status}`;
 
+  // Admin-rol expliciet labelen (los van de auteur-statussen).
   if (author.is_admin) {
-    badge.textContent = t('admin.status_admin');
-    badge.classList.add('status-admin');
-    return badge;
+    pill.classList.add('admin-status-pill--admin');
+    pill.textContent = t('admin.status_admin');
+    return pill;
   }
 
-  switch (author.onboarding_status) {
-    case 'pending_data':
-      badge.textContent = t('admin.status_pending_data');
-      badge.classList.add('status-pending-data');
+  switch (status) {
+    case 'persoonsgegevens':
+      pill.textContent = t('admin.status_persoonsgegevens');
       break;
-    case 'pending_admin_review':
-      badge.textContent = t('admin.status_pending_review');
-      badge.classList.add('status-pending-review');
+    case 'statements':
+      pill.textContent = t('admin.status_statements');
       break;
-    case 'active':
-      badge.textContent = t('admin.status_active');
-      badge.classList.add('status-active');
+    case 'gereed':
+      pill.textContent = t('admin.status_gereed');
+      break;
+    case 'actief':
+      pill.textContent = t('admin.status_actief');
       break;
   }
-  return badge;
+  return pill;
 }
 
 async function resetMfaForAuthor(author: AuthorRow, statusBox: HTMLElement): Promise<void> {
@@ -432,29 +519,17 @@ async function resetMfaForAuthor(author: AuthorRow, statusBox: HTMLElement): Pro
   );
 }
 
-function buildActionBtn(label: string, onClick: () => void): HTMLButtonElement {
+function buildActionBtn(label: string, onClick: () => void, tooltip?: string): HTMLButtonElement {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'admin-activate';
   btn.textContent = label;
+  if (tooltip !== undefined) {
+    btn.title = tooltip;
+    btn.setAttribute('aria-label', `${label} — ${tooltip}`);
+  }
   btn.addEventListener('click', onClick);
   return btn;
-}
-
-function toggleUploadPanel(card: HTMLElement, author: AuthorRow): void {
-  const existing = card.querySelector('.admin-upload-panel');
-  if (existing !== null) {
-    existing.remove();
-    return;
-  }
-  const panel = document.createElement('div');
-  panel.className = 'admin-upload-panel';
-  panel.appendChild(
-    buildStatementUploadForm(author, () => {
-      panel.remove();
-    })
-  );
-  card.appendChild(panel);
 }
 
 // =============================================================================
@@ -715,10 +790,14 @@ const ICON_UPLOAD =
 const ICON_PLUS =
   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 
-function buildToolbarBtn(label: string, iconSvg: string): HTMLButtonElement {
+function buildToolbarBtn(label: string, iconSvg: string, tooltip?: string): HTMLButtonElement {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'admin-action';
+  if (tooltip !== undefined) {
+    btn.title = tooltip;
+    btn.setAttribute('aria-label', `${label} — ${tooltip}`);
+  }
 
   const iconWrap = document.createElement('span');
   iconWrap.className = 'admin-action-icon';
@@ -734,12 +813,6 @@ function buildToolbarBtn(label: string, iconSvg: string): HTMLButtonElement {
   btn.appendChild(labelEl);
 
   return btn;
-}
-
-function daysSince(isoDate: string): number {
-  const then = new Date(isoDate).getTime();
-  const now = Date.now();
-  return Math.floor((now - then) / (1000 * 60 * 60 * 24));
 }
 
 function formatShortDate(isoDate: string): string {

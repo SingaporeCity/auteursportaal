@@ -3616,27 +3616,58 @@ a:hover {
 .admin-author-list {
   padding: 0;
   margin: 0 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
+/*
+ * Author-card: flex-row met linkse info-kolom (naam/email/meta) en rechtse
+ * kolom (status-pill + actie-knoppen). 4px gekleurde linker-bar in de
+ * status-kleur voor snelle visuele scan.
+ */
 .admin-author-card {
-  border-bottom: 1px solid var(--color-border);
-  transition: background 180ms ease;
-}
-
-.admin-author-card:last-child {
-  border-bottom: none;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.25rem 1.1rem 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-text-muted);
+  border-radius: var(--radius-md);
+  transition:
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
 }
 
 .admin-author-card:hover {
-  background: var(--color-bg);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
 }
 
-.admin-author-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 1.5rem;
-  align-items: center;
-  padding: 1.25rem 1rem;
+.admin-author-card--persoonsgegevens {
+  border-left-color: var(--color-accent-amber);
+}
+
+.admin-author-card--statements {
+  border-left-color: #3b82f6; /* sky-500 */
+}
+
+.admin-author-card--gereed {
+  border-left-color: var(--color-success);
+}
+
+.admin-author-card--actief {
+  border-left-color: var(--color-primary);
+}
+
+.admin-author-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0; /* sta truncation toe binnen flex */
 }
 
 .admin-author-name {
@@ -3649,65 +3680,79 @@ a:hover {
   font-feature-settings: 'tnum' 1;
 }
 
+.admin-author-email {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  font-feature-settings: 'tnum' 1;
+}
+
 .admin-author-meta {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--color-text-light);
-  margin-top: 0.35rem;
+  margin-top: 0.25rem;
   font-feature-settings: 'tnum' 1;
   letter-spacing: 0.01em;
   font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
 }
 
-/* Status-badge: monochrome capsule met colored dot via ::before */
-.admin-author-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.7rem;
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
-  font-variation-settings: 'wght' 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-text);
-  white-space: nowrap;
-}
-
-.admin-author-status::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-text-muted);
+.admin-author-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.65rem;
   flex-shrink: 0;
 }
 
-.admin-author-status.status-admin::before {
-  background: var(--color-accent-purple);
-}
-
-.admin-author-status.status-active::before {
-  background: var(--color-success);
-}
-
-.admin-author-status.status-pending-data::before {
-  background: var(--color-accent-amber);
-}
-
-.admin-author-status.status-pending-review::before {
-  background: var(--color-accent-coral);
-}
-
-/* Geen aparte text-color overrides meer — alle status-text is var(--color-text) */
-.admin-author-status.status-admin,
-.admin-author-status.status-active,
-.admin-author-status.status-pending-data,
-.admin-author-status.status-pending-review,
-.admin-author-status.status-inactive {
+/* Moderne pill: gekleurde achtergrond + donkere tekst, geen uppercase */
+.admin-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-variation-settings: 'wght' 600;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  background: #f3f4f6;
   color: var(--color-text);
-  background: transparent;
+  border: 1px solid transparent;
+}
+
+.admin-status-pill::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.admin-status-pill--persoonsgegevens {
+  background: var(--color-accent-amber-light);
+  color: #92400e; /* amber-800 */
+}
+
+.admin-status-pill--statements {
+  background: #e0f2fe; /* sky-100 */
+  color: #075985; /* sky-800 */
+}
+
+.admin-status-pill--gereed {
+  background: var(--color-success-light);
+  color: #065f46; /* emerald-800 */
+}
+
+.admin-status-pill--actief {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.admin-status-pill--admin {
+  background: var(--color-accent-purple-light);
+  color: #6b21a8; /* purple-800 */
 }
 
 .admin-activate {
