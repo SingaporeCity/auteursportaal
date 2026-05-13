@@ -1078,9 +1078,8 @@ a:hover {
  * ============================================================================ */
 .admin-action-card {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
+  flex-direction: column;
+  gap: 0.75rem;
   padding: 1rem 1.25rem;
   margin-bottom: 1.25rem;
   background: var(--color-surface);
@@ -1088,9 +1087,12 @@ a:hover {
   border-radius: var(--radius-md);
 }
 
-.admin-action-card-info {
-  flex: 1;
-  min-width: 0;
+/* Top-row: titel links, actie-knoppen rechts */
+.admin-action-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .admin-action-card-title {
@@ -1098,16 +1100,8 @@ a:hover {
   font-variation-settings: 'wght' 600;
   letter-spacing: -0.01em;
   color: var(--color-text);
-  margin: 0 0 0.35rem;
-  line-height: 1.25;
-}
-
-.admin-action-card-explanation {
-  font-size: 0.82rem;
-  line-height: 1.5;
-  color: var(--color-text-light);
   margin: 0;
-  max-width: 65ch;
+  line-height: 1.25;
 }
 
 .admin-action-card-buttons {
@@ -1116,6 +1110,163 @@ a:hover {
   flex-shrink: 0;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+/* Collapsible help-panel ("Hoe werkt dit?") */
+.admin-action-card-help {
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.5rem;
+  margin: 0;
+}
+
+.admin-action-card-help[open] {
+  padding-bottom: 0.5rem;
+}
+
+.admin-action-card-help-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-variation-settings: 'wght' 550;
+  letter-spacing: -0.005em;
+  color: var(--color-primary);
+  cursor: pointer;
+  list-style: none; /* hide default disclosure-triangle in Firefox/Chrome */
+  padding: 0.25rem 0;
+  user-select: none;
+}
+
+.admin-action-card-help-summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Custom chevron-icon dat 90° draait wanneer details geopend is */
+.admin-action-card-help-summary::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 180ms ease;
+  margin-bottom: 2px;
+}
+
+.admin-action-card-help[open] .admin-action-card-help-summary::before {
+  transform: rotate(45deg);
+  margin-bottom: 0;
+}
+
+.admin-action-card-help-summary:hover {
+  color: var(--color-primary-dark);
+}
+
+.admin-action-card-help-body {
+  padding: 0.75rem 0 0.25rem;
+  max-width: 75ch;
+}
+
+/* Hulp-content typografie */
+.admin-help-p {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--color-text);
+  margin: 0 0 0.75rem;
+}
+
+.admin-help-p.admin-help-note {
+  color: var(--color-text-light);
+  font-style: italic;
+}
+
+.admin-help-subheading {
+  font-size: 0.88rem;
+  font-variation-settings: 'wght' 620;
+  letter-spacing: -0.005em;
+  color: var(--color-text);
+  margin: 1.25rem 0 0.5rem;
+  line-height: 1.3;
+}
+
+.admin-help-small-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variation-settings: 'wght' 540;
+  color: var(--color-text-light);
+  margin: 0.75rem 0 0.3rem;
+}
+
+.admin-help-code {
+  display: inline-block;
+  padding: 0.35rem 0.6rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  color: var(--color-text);
+  margin: 0 0 0.5rem;
+}
+
+/* Description-list voor kolomuitleg + paden-keuze */
+.admin-help-dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 1rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.admin-help-dl dt {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  font-variation-settings: 'wght' 600;
+  color: var(--color-text);
+  padding-top: 0.05rem;
+}
+
+.admin-help-dl dd {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* Voorbeeld-tabel in de bulk-statements-help */
+.admin-help-table {
+  width: 100%;
+  max-width: 32rem;
+  border-collapse: collapse;
+  margin: 0.5rem 0 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+}
+
+.admin-help-table thead {
+  background: var(--color-surface);
+}
+
+.admin-help-table th,
+.admin-help-table td {
+  padding: 0.45rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-help-table th {
+  font-variation-settings: 'wght' 600;
+  color: var(--color-text);
+  letter-spacing: 0.01em;
+}
+
+.admin-help-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 /* Primary variant: solid primary-kleur, voor de "default"-actie in een groep */
@@ -1144,7 +1295,7 @@ a:hover {
 }
 
 @media (max-width: 640px) {
-  .admin-action-card {
+  .admin-action-card-top {
     flex-direction: column;
     align-items: stretch;
   }
@@ -1154,6 +1305,13 @@ a:hover {
   .admin-action-card-buttons .admin-action {
     flex: 1;
     justify-content: center;
+  }
+  .admin-help-dl {
+    grid-template-columns: 1fr;
+    gap: 0.1rem 0;
+  }
+  .admin-help-dl dt {
+    margin-top: 0.5rem;
   }
 }
 

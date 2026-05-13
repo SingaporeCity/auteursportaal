@@ -234,11 +234,39 @@ export const en: Translations = {
   'admin.tab_accounts': 'Accounts',
   'admin.tab_persoonsgegevens': 'Personal details',
   'admin.card_add_authors_title': 'Add authors',
-  'admin.card_add_authors_explanation':
-    'Two ways to create authors. "Import Excel" handles multiple at once from a NetSuite Vendor export (the default route). "New author" is for one-off exceptions added manually. Both create a working account with the initial password "Noordhoff" — which the author changes at first sign-in. You still need to activate the account before the author is notified.',
   'admin.card_bulk_statements_title': 'Upload royalty statements',
-  'admin.card_bulk_statements_explanation':
-    'Upload multiple royalty statement PDFs at once. Authors are matched automatically via the Alliant ID in the filename (NU_SC_<id>_<name>_<YYYYMM>.pdf). The matching amount comes from a companion Excel.',
+  'admin.action_help_summary': 'How does this work?',
+
+  'admin.card_add_authors_help_intro':
+    'Authors arrive in the portal in two ways. Which route you pick depends on whether the author is already registered with Noordhoff.',
+  'admin.card_add_authors_help_existing_label': 'Existing authors (via "Import Excel")',
+  'admin.card_add_authors_help_existing_text':
+    'Authors who are already known to Noordhoff and present in NetSuite. Export them as Excel from NetSuite (Vendor-list export, 12 columns) and upload the file here. All accounts are created in one go WITH the existing NetSuite data — name, address, IBAN, BIC, BSN, date of birth — pre-filled. This is the default route for your initial population and for periodic updates whenever NetSuite adds new authors.',
+  'admin.card_add_authors_help_new_label': 'New authors (via "New author")',
+  'admin.card_add_authors_help_new_text':
+    'Authors who are NOT yet known to Noordhoff — exceptions such as new contracts not yet processed in NetSuite. Enter only email, first and last name. The author then signs in and fills in their remaining profile details (address, IBAN, BSN, date of birth) via the portal. Those changes appear in the "Personal details" tab under "Pending change requests" for your approval.',
+  'admin.card_add_authors_help_outro':
+    'In both cases the account starts with the initial password "Noordhoff" which the author changes at first sign-in. Only when you click "Activate" in the authors list does the author receive a notification that they can sign in. Mails are off during the test phase — inform test authors personally.',
+
+  'admin.card_bulk_statements_help_intro':
+    'A bulk upload requires TWO files uploaded together: the statement PDFs and an Excel with the matching amounts. Below how each one should look.',
+  'admin.card_bulk_statements_help_pdf_heading': 'File 1 — Statement PDFs',
+  'admin.card_bulk_statements_help_pdf_para':
+    'One PDF per author per month. The Alliant ID in the filename is matched automatically against an author in the portal — make sure that ID is correct, otherwise the statement ends up without an owner.',
+  'admin.card_bulk_statements_help_filename_label': 'Filename convention:',
+  'admin.card_bulk_statements_help_example_label': 'Example:',
+  'admin.card_bulk_statements_help_excel_heading': 'File 2 — Amounts Excel',
+  'admin.card_bulk_statements_help_excel_para':
+    'One Excel file with the amounts per author (the PDF itself contains no machine-readable total). The first row must contain exactly these three headers in this order:',
+  'admin.card_bulk_statements_help_empty_cell': '(empty)',
+  'admin.card_bulk_statements_help_col_alliant':
+    "Author's Alliant ID (required). Must match the ID in the PDF filename.",
+  'admin.card_bulk_statements_help_col_amount':
+    'Euro amount for this statement. Decimal comma (1,234.56) or dot (1234.56) both work. Rounded to 2 decimals.',
+  'admin.card_bulk_statements_help_col_yyyymm':
+    "Specific month (six digits, YYYYMM). Leave empty = amount applies to ALL of that author's PDFs in this batch — convenient when you want one amount per author per upload. For month-specific amounts, fill this column.",
+  'admin.card_bulk_statements_help_outro':
+    'Select both files together → click "Show preview" → check the table of author-matches → confirm. Duplicate uploads of the same PDF are automatically skipped.',
   'admin.toolbar_excel_import': 'Import Excel',
   'admin.toolbar_bulk_statements': 'Bulk statements',
   'admin.toolbar_csv_export': 'Export to NetSuite',
@@ -275,8 +303,12 @@ export const en: Translations = {
   'admin.status_actief': 'Active',
   'admin.status_actief_short': 'Active',
   'admin.card_export_title': 'Export to NetSuite',
-  'admin.card_export_explanation':
-    'Generate a CSV with all author data changed since the last export. Upload the file to Noordhoff SharePoint so the NetSuite team can import the new data. A timestamp is recorded per export so the same change is never reported twice.',
+  'admin.card_export_help_intro':
+    'Authors change their own profile details (address, IBAN, phone) via the portal. Those changes are collected here for periodic sync back to NetSuite, keeping the financial administration up-to-date.',
+  'admin.card_export_help_workflow':
+    'Click "Export to NetSuite" → a CSV is generated with all data changed or activated since the previous export → the file is downloaded automatically. Upload it to Noordhoff SharePoint within minutes so the NetSuite team can import it. Delete the local copy afterwards (contains personal data).',
+  'admin.card_export_help_safety':
+    'A timestamp is recorded per author per export so the same change is never reported twice. A second click then yields "No changes since previous export".',
   'admin.created_at': 'Created {date}',
   'admin.invited_at': 'Invited {date}',
   'admin.reminder_at': 'Reminder {date}',

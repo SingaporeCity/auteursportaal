@@ -197,7 +197,7 @@ function renderAccountsTab(
   container.appendChild(
     buildActionCard({
       title: t('admin.card_add_authors_title'),
-      explanation: t('admin.card_add_authors_explanation'),
+      helpBuilder: buildAddAuthorsHelp,
       buttons: [
         {
           label: t('admin.toolbar_excel_import'),
@@ -225,7 +225,7 @@ function renderAccountsTab(
   container.appendChild(
     buildActionCard({
       title: t('admin.card_bulk_statements_title'),
-      explanation: t('admin.card_bulk_statements_explanation'),
+      helpBuilder: buildBulkStatementsHelp,
       buttons: [
         {
           label: t('admin.toolbar_bulk_statements'),
@@ -281,7 +281,7 @@ function renderPersoonsgegevensTab(
   container.appendChild(
     buildActionCard({
       title: t('admin.card_export_title'),
-      explanation: t('admin.card_export_explanation'),
+      helpBuilder: buildExportHelp,
       buttons: [
         {
           label: t('admin.toolbar_csv_export'),
@@ -310,28 +310,28 @@ interface ActionCardButton {
   onClick: () => void;
 }
 
-function buildActionCard(opts: {
+interface ActionCardOpts {
   title: string;
-  explanation: string;
+  /**
+   * Optional builder die de inhoud van een collapsible "Hoe werkt dit?"-
+   * panel opbouwt. Wanneer omitted, krijgt de card geen help-dropdown.
+   */
+  helpBuilder?: (root: HTMLElement) => void;
   buttons: ActionCardButton[];
-}): HTMLElement {
+}
+
+function buildActionCard(opts: ActionCardOpts): HTMLElement {
   const card = document.createElement('section');
   card.className = 'admin-action-card';
 
-  const header = document.createElement('div');
-  header.className = 'admin-action-card-info';
+  // -- Bovenste rij: titel + actie-knoppen
+  const topRow = document.createElement('div');
+  topRow.className = 'admin-action-card-top';
 
   const h3 = document.createElement('h3');
   h3.className = 'admin-action-card-title';
   h3.textContent = opts.title;
-  header.appendChild(h3);
-
-  const p = document.createElement('p');
-  p.className = 'admin-action-card-explanation';
-  p.textContent = opts.explanation;
-  header.appendChild(p);
-
-  card.appendChild(header);
+  topRow.appendChild(h3);
 
   const buttonsRow = document.createElement('div');
   buttonsRow.className = 'admin-action-card-buttons';
@@ -341,9 +341,156 @@ function buildActionCard(opts: {
     btn.addEventListener('click', btnSpec.onClick);
     buttonsRow.appendChild(btn);
   }
-  card.appendChild(buttonsRow);
+  topRow.appendChild(buttonsRow);
+
+  card.appendChild(topRow);
+
+  // -- Collapsible help-panel (native <details> voor accessibility)
+  if (opts.helpBuilder !== undefined) {
+    const details = document.createElement('details');
+    details.className = 'admin-action-card-help';
+
+    const summary = document.createElement('summary');
+    summary.className = 'admin-action-card-help-summary';
+    summary.textContent = t('admin.action_help_summary');
+    details.appendChild(summary);
+
+    const body = document.createElement('div');
+    body.className = 'admin-action-card-help-body';
+    opts.helpBuilder(body);
+    details.appendChild(body);
+
+    card.appendChild(details);
+  }
 
   return card;
+}
+
+// =============================================================================
+// Help-panel builders (rijke uitleg per action-card)
+// =============================================================================
+function buildAddAuthorsHelp(root: HTMLElement): void {
+  appendParagraph(root, t('admin.card_add_authors_help_intro'));
+
+  const dl = document.createElement('dl');
+  dl.className = 'admin-help-dl';
+
+  appendDlEntry(
+    dl,
+    t('admin.card_add_authors_help_existing_label'),
+    t('admin.card_add_authors_help_existing_text')
+  );
+  appendDlEntry(
+    dl,
+    t('admin.card_add_authors_help_new_label'),
+    t('admin.card_add_authors_help_new_text')
+  );
+
+  root.appendChild(dl);
+
+  appendParagraph(root, t('admin.card_add_authors_help_outro'), 'admin-help-note');
+}
+
+function buildBulkStatementsHelp(root: HTMLElement): void {
+  appendParagraph(root, t('admin.card_bulk_statements_help_intro'));
+
+  // -- Bestand 1: PDF
+  const h4Pdf = document.createElement('h4');
+  h4Pdf.className = 'admin-help-subheading';
+  h4Pdf.textContent = t('admin.card_bulk_statements_help_pdf_heading');
+  root.appendChild(h4Pdf);
+
+  appendParagraph(root, t('admin.card_bulk_statements_help_pdf_para'));
+
+  const filenameLabel = document.createElement('p');
+  filenameLabel.className = 'admin-help-small-label';
+  filenameLabel.textContent = t('admin.card_bulk_statements_help_filename_label');
+  root.appendChild(filenameLabel);
+
+  const code = document.createElement('code');
+  code.className = 'admin-help-code';
+  code.textContent = 'NU_SC_<AlliantID>_<Naam>_<YYYYMM>.pdf';
+  root.appendChild(code);
+
+  const exampleLabel = document.createElement('p');
+  exampleLabel.className = 'admin-help-small-label';
+  exampleLabel.textContent = t('admin.card_bulk_statements_help_example_label');
+  root.appendChild(exampleLabel);
+
+  const exampleCode = document.createElement('code');
+  exampleCode.className = 'admin-help-code';
+  exampleCode.textContent = 'NU_SC_2651307_G. de Jong_202512.pdf';
+  root.appendChild(exampleCode);
+
+  // -- Bestand 2: Excel
+  const h4Xl = document.createElement('h4');
+  h4Xl.className = 'admin-help-subheading';
+  h4Xl.textContent = t('admin.card_bulk_statements_help_excel_heading');
+  root.appendChild(h4Xl);
+
+  appendParagraph(root, t('admin.card_bulk_statements_help_excel_para'));
+
+  // Voorbeeld-tabel
+  const table = document.createElement('table');
+  table.className = 'admin-help-table';
+  const thead = document.createElement('thead');
+  const trHead = document.createElement('tr');
+  for (const col of ['alliant_id', 'amount', 'yyyymm']) {
+    const th = document.createElement('th');
+    th.textContent = col;
+    trHead.appendChild(th);
+  }
+  thead.appendChild(trHead);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  const exampleRows: [string, string, string][] = [
+    ['2651307', '1234.56', '202512'],
+    ['2644800', '750.25', t('admin.card_bulk_statements_help_empty_cell')],
+  ];
+  for (const row of exampleRows) {
+    const tr = document.createElement('tr');
+    for (const cell of row) {
+      const td = document.createElement('td');
+      td.textContent = cell;
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  root.appendChild(table);
+
+  // Kolom-uitleg
+  const dl = document.createElement('dl');
+  dl.className = 'admin-help-dl';
+  appendDlEntry(dl, 'alliant_id', t('admin.card_bulk_statements_help_col_alliant'));
+  appendDlEntry(dl, 'amount', t('admin.card_bulk_statements_help_col_amount'));
+  appendDlEntry(dl, 'yyyymm', t('admin.card_bulk_statements_help_col_yyyymm'));
+  root.appendChild(dl);
+
+  appendParagraph(root, t('admin.card_bulk_statements_help_outro'), 'admin-help-note');
+}
+
+function buildExportHelp(root: HTMLElement): void {
+  appendParagraph(root, t('admin.card_export_help_intro'));
+  appendParagraph(root, t('admin.card_export_help_workflow'));
+  appendParagraph(root, t('admin.card_export_help_safety'), 'admin-help-note');
+}
+
+function appendParagraph(root: HTMLElement, text: string, extraClass?: string): void {
+  const p = document.createElement('p');
+  p.className = `admin-help-p${extraClass !== undefined ? ' ' + extraClass : ''}`;
+  p.textContent = text;
+  root.appendChild(p);
+}
+
+function appendDlEntry(dl: HTMLElement, term: string, desc: string): void {
+  const dt = document.createElement('dt');
+  dt.textContent = term;
+  dl.appendChild(dt);
+  const dd = document.createElement('dd');
+  dd.textContent = desc;
+  dl.appendChild(dd);
 }
 
 async function loadAuthors(

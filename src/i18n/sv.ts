@@ -241,11 +241,39 @@ export const sv: Translations = {
   'admin.tab_accounts': 'Konton',
   'admin.tab_persoonsgegevens': 'Personuppgifter',
   'admin.card_add_authors_title': 'Lägg till författare',
-  'admin.card_add_authors_explanation':
-    'Två sätt att skapa författare. "Importera Excel" hanterar flera samtidigt från en NetSuite-leverantörsexport (standardvägen). "Ny författare" är för enstaka undantag som läggs till manuellt. Båda skapar ett fungerande konto med startlösenordet "Noordhoff" — som författaren byter vid första inloggning. Du måste fortfarande aktivera kontot innan författaren meddelas.',
   'admin.card_bulk_statements_title': 'Ladda upp royalty-avräkningar',
-  'admin.card_bulk_statements_explanation':
-    'Ladda upp flera royalty-avräknings-PDF:er samtidigt. Författare matchas automatiskt via Alliant ID i filnamnet (NU_SC_<id>_<namn>_<YYYYMM>.pdf). Matchande belopp kommer från en medföljande Excel.',
+  'admin.action_help_summary': 'Hur fungerar det?',
+
+  'admin.card_add_authors_help_intro':
+    'Författare kommer in i portalen på två sätt. Vilket du väljer beror på om författaren redan är registrerad hos Noordhoff.',
+  'admin.card_add_authors_help_existing_label': 'Befintliga författare (via "Importera Excel")',
+  'admin.card_add_authors_help_existing_text':
+    'Författare som redan är kända hos Noordhoff och finns i NetSuite. Exportera dem som Excel från NetSuite (leverantörslista, 12 kolumner) och ladda upp filen här. Alla konton skapas på en gång MED de befintliga NetSuite-uppgifterna förifyllda. Standardvägen för din initiala population och periodiska uppdateringar.',
+  'admin.card_add_authors_help_new_label': 'Nya författare (via "Ny författare")',
+  'admin.card_add_authors_help_new_text':
+    'Författare som ÄNNU INTE är kända hos Noordhoff — undantag som nya kontrakt som inte ännu behandlats i NetSuite. Ange bara e-post, för- och efternamn. Författaren loggar sedan in själv och fyller i resterande profiluppgifter via portalen. Dessa ändringar visas i fliken "Personuppgifter" under "Väntande ändringsförfrågningar" för ditt godkännande.',
+  'admin.card_add_authors_help_outro':
+    'I båda fallen får kontot startlösenordet "Noordhoff" som författaren byter vid första inloggning. Först när du klickar "Aktivera" i författarlistan får författaren ett meddelande att de kan logga in. Mejl är av under testfasen — informera testförfattare personligen.',
+
+  'admin.card_bulk_statements_help_intro':
+    'En bulk-uppladdning kräver TVÅ filer som laddas upp tillsammans: avräknings-PDF:erna och en Excel med matchande belopp. Nedan hur var och en ska se ut.',
+  'admin.card_bulk_statements_help_pdf_heading': 'Fil 1 — Avräknings-PDF:er',
+  'admin.card_bulk_statements_help_pdf_para':
+    'En PDF per författare per månad. Alliant ID i filnamnet matchas automatiskt mot en författare i portalen — se till att det ID:t är korrekt, annars hamnar avräkningen utan ägare.',
+  'admin.card_bulk_statements_help_filename_label': 'Filnamnskonvention:',
+  'admin.card_bulk_statements_help_example_label': 'Exempel:',
+  'admin.card_bulk_statements_help_excel_heading': 'Fil 2 — Belopps-Excel',
+  'admin.card_bulk_statements_help_excel_para':
+    'En Excel-fil med beloppen per författare (PDF:n själv innehåller ingen maskinläsbar summa). Första raden måste innehålla exakt dessa tre rubriker i denna ordning:',
+  'admin.card_bulk_statements_help_empty_cell': '(tom)',
+  'admin.card_bulk_statements_help_col_alliant':
+    'Författarens Alliant ID (obligatoriskt). Måste matcha ID:t i PDF-filnamnet.',
+  'admin.card_bulk_statements_help_col_amount':
+    'Eurobelopp för denna avräkning. Decimalkomma (1.234,56) eller -punkt (1234.56) fungerar båda. Avrundas till 2 decimaler.',
+  'admin.card_bulk_statements_help_col_yyyymm':
+    'Specifik månad (sex siffror, ÅÅÅÅMM). Lämna tomt = beloppet gäller för ALLA författarens PDF:er i denna batch. För månadsspecifika belopp, fyll i denna kolumn.',
+  'admin.card_bulk_statements_help_outro':
+    'Välj båda filer tillsammans → klicka "Visa förhandsgranskning" → kontrollera tabellen med författarmatchningar → bekräfta. Dubbeluppladdningar av samma PDF hoppas över automatiskt.',
   'admin.toolbar_excel_import': 'Importera Excel',
   'admin.toolbar_bulk_statements': 'Bulk-avräkningar',
   'admin.toolbar_csv_export': 'Exportera till NetSuite',
@@ -282,8 +310,12 @@ export const sv: Translations = {
   'admin.status_actief': 'Aktiv',
   'admin.status_actief_short': 'Aktiv',
   'admin.card_export_title': 'Exportera till NetSuite',
-  'admin.card_export_explanation':
-    'Generera en CSV med alla författaruppgifter som ändrats sedan föregående export. Ladda upp filen till Noordhoff SharePoint så att NetSuite-teamet kan importera den nya datan. En tidsstämpel sparas per export så att samma ändring aldrig rapporteras två gånger.',
+  'admin.card_export_help_intro':
+    'Författare ändrar sina egna profiluppgifter (adress, IBAN, telefon) via portalen. Dessa ändringar samlas här för periodisk synk tillbaka till NetSuite så att den finansiella administrationen hålls aktuell.',
+  'admin.card_export_help_workflow':
+    'Klicka "Exportera till NetSuite" → en CSV genereras med all data som ändrats eller aktiverats sedan föregående export → filen laddas ner automatiskt. Ladda upp den till Noordhoff SharePoint inom minuter så NetSuite-teamet kan importera den. Radera lokala kopian efteråt (innehåller personuppgifter).',
+  'admin.card_export_help_safety':
+    'En tidsstämpel sparas per författare per export så att samma ändring aldrig rapporteras två gånger. Vid en andra klickning får du då "Inga ändringar sedan föregående export".',
   'admin.created_at': 'Skapad {date}',
   'admin.invited_at': 'Inbjuden {date}',
   'admin.reminder_at': 'Påminnelse {date}',

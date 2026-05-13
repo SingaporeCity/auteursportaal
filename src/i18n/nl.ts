@@ -236,11 +236,39 @@ export const nl: Translations = {
   'admin.tab_accounts': 'Accounts',
   'admin.tab_persoonsgegevens': 'Persoonsgegevens',
   'admin.card_add_authors_title': 'Auteurs toevoegen',
-  'admin.card_add_authors_explanation':
-    'Twee manieren om auteurs aan te maken. "Importeer Excel" doet er meerdere tegelijk vanuit een NetSuite-Vendor-export (de standaard-route). "Nieuwe auteur" is voor uitzonderingen die handmatig moeten. Beide leveren een werkend account met start-wachtwoord "Noordhoff" dat de auteur bij eerste inlog wijzigt — daarna moet je het account nog activeren voordat de auteur een melding krijgt.',
   'admin.card_bulk_statements_title': 'Royaltystatements uploaden',
-  'admin.card_bulk_statements_explanation':
-    'Upload meerdere royalty-statement-PDFs tegelijk. Auteurs worden automatisch gekoppeld via hun Alliant ID in de filename (NU_SC_<id>_<naam>_<YYYYMM>.pdf). Het bijhorende bedrag haal je uit een meegeleverde Excel.',
+  'admin.action_help_summary': 'Hoe werkt dit?',
+
+  'admin.card_add_authors_help_intro':
+    'Auteurs komen op twee manieren in het portaal. Welke je kiest hangt af van of de auteur al bij Noordhoff geregistreerd staat.',
+  'admin.card_add_authors_help_existing_label': 'Bestaande auteurs (via "Importeer Excel")',
+  'admin.card_add_authors_help_existing_text':
+    'Auteurs die al bij Noordhoff bekend zijn en in NetSuite staan. Exporteer ze als Excel uit NetSuite (Vendor-list export, 12 kolommen) en upload het bestand hier. In één keer worden alle accounts aangemaakt mét de bestaande NetSuite-gegevens — naam, adres, IBAN, BIC, BSN en geboortedatum — al ingevuld. Dit is de standaard-route voor je beginpopulatie en voor periodieke updates wanneer NetSuite nieuwe auteurs toevoegt.',
+  'admin.card_add_authors_help_new_label': 'Nieuwe auteurs (via "Nieuwe auteur")',
+  'admin.card_add_authors_help_new_text':
+    'Auteurs die nog NIET bij Noordhoff bekend zijn — uitzonderingen zoals nieuwe contracten die nog niet in NetSuite verwerkt zijn. Vul alleen e-mail, voor- en achternaam in. De auteur logt vervolgens zelf in en vult de overige profielgegevens (adres, IBAN, BSN, geboortedatum) aan via het portaal. Die wijzigingen verschijnen in het tabblad "Persoonsgegevens" onder "Wachtende wijzigingsverzoeken" voor jouw goedkeuring.',
+  'admin.card_add_authors_help_outro':
+    'In beide gevallen krijgt het account start-wachtwoord "Noordhoff" dat de auteur bij eerste inlog wijzigt. Pas nadat jij in de auteurslijst op "Activeer" klikt krijgt de auteur een melding dat hij/zij kan inloggen. Tijdens de test-fase staan mails uit — informeer test-auteurs persoonlijk.',
+
+  'admin.card_bulk_statements_help_intro':
+    'Voor een bulk-upload heb je TWEE bestanden nodig die samen geupload moeten worden: de statement-PDFs en een Excel met de bijhorende bedragen. Hieronder hoe elk eruit hoort te zien.',
+  'admin.card_bulk_statements_help_pdf_heading': 'Bestand 1 — Statement-PDFs',
+  'admin.card_bulk_statements_help_pdf_para':
+    'Eén PDF per auteur per maand. De Alliant ID in de filename wordt automatisch gematcht aan een auteur in het portaal — zorg dus dat die ID klopt, anders krijgt de statement geen eigenaar.',
+  'admin.card_bulk_statements_help_filename_label': 'Filename-conventie:',
+  'admin.card_bulk_statements_help_example_label': 'Voorbeeld:',
+  'admin.card_bulk_statements_help_excel_heading': 'Bestand 2 — Bedragen-Excel',
+  'admin.card_bulk_statements_help_excel_para':
+    'Eén Excel-bestand met de bedragen per auteur (de PDF zelf bevat geen machine-leesbare som). De eerste rij moet exact deze drie headers bevatten in deze volgorde:',
+  'admin.card_bulk_statements_help_empty_cell': '(leeg)',
+  'admin.card_bulk_statements_help_col_alliant':
+    'Alliant ID van de auteur (verplicht). Komt overeen met de ID in de PDF-filename.',
+  'admin.card_bulk_statements_help_col_amount':
+    'Euro-bedrag voor deze statement. Decimaal-komma (1.234,56) of -punt (1234.56) is allebei OK. Wordt afgerond op 2 decimalen.',
+  'admin.card_bulk_statements_help_col_yyyymm':
+    'Specifieke maand (zes cijfers, JJJJMM). Leeg laten = bedrag geldt voor álle PDFs van die auteur in deze batch — handig als je per upload één auteur één bedrag wilt geven. Voor maand-specifieke bedragen vul je deze kolom wel in.',
+  'admin.card_bulk_statements_help_outro':
+    'Selecteer beide bestanden samen → klik "Voorbeeld tonen" → controleer de tabel met auteur-matches → bevestig. Dubbel-uploaden van dezelfde PDF wordt automatisch overgeslagen.',
   'admin.toolbar_excel_import': 'Importeer Excel',
   'admin.toolbar_bulk_statements': 'Bulk statements',
   'admin.toolbar_csv_export': 'Export naar NetSuite',
@@ -277,8 +305,12 @@ export const nl: Translations = {
   'admin.status_actief': 'Actief',
   'admin.status_actief_short': 'Actief',
   'admin.card_export_title': 'Export naar NetSuite',
-  'admin.card_export_explanation':
-    'Genereer een CSV met alle auteursgegevens die gewijzigd zijn sinds de laatste export. Upload het bestand vervolgens naar Noordhoff SharePoint zodat NetSuite-administratie de nieuwe gegevens overneemt. Per export wordt een tijdstempel bijgehouden zodat dezelfde wijziging niet twee keer gerapporteerd wordt.',
+  'admin.card_export_help_intro':
+    'Auteurs wijzigen hun eigen profielgegevens (adres, IBAN, telefoon) via het portaal. Die wijzigingen worden hier verzameld om periodiek terug te synchroniseren naar NetSuite, zodat de financiële administratie up-to-date blijft.',
+  'admin.card_export_help_workflow':
+    'Klik op "Export naar NetSuite" → er wordt een CSV gegenereerd met alle gegevens die zijn gewijzigd of geactiveerd sinds de vorige export → het bestand wordt automatisch gedownload. Upload het binnen enkele minuten naar Noordhoff SharePoint zodat de NetSuite-administratie het kan importeren. Verwijder de lokale kopie daarna (bevat persoonsgegevens).',
+  'admin.card_export_help_safety':
+    'Per export wordt een tijdstempel per auteur bijgehouden, zodat dezelfde wijziging niet twee keer gerapporteerd wordt. Bij een tweede klik krijg je dan ook "Geen wijzigingen sinds vorige export".',
   'admin.created_at': 'Aangemaakt {date}',
   'admin.invited_at': 'Uitgenodigd {date}',
   'admin.reminder_at': 'Reminder {date}',
