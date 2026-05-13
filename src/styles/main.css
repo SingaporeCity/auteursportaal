@@ -1477,6 +1477,193 @@ a:hover {
   margin-bottom: 0.25rem;
 }
 
+/* ============================================================================
+ * Bulk-statement preview — modern voorbeeldweergave met stat-tiles, groepen
+ * per status en compacte item-cards. Vervangt de oude rij-per-rij-tabel.
+ * ============================================================================ */
+.bulk-stmt-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.bulk-stmt-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-text-muted);
+  border-radius: var(--radius-md);
+}
+
+.bulk-stmt-stat--ready {
+  border-left-color: var(--color-success);
+}
+.bulk-stmt-stat--duplicate {
+  border-left-color: var(--color-accent-amber);
+}
+.bulk-stmt-stat--error {
+  border-left-color: var(--color-accent-coral);
+}
+
+.bulk-stmt-stat-num {
+  font-size: 1.75rem;
+  font-variation-settings: 'wght' 620;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--color-text);
+  font-feature-settings: 'tnum' 1;
+}
+
+.bulk-stmt-stat-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variation-settings: 'wght' 540;
+  color: var(--color-text-light);
+}
+
+/* Groepen */
+.bulk-stmt-group {
+  margin: 1.25rem 0 0;
+}
+
+.bulk-stmt-group-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-variation-settings: 'wght' 620;
+  letter-spacing: -0.005em;
+  color: var(--color-text);
+  margin: 0 0 0.6rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.bulk-stmt-group-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bulk-stmt-group-dot--ready {
+  background: var(--color-success);
+}
+.bulk-stmt-group-dot--duplicate {
+  background: var(--color-accent-amber);
+}
+.bulk-stmt-group-dot--error {
+  background: var(--color-accent-coral);
+}
+
+.bulk-stmt-group-count {
+  color: var(--color-text-light);
+  font-variation-settings: 'wght' 540;
+  margin-left: 0.15rem;
+}
+
+/* Item-cards binnen een groep */
+.bulk-stmt-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.bulk-stmt-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.95rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.bulk-stmt-item:hover {
+  border-color: var(--color-text-light);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.bulk-stmt-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.bulk-stmt-item-name {
+  font-size: 0.92rem;
+  font-variation-settings: 'wght' 600;
+  letter-spacing: -0.005em;
+  color: var(--color-text);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bulk-stmt-item-sub {
+  font-size: 0.74rem;
+  color: var(--color-text-light);
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+  margin-top: 0.2rem;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.bulk-stmt-item-reason {
+  font-size: 0.78rem;
+  margin-top: 0.4rem;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.bulk-stmt-item--error .bulk-stmt-item-reason {
+  color: #be123c; /* rose-700 */
+}
+
+.bulk-stmt-item--duplicate .bulk-stmt-item-reason {
+  color: #b45309; /* amber-700 */
+}
+
+.bulk-stmt-item-amount {
+  font-size: 1rem;
+  font-variation-settings: 'wght' 620;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  font-feature-settings: 'tnum' 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-top: 0.05rem;
+}
+
+.bulk-stmt-upload-btn {
+  margin-top: 1.25rem;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .bulk-stmt-stats {
+    grid-template-columns: 1fr;
+  }
+  .bulk-stmt-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.3rem;
+  }
+  .bulk-stmt-item-amount {
+    align-self: flex-end;
+  }
+}
+
 /* CSV-export modal */
 .csv-export-modal {
   max-width: 640px;

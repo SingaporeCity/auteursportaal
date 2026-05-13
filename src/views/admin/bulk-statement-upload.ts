@@ -354,8 +354,9 @@ async function runPreview(
     }
 
     renderPreview(ui.preview, rows, type, ui.resultBox);
-    resetPreviewBtn(ui.previewBtn);
-    ui.previewBtn.textContent = t('admin.bulk_stmt_re_preview_btn');
+    // Voorbeeldweergave-knop is na een geslaagde render niet meer relevant —
+    // de gebruiker gaat door met "Upload N statements" of sluit de modal.
+    ui.previewBtn.hidden = true;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     showStatus(ui.status, 'error', `${t('admin.bulk_stmt_unexpected')}: ${message}`);
@@ -429,7 +430,7 @@ async function fetchExistingPaymentPaths(paths: string[]): Promise<Set<string>> 
 }
 
 // ============================================================================
-// Preview-tabel rendering
+// Preview-rendering — stat-tiles + gegroepeerde sectie-cards
 // ============================================================================
 function renderPreview(
   container: HTMLElement,
@@ -441,74 +442,37 @@ function renderPreview(
   container.hidden = false;
   resultBox.hidden = true;
 
-  const summary = document.createElement('p');
-  const readyCount = rows.filter((r) => r.status.kind === 'ready').length;
-  const dupCount = rows.filter((r) => r.status.kind === 'duplicate').length;
-  const errCount = rows.filter((r) => r.status.kind === 'error').length;
-  summary.className = 'bulk-stmt-summary';
-  summary.textContent = t('admin.bulk_stmt_preview_summary')
-    .replace('{ready}', String(readyCount))
-    .replace('{duplicate}', String(dupCount))
-    .replace('{error}', String(errCount));
-  container.appendChild(summary);
+  const ready = rows.filter((r) => r.status.kind === 'ready');
+  const duplicates = rows.filter((r) => r.status.kind === 'duplicate');
+  const errors = rows.filter((r) => r.status.kind === 'error');
 
-  // Tabel
-  const table = document.createElement('table');
-  table.className = 'bulk-stmt-table';
-  const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  for (const key of [
-    'admin.bulk_stmt_col_filename',
-    'admin.bulk_stmt_col_alliant',
-    'admin.bulk_stmt_col_author',
-    'admin.bulk_stmt_col_period',
-    'admin.bulk_stmt_col_amount',
-    'admin.bulk_stmt_col_status',
-  ] as const) {
-    const th = document.createElement('th');
-    th.textContent = t(key);
-    headerRow.appendChild(th);
+  // -- Stat-tiles bovenaan: drie tegels met aantallen, kleur-gecodeerd
+  const stats = document.createElement('div');
+  stats.className = 'bulk-stmt-stats';
+  stats.appendChild(buildStatTile('ready', ready.length, t('admin.bulk_stmt_group_ready')));
+  stats.appendChild(
+    buildStatTile('duplicate', duplicates.length, t('admin.bulk_stmt_group_duplicate'))
+  );
+  stats.appendChild(buildStatTile('error', errors.length, t('admin.bulk_stmt_group_error')));
+  container.appendChild(stats);
+
+  // -- Groepen per status; alleen tonen wanneer er rijen in zitten
+  if (ready.length > 0) {
+    container.appendChild(buildPreviewGroup('ready', ready));
   }
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
-
-  const tbody = document.createElement('tbody');
-  for (const row of rows) {
-    const tr = document.createElement('tr');
-    tr.className = `bulk-stmt-row bulk-stmt-row-${row.status.kind}`;
-
-    appendCell(tr, row.filename);
-    appendCell(tr, row.alliantId === '' ? '—' : row.alliantId);
-    appendCell(tr, row.authorLabel);
-    appendCell(
-      tr,
-      row.yyyymm === '' ? '—' : `${String(row.year)}-${String(row.month).padStart(2, '0')}`
-    );
-
-    const amountCell = document.createElement('td');
-    if (row.status.kind === 'ready') {
-      amountCell.textContent = formatEuro(row.status.amount);
-    } else {
-      amountCell.textContent = '—';
-    }
-    tr.appendChild(amountCell);
-
-    const statusCell = document.createElement('td');
-    statusCell.className = `bulk-stmt-status bulk-stmt-status-${row.status.kind}`;
-    statusCell.textContent = formatStatus(row.status);
-    tr.appendChild(statusCell);
-
-    tbody.appendChild(tr);
+  if (duplicates.length > 0) {
+    container.appendChild(buildPreviewGroup('duplicate', duplicates));
   }
-  table.appendChild(tbody);
-  container.appendChild(table);
+  if (errors.length > 0) {
+    container.appendChild(buildPreviewGroup('error', errors));
+  }
 
-  // Upload-knop
+  // -- Upload-knop onderaan
   const uploadBtn = document.createElement('button');
   uploadBtn.type = 'button';
   uploadBtn.className = 'auth-submit bulk-stmt-upload-btn';
-  uploadBtn.textContent = t('admin.bulk_stmt_upload_btn').replace('{count}', String(readyCount));
-  uploadBtn.disabled = readyCount === 0;
+  uploadBtn.textContent = t('admin.bulk_stmt_upload_btn').replace('{count}', String(ready.length));
+  uploadBtn.disabled = ready.length === 0;
   container.appendChild(uploadBtn);
 
   uploadBtn.addEventListener('click', () => {
@@ -516,21 +480,107 @@ function renderPreview(
   });
 }
 
-function appendCell(tr: HTMLElement, text: string): void {
-  const td = document.createElement('td');
-  td.textContent = text;
-  tr.appendChild(td);
+function buildStatTile(kind: RowStatus['kind'], count: number, label: string): HTMLElement {
+  const tile = document.createElement('div');
+  tile.className = `bulk-stmt-stat bulk-stmt-stat--${kind}`;
+
+  const num = document.createElement('span');
+  num.className = 'bulk-stmt-stat-num';
+  num.textContent = String(count);
+  tile.appendChild(num);
+
+  const lbl = document.createElement('span');
+  lbl.className = 'bulk-stmt-stat-label';
+  lbl.textContent = label;
+  tile.appendChild(lbl);
+
+  return tile;
 }
 
-function formatStatus(status: RowStatus): string {
-  switch (status.kind) {
+function buildPreviewGroup(kind: RowStatus['kind'], rows: PreviewRow[]): HTMLElement {
+  const section = document.createElement('section');
+  section.className = `bulk-stmt-group bulk-stmt-group--${kind}`;
+
+  const header = document.createElement('h4');
+  header.className = 'bulk-stmt-group-heading';
+
+  const dot = document.createElement('span');
+  dot.className = `bulk-stmt-group-dot bulk-stmt-group-dot--${kind}`;
+  header.appendChild(dot);
+
+  const titleSpan = document.createElement('span');
+  switch (kind) {
     case 'ready':
-      return t('admin.bulk_stmt_status_ready');
+      titleSpan.textContent = t('admin.bulk_stmt_group_ready');
+      break;
     case 'duplicate':
-      return status.reason;
+      titleSpan.textContent = t('admin.bulk_stmt_group_duplicate');
+      break;
     case 'error':
-      return status.reason;
+      titleSpan.textContent = t('admin.bulk_stmt_group_error');
+      break;
   }
+  header.appendChild(titleSpan);
+
+  const count = document.createElement('span');
+  count.className = 'bulk-stmt-group-count';
+  count.textContent = `(${String(rows.length)})`;
+  header.appendChild(count);
+
+  section.appendChild(header);
+
+  const list = document.createElement('div');
+  list.className = 'bulk-stmt-items';
+  for (const row of rows) {
+    list.appendChild(buildPreviewItem(row));
+  }
+  section.appendChild(list);
+
+  return section;
+}
+
+function buildPreviewItem(row: PreviewRow): HTMLElement {
+  const item = document.createElement('div');
+  item.className = `bulk-stmt-item bulk-stmt-item--${row.status.kind}`;
+
+  // Linker-kolom: auteur naam (groot) + bestandsnaam + periode (klein/mono)
+  const left = document.createElement('div');
+  left.className = 'bulk-stmt-item-main';
+
+  const name = document.createElement('div');
+  name.className = 'bulk-stmt-item-name';
+  name.textContent = row.authorLabel !== '' ? row.authorLabel : '—';
+  left.appendChild(name);
+
+  const sub = document.createElement('div');
+  sub.className = 'bulk-stmt-item-sub';
+  const subParts: string[] = [row.filename];
+  if (row.year > 0 && row.month > 0) {
+    subParts.push(formatPeriod(row.year, row.month));
+  }
+  sub.textContent = subParts.join(' · ');
+  left.appendChild(sub);
+
+  // Reden bij duplicate/error apart op een derde regel zodat de hoofdinfo
+  // niet doorbreekt
+  if (row.status.kind !== 'ready') {
+    const reason = document.createElement('div');
+    reason.className = 'bulk-stmt-item-reason';
+    reason.textContent = row.status.reason;
+    left.appendChild(reason);
+  }
+
+  item.appendChild(left);
+
+  // Rechter-kolom: bedrag (alleen bij ready)
+  const right = document.createElement('div');
+  right.className = 'bulk-stmt-item-amount';
+  if (row.status.kind === 'ready') {
+    right.textContent = formatEuro(row.status.amount);
+  }
+  item.appendChild(right);
+
+  return item;
 }
 
 function formatEuro(amount: number): string {
@@ -538,6 +588,14 @@ function formatEuro(amount: number): string {
     style: 'currency',
     currency: 'EUR',
   }).format(amount);
+}
+
+function formatPeriod(year: number, month: number): string {
+  const locale = getLocale() === 'en' ? 'en-US' : 'nl-NL';
+  return new Intl.DateTimeFormat(locale, {
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(year, month - 1, 1));
 }
 
 // ============================================================================
