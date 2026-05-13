@@ -198,7 +198,7 @@ async function download(filePath: string | null, btn: HTMLButtonElement): Promis
     return;
   }
   btn.disabled = true;
-  const { data, error } = await supabase.storage.from('statements').createSignedUrl(filePath, 60);
+  const { data, error } = await supabase.storage.from('contracts').createSignedUrl(filePath, 60);
   btn.disabled = false;
 
   if (error !== null) {

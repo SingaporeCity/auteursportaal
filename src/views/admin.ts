@@ -23,6 +23,7 @@ import { renderChangesSection } from './admin/changes';
 import { openCsvExportModal } from './admin/csv-export';
 import { openExcelImportModal } from './admin/excel-import';
 import { openBulkStatementUploadModal } from './admin/bulk-statement-upload';
+import { openContractUploadModal } from './admin/contract-upload';
 import { extractFnError, formatFnErrorMessage } from '@/lib/edge-function-errors';
 import { buildAppHeader } from './shared/header';
 
@@ -794,6 +795,19 @@ function renderAuthorCard(
         )
       );
     }
+  }
+
+  // Contract-upload-knop: altijd beschikbaar voor non-admin auteurs.
+  if (!author.is_admin) {
+    actions.appendChild(
+      buildActionBtn(
+        t('admin.btn_upload_contract'),
+        () => {
+          openContractUploadModal(author, onChanged);
+        },
+        t('admin.tooltip_upload_contract')
+      )
+    );
   }
 
   // Reset-2FA-knop blijft beschikbaar voor accounts met verified factor.
