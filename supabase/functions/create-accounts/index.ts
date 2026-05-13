@@ -183,6 +183,16 @@ serve(async (req: Request): Promise<Response> => {
 });
 
 async function sendRecoveryEmail(email: string): Promise<{ ok: boolean; error?: string }> {
+  // Kill-switch (test-fase): bij DISABLE_AUTH_EMAILS=true verstuurt geen
+  // enkele invite/recovery-mail vanuit deze Edge Function. De caller flow
+  // (invited_at zetten, status-updates) blijft draaien alsof het wel
+  // verstuurd is — handig om het portaal te testen zonder dat testauteurs
+  // mails ontvangen. Zet de secret uit zodra mail-deliverability live mag:
+  //   supabase secrets unset DISABLE_AUTH_EMAILS
+  if (Deno.env.get('DISABLE_AUTH_EMAILS') === 'true') {
+    return { ok: true };
+  }
+
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
   try {

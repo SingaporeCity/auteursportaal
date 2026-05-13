@@ -194,6 +194,7 @@ export const en: Translations = {
   'admin.section_heading': 'Author management',
   'admin.empty_filter': 'No authors in this filter.',
   'admin.toolbar_csv_import': 'Import CSV',
+  'admin.toolbar_excel_import': 'Import Excel',
   'admin.toolbar_csv_export': 'Export to NetSuite',
   'admin.toolbar_new_author': 'New author',
   'admin.filter_all': 'All',
@@ -236,6 +237,21 @@ export const en: Translations = {
   'admin.csv_import_stat_skipped': 'Skipped',
   'admin.csv_import_stat_bsn_skipped': 'BSN preserved',
   'admin.csv_import_errors_heading': 'Errors ({count})',
+
+  'admin.excel_import_heading': 'Import existing authors from NetSuite Excel',
+  'admin.excel_import_intro':
+    'Upload the NetSuite Vendor export (12 columns, including Date of Birth). For each row, an account is created with the initial password "Noordhoff". No emails are sent during the test phase.',
+  'admin.excel_import_file_label': 'Excel file',
+  'admin.excel_import_submit': 'Import',
+  'admin.excel_import_close': 'Close',
+  'admin.excel_import_stat_created': 'Created',
+  'admin.excel_import_stat_skipped': 'Skipped',
+  'admin.excel_import_errors_heading': 'Errors ({count})',
+  'admin.excel_import_no_file': 'Please select an Excel file first.',
+  'admin.excel_import_empty': 'No rows found in the Excel file.',
+  'admin.excel_import_failed': 'Import failed',
+  'admin.excel_import_no_response': 'No response received from Edge Function.',
+  'admin.excel_import_unexpected': 'Unexpected error',
 
   'admin.csv_export_heading': 'Export to NetSuite',
   'admin.csv_export_intro':

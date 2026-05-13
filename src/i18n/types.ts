@@ -223,6 +223,7 @@ export type TranslationKey =
   | 'admin.section_heading'
   | 'admin.empty_filter'
   | 'admin.toolbar_csv_import'
+  | 'admin.toolbar_excel_import'
   | 'admin.toolbar_csv_export'
   | 'admin.toolbar_new_author'
   | 'admin.filter_all'
@@ -265,6 +266,21 @@ export type TranslationKey =
   | 'admin.csv_import_stat_skipped'
   | 'admin.csv_import_stat_bsn_skipped'
   | 'admin.csv_import_errors_heading'
+
+  // Admin — Excel import (bestaande auteurs uit NetSuite, test-fase)
+  | 'admin.excel_import_heading'
+  | 'admin.excel_import_intro'
+  | 'admin.excel_import_file_label'
+  | 'admin.excel_import_submit'
+  | 'admin.excel_import_close'
+  | 'admin.excel_import_stat_created'
+  | 'admin.excel_import_stat_skipped'
+  | 'admin.excel_import_errors_heading'
+  | 'admin.excel_import_no_file'
+  | 'admin.excel_import_empty'
+  | 'admin.excel_import_failed'
+  | 'admin.excel_import_no_response'
+  | 'admin.excel_import_unexpected'
 
   // Admin — CSV export
   | 'admin.csv_export_heading'

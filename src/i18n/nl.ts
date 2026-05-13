@@ -195,6 +195,7 @@ export const nl: Translations = {
   'admin.section_heading': 'Auteursbeheer',
   'admin.empty_filter': 'Geen auteurs in dit filter.',
   'admin.toolbar_csv_import': 'Importeer CSV',
+  'admin.toolbar_excel_import': 'Importeer Excel',
   'admin.toolbar_csv_export': 'Export naar NetSuite',
   'admin.toolbar_new_author': 'Nieuwe auteur',
   'admin.filter_all': 'Alle',
@@ -237,6 +238,21 @@ export const nl: Translations = {
   'admin.csv_import_stat_skipped': 'Overgeslagen',
   'admin.csv_import_stat_bsn_skipped': 'BSN niet overschreven',
   'admin.csv_import_errors_heading': 'Fouten ({count})',
+
+  'admin.excel_import_heading': 'Bestaande auteurs uit NetSuite-Excel importeren',
+  'admin.excel_import_intro':
+    'Upload de NetSuite-Vendor-export (12 kolommen, incl. Date of Birth). Voor elke rij wordt een account aangemaakt met initieel wachtwoord "Noordhoff". Er worden tijdens de test-fase geen mails verstuurd.',
+  'admin.excel_import_file_label': 'Excel-bestand',
+  'admin.excel_import_submit': 'Importeer',
+  'admin.excel_import_close': 'Sluiten',
+  'admin.excel_import_stat_created': 'Aangemaakt',
+  'admin.excel_import_stat_skipped': 'Overgeslagen',
+  'admin.excel_import_errors_heading': 'Fouten ({count})',
+  'admin.excel_import_no_file': 'Selecteer eerst een Excel-bestand.',
+  'admin.excel_import_empty': 'Geen rijen gevonden in het Excel-bestand.',
+  'admin.excel_import_failed': 'Importeren faalde',
+  'admin.excel_import_no_response': 'Geen resultaat ontvangen van Edge Function.',
+  'admin.excel_import_unexpected': 'Onverwachte fout',
 
   'admin.csv_export_heading': 'Export naar NetSuite',
   'admin.csv_export_intro':

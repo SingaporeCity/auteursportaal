@@ -200,6 +200,7 @@ export const sv: Translations = {
   'admin.section_heading': 'Författarhantering',
   'admin.empty_filter': 'Inga författare i detta filter.',
   'admin.toolbar_csv_import': 'Importera CSV',
+  'admin.toolbar_excel_import': 'Importera Excel',
   'admin.toolbar_csv_export': 'Exportera till NetSuite',
   'admin.toolbar_new_author': 'Ny författare',
   'admin.filter_all': 'Alla',
@@ -242,6 +243,21 @@ export const sv: Translations = {
   'admin.csv_import_stat_skipped': 'Hoppade över',
   'admin.csv_import_stat_bsn_skipped': 'BSN bevarat',
   'admin.csv_import_errors_heading': 'Fel ({count})',
+
+  'admin.excel_import_heading': 'Importera befintliga författare från NetSuite-Excel',
+  'admin.excel_import_intro':
+    'Ladda upp NetSuite-leverantörsexporten (12 kolumner, inkl. födelsedatum). För varje rad skapas ett konto med initiallösenordet "Noordhoff". Inga e-postmeddelanden skickas under testfasen.',
+  'admin.excel_import_file_label': 'Excel-fil',
+  'admin.excel_import_submit': 'Importera',
+  'admin.excel_import_close': 'Stäng',
+  'admin.excel_import_stat_created': 'Skapade',
+  'admin.excel_import_stat_skipped': 'Hoppade över',
+  'admin.excel_import_errors_heading': 'Fel ({count})',
+  'admin.excel_import_no_file': 'Välj först en Excel-fil.',
+  'admin.excel_import_empty': 'Inga rader hittades i Excel-filen.',
+  'admin.excel_import_failed': 'Import misslyckades',
+  'admin.excel_import_no_response': 'Inget svar mottaget från Edge Function.',
+  'admin.excel_import_unexpected': 'Oväntat fel',
 
   'admin.csv_export_heading': 'Exportera till NetSuite',
   'admin.csv_export_intro':
