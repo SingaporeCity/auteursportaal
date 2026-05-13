@@ -105,14 +105,18 @@ export const sv: Translations = {
   'tabs.faq': 'FAQ',
   'tabs.profile': 'Profil',
 
-  'onboarding.banner_pending_data_title': 'Välkommen till din författarportal',
-  'onboarding.banner_pending_data_text':
-    'Komplettera din profil nedan så att Noordhoff kan aktivera ditt konto. De övriga delarna av portalen visas automatiskt när din ansökan har behandlats — det är inget fel om du för tillfället bara ser en flik.',
+  'onboarding.banner_blocking_title': 'Komplettera uppgifterna för att aktivera ditt konto',
+  'onboarding.banner_blocking_text':
+    'Vissa uppgifter saknas som krävs för aktivering: adress, IBAN, BIC och/eller BSN. Utan denna information kan Noordhoff inte aktivera ditt konto. Fyll i de saknade fälten på din profilsida nedan.',
+  'onboarding.banner_softmissing_title':
+    'Dina uppgifter är kompletta — Noordhoff aktiverar snart ditt konto',
+  'onboarding.banner_softmissing_text':
+    'Tack för att du fyllde i uppgifterna. Ditt konto aktiveras så snart som möjligt. Telefonnummer och födelsedatum kan du fortfarande lägga till i lugn och ro via din profilsida nedan.',
   'onboarding.banner_pending_review_title': 'Din ansökan behandlas',
   'onboarding.banner_pending_review_text':
     'Tack för att du fyllt i dina uppgifter. Noordhoff behandlar nu din information — det tar vanligtvis några arbetsdagar. När ditt konto är aktivt blir alla delar av portalen automatiskt tillgängliga. Du meddelas via e-post.',
   'onboarding.tab_disabled_tooltip': 'Tillgänglig när ditt konto har aktiverats',
-  'onboarding.activate_button': 'Aktivera mitt konto',
+  'onboarding.activate_button': 'Skicka uppgifter',
   'onboarding.activate_button_disabled_hint':
     'Fyll i alla obligatoriska fält innan du skickar din ansökan.',
   'onboarding.activate_confirmation':

@@ -580,7 +580,8 @@ function hasCompletePersonData(a: AuthorRow): boolean {
     filled(a.postcode) &&
     filled(a.city) &&
     filled(a.bank_account) &&
-    filled(a.bic)
+    filled(a.bic) &&
+    filled(a.bsn)
   );
 }
 

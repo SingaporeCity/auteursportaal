@@ -122,8 +122,10 @@ export type TranslationKey =
   | 'tabs.profile'
 
   // Onboarding
-  | 'onboarding.banner_pending_data_title'
-  | 'onboarding.banner_pending_data_text'
+  | 'onboarding.banner_blocking_title'
+  | 'onboarding.banner_blocking_text'
+  | 'onboarding.banner_softmissing_title'
+  | 'onboarding.banner_softmissing_text'
   | 'onboarding.banner_pending_review_title'
   | 'onboarding.banner_pending_review_text'
   | 'onboarding.tab_disabled_tooltip'

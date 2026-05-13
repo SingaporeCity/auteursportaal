@@ -14,7 +14,7 @@ export function buildWelcomeSection(author: AuthorRow): HTMLElement {
 
   const heading = document.createElement('h1');
   heading.className = 'welcome-heading';
-  heading.textContent = `${greetingFor(new Date())}, ${author.first_name}`;
+  heading.textContent = `${greetingFor(new Date())}, ${author.last_name}`;
   wrap.appendChild(heading);
 
   const tagline = document.createElement('p');

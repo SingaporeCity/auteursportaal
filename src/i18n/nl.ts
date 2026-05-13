@@ -98,14 +98,18 @@ export const nl: Translations = {
   'tabs.faq': 'FAQ',
   'tabs.profile': 'Profiel',
 
-  'onboarding.banner_pending_data_title': 'Welkom bij uw Auteursportaal',
-  'onboarding.banner_pending_data_text':
-    'Vul hieronder uw profielgegevens aan zodat Noordhoff uw account kan activeren. De overige onderdelen van het portaal worden automatisch zichtbaar zodra uw aanvraag is verwerkt — er hoeft niets fout te zijn dat u nu maar één tabblad ziet.',
+  'onboarding.banner_blocking_title': 'Vul uw gegevens aan om uw account te activeren',
+  'onboarding.banner_blocking_text':
+    'Er ontbreken nog gegevens die nodig zijn voor activatie: adres, IBAN, BIC en/of BSN. Zonder deze informatie kan Noordhoff uw account niet activeren. Vul de ontbrekende velden hieronder aan op uw profielpagina.',
+  'onboarding.banner_softmissing_title':
+    'Uw gegevens zijn compleet — Noordhoff activeert uw account binnenkort',
+  'onboarding.banner_softmissing_text':
+    'Bedankt voor het invullen. Uw account wordt zo snel mogelijk geactiveerd. Telefoonnummer en geboortedatum mag u nu nog rustig aanvullen via uw profielpagina hieronder.',
   'onboarding.banner_pending_review_title': 'Uw aanvraag wordt verwerkt',
   'onboarding.banner_pending_review_text':
     'Bedankt voor het invullen. Noordhoff verwerkt nu uw gegevens — dit duurt doorgaans enkele werkdagen. Zodra uw account actief is komen alle onderdelen van het portaal automatisch beschikbaar. U krijgt hierover bericht per e-mail.',
   'onboarding.tab_disabled_tooltip': 'Beschikbaar zodra uw account is geactiveerd',
-  'onboarding.activate_button': 'Activeer mijn account',
+  'onboarding.activate_button': 'Verzend gegevens',
   'onboarding.activate_button_disabled_hint':
     'Vul eerst alle verplichte velden in om uw aanvraag te kunnen versturen.',
   'onboarding.activate_confirmation':

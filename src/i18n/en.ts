@@ -97,14 +97,18 @@ export const en: Translations = {
   'tabs.faq': 'FAQ',
   'tabs.profile': 'Profile',
 
-  'onboarding.banner_pending_data_title': 'Welcome to your Author Portal',
-  'onboarding.banner_pending_data_text':
-    'Please complete your profile below so Noordhoff can activate your account. The other sections of the portal will appear automatically once your request is processed — nothing is wrong if you currently only see one tab.',
+  'onboarding.banner_blocking_title': 'Complete your details to activate your account',
+  'onboarding.banner_blocking_text':
+    "We're still missing some details required for activation: address, IBAN, BIC and/or BSN. Without this information Noordhoff cannot activate your account. Please fill in the missing fields on your profile page below.",
+  'onboarding.banner_softmissing_title':
+    'Your details are complete — Noordhoff will activate your account shortly',
+  'onboarding.banner_softmissing_text':
+    'Thank you for completing your profile. Your account will be activated as soon as possible. Phone number and date of birth can still be filled in at your convenience via your profile page below.',
   'onboarding.banner_pending_review_title': 'Your request is being processed',
   'onboarding.banner_pending_review_text':
     'Thank you for completing your profile. Noordhoff is now processing your details — this usually takes a few working days. Once your account is active, all sections of the portal will become available automatically. You will be notified by email.',
   'onboarding.tab_disabled_tooltip': 'Available once your account is activated',
-  'onboarding.activate_button': 'Activate my account',
+  'onboarding.activate_button': 'Submit details',
   'onboarding.activate_button_disabled_hint':
     'Please fill in all required fields before submitting your request.',
   'onboarding.activate_confirmation':

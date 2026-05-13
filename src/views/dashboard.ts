@@ -64,7 +64,7 @@ export function renderDashboardView(
 
   // Onboarding-banner + progress-indicator direct onder de welcome bij niet-active auteurs
   if (isOnboarding) {
-    const banner = buildOnboardingBanner(author.onboarding_status);
+    const banner = buildOnboardingBanner(author);
     if (banner !== null) {
       dashContent.appendChild(banner);
     }
