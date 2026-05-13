@@ -233,7 +233,6 @@ export const nl: Translations = {
   'admin.section_overline': 'Beheer',
   'admin.section_heading': 'Auteursbeheer',
   'admin.empty_filter': 'Geen auteurs in dit filter.',
-  'admin.toolbar_csv_import': 'Importeer CSV',
   'admin.toolbar_excel_import': 'Importeer Excel',
   'admin.toolbar_bulk_statements': 'Bulk statements',
   'admin.toolbar_csv_export': 'Export naar NetSuite',
@@ -271,21 +270,6 @@ export const nl: Translations = {
   'admin.new_author_field_lastname': 'Achternaam',
   'admin.new_author_field_vendor': 'Vendor ID (optioneel)',
   'admin.new_author_submit': 'Aanmaken & uitnodigen',
-
-  'admin.csv_import_heading': 'NetSuite CSV importeren',
-  'admin.csv_import_intro':
-    'Upload een CSV met de juiste kolomvolgorde. Zie docs/netsuite-author-import-template.csv voor het format.',
-  'admin.csv_import_file_label': 'CSV-bestand',
-  'admin.csv_import_mode_legend': 'Modus',
-  'admin.csv_import_mode_create_only': 'Alleen nieuwe auteurs aanmaken',
-  'admin.csv_import_mode_upsert': 'Bestaande bijwerken (upsert op email)',
-  'admin.csv_import_submit': 'Importeer',
-  'admin.csv_import_close': 'Sluiten',
-  'admin.csv_import_stat_created': 'Aangemaakt',
-  'admin.csv_import_stat_updated': 'Bijgewerkt',
-  'admin.csv_import_stat_skipped': 'Overgeslagen',
-  'admin.csv_import_stat_bsn_skipped': 'BSN niet overschreven',
-  'admin.csv_import_errors_heading': 'Fouten ({count})',
 
   'admin.excel_import_heading': 'Bestaande auteurs uit NetSuite-Excel importeren',
   'admin.excel_import_intro':

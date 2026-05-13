@@ -16,10 +16,10 @@ import { reportError } from '@/dev/debug-panel';
 import { t } from '@/lib/i18n';
 import { renderChangesSection } from './admin/changes';
 import { buildStatementUploadForm } from './admin/statement-upload';
-import { openCsvImportModal } from './admin/csv-import';
 import { openCsvExportModal } from './admin/csv-export';
 import { openExcelImportModal } from './admin/excel-import';
 import { openBulkStatementUploadModal } from './admin/bulk-statement-upload';
+import { extractFnError, formatFnErrorMessage } from '@/lib/edge-function-errors';
 import { buildAppHeader } from './shared/header';
 import type { OnboardingStatus } from '@/types/db';
 
@@ -79,9 +79,6 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   toolbar.className = 'admin-toolbar';
   main.appendChild(toolbar);
 
-  const csvBtn = buildToolbarBtn(t('admin.toolbar_csv_import'), ICON_DOWNLOAD);
-  toolbar.appendChild(csvBtn);
-
   const excelBtn = buildToolbarBtn(t('admin.toolbar_excel_import'), ICON_DOWNLOAD);
   toolbar.appendChild(excelBtn);
 
@@ -112,12 +109,6 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
     });
     renderList(list, state, statusBox);
   }
-
-  csvBtn.addEventListener('click', () => {
-    openCsvImportModal(() => {
-      void loadAuthors(state, rerender, statusBox);
-    });
-  });
 
   excelBtn.addEventListener('click', () => {
     openExcelImportModal(() => {
@@ -493,10 +484,10 @@ async function invokeCreateAccounts(
     body: { author_id: author.id, email: author.email, mode },
   });
 
-  const fnError = extractFnError(result.error);
+  const fnError = await extractFnError(result.error);
   if (fnError !== null) {
-    reportError('admin.invokeCreateAccounts', fnError);
-    showStatus(statusBox, 'error', `Actie faalde: ${fnError.message}`);
+    reportError('admin.invokeCreateAccounts', new Error(fnError.message));
+    showStatus(statusBox, 'error', `Actie faalde: ${formatFnErrorMessage(fnError)}`);
     return;
   }
 
@@ -524,19 +515,6 @@ async function invokeCreateAccounts(
         ? 'Uitnodiging verstuurd'
         : 'Geactiveerd';
   showStatus(statusBox, 'success', `${verb}: ${author.email}`);
-}
-
-function extractFnError(errVal: unknown): Error | null {
-  if (errVal instanceof Error) {
-    return errVal;
-  }
-  if (typeof errVal === 'string') {
-    return new Error(errVal);
-  }
-  if (errVal !== null && errVal !== undefined) {
-    return new Error('Edge Function call failed');
-  }
-  return null;
 }
 
 // =============================================================================
@@ -666,14 +644,15 @@ async function createAndInviteAuthor(
     },
   });
 
-  const fnErr = extractFnError(inviteResult.error);
+  const fnErr = await extractFnError(inviteResult.error);
   const firstResult = inviteResult.data?.results?.[0];
   const failed = fnErr !== null || firstResult === undefined || firstResult.status === 'failed';
 
   if (failed) {
     submit.disabled = false;
     submit.textContent = t('admin.new_author_submit');
-    const reason = fnErr?.message ?? firstResult?.error ?? 'onbekend';
+    const reason =
+      fnErr !== null ? formatFnErrorMessage(fnErr) : (firstResult?.error ?? 'onbekend');
     showStatus(statusBox, 'error', `Auteur aangemaakt maar account-creatie faalde (${reason}).`);
     onCreated();
     return;

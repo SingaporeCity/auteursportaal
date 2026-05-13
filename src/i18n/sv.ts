@@ -238,7 +238,6 @@ export const sv: Translations = {
   'admin.section_overline': 'Förvaltning',
   'admin.section_heading': 'Författarhantering',
   'admin.empty_filter': 'Inga författare i detta filter.',
-  'admin.toolbar_csv_import': 'Importera CSV',
   'admin.toolbar_excel_import': 'Importera Excel',
   'admin.toolbar_bulk_statements': 'Bulk-avräkningar',
   'admin.toolbar_csv_export': 'Exportera till NetSuite',
@@ -276,21 +275,6 @@ export const sv: Translations = {
   'admin.new_author_field_lastname': 'Efternamn',
   'admin.new_author_field_vendor': 'Vendor ID (valfritt)',
   'admin.new_author_submit': 'Skapa & bjud in',
-
-  'admin.csv_import_heading': 'Importera NetSuite-CSV',
-  'admin.csv_import_intro':
-    'Ladda upp en CSV i rätt kolumnordning. Se docs/netsuite-author-import-template.csv för formatet.',
-  'admin.csv_import_file_label': 'CSV-fil',
-  'admin.csv_import_mode_legend': 'Läge',
-  'admin.csv_import_mode_create_only': 'Skapa endast nya författare',
-  'admin.csv_import_mode_upsert': 'Uppdatera befintliga (upsert på e-post)',
-  'admin.csv_import_submit': 'Importera',
-  'admin.csv_import_close': 'Stäng',
-  'admin.csv_import_stat_created': 'Skapade',
-  'admin.csv_import_stat_updated': 'Uppdaterade',
-  'admin.csv_import_stat_skipped': 'Hoppade över',
-  'admin.csv_import_stat_bsn_skipped': 'BSN bevarat',
-  'admin.csv_import_errors_heading': 'Fel ({count})',
 
   'admin.excel_import_heading': 'Importera befintliga författare från NetSuite-Excel',
   'admin.excel_import_intro':

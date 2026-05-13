@@ -231,7 +231,6 @@ export const en: Translations = {
   'admin.section_overline': 'Management',
   'admin.section_heading': 'Author management',
   'admin.empty_filter': 'No authors in this filter.',
-  'admin.toolbar_csv_import': 'Import CSV',
   'admin.toolbar_excel_import': 'Import Excel',
   'admin.toolbar_bulk_statements': 'Bulk statements',
   'admin.toolbar_csv_export': 'Export to NetSuite',
@@ -269,21 +268,6 @@ export const en: Translations = {
   'admin.new_author_field_lastname': 'Last name',
   'admin.new_author_field_vendor': 'Vendor ID (optional)',
   'admin.new_author_submit': 'Create & invite',
-
-  'admin.csv_import_heading': 'Import NetSuite CSV',
-  'admin.csv_import_intro':
-    'Upload a CSV in the correct column order. See docs/netsuite-author-import-template.csv for the format.',
-  'admin.csv_import_file_label': 'CSV file',
-  'admin.csv_import_mode_legend': 'Mode',
-  'admin.csv_import_mode_create_only': 'Create new authors only',
-  'admin.csv_import_mode_upsert': 'Update existing (upsert on email)',
-  'admin.csv_import_submit': 'Import',
-  'admin.csv_import_close': 'Close',
-  'admin.csv_import_stat_created': 'Created',
-  'admin.csv_import_stat_updated': 'Updated',
-  'admin.csv_import_stat_skipped': 'Skipped',
-  'admin.csv_import_stat_bsn_skipped': 'BSN preserved',
-  'admin.csv_import_errors_heading': 'Errors ({count})',
 
   'admin.excel_import_heading': 'Import existing authors from NetSuite Excel',
   'admin.excel_import_intro':

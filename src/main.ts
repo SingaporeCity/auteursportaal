@@ -114,6 +114,15 @@ type AuthState =
       mode: AccessGranted['mode'];
     };
 
+/**
+ * Test-fase kill-switch: zet `VITE_DISABLE_MFA=true` in `.env.local` om zowel
+ * de TOTP-challenge bij login als de geforceerde enrollment over te slaan.
+ * Bestaande factors blijven in `auth.mfa_factors` staan; de admin-UI toont
+ * `mfa_enrolled` nog gewoon. Zodra deze vlag weg gaat treedt de enforcement
+ * weer in werking.
+ */
+const MFA_DISABLED = import.meta.env.VITE_DISABLE_MFA === 'true';
+
 async function determineAuthState(): Promise<AuthState> {
   const session = await getActiveSession();
   if (session === null) {
@@ -124,23 +133,25 @@ async function determineAuthState(): Promise<AuthState> {
   // wanneer de gebruiker is ingelogd met enkel password (aal1) terwijl er
   // een verified TOTP-factor is (nextLevel='aal2'). Dan moeten we die
   // 6-cijferige code afdwingen voordat we wat dan ook tonen.
-  const aalResp = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (
-    aalResp.data !== null &&
-    aalResp.data.currentLevel === 'aal1' &&
-    aalResp.data.nextLevel === 'aal2'
-  ) {
-    const factorsResp = await supabase.auth.mfa.listFactors();
-    if (factorsResp.data !== null) {
-      // `factors.totp` bevat alleen al-verified TOTP-factors (Supabase-API);
-      // eerste item is voldoende voor de challenge.
-      const verifiedTotp = factorsResp.data.totp[0];
-      if (verifiedTotp !== undefined) {
-        return { kind: 'mfa_challenge_required', factorId: verifiedTotp.id };
+  if (!MFA_DISABLED) {
+    const aalResp = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (
+      aalResp.data !== null &&
+      aalResp.data.currentLevel === 'aal1' &&
+      aalResp.data.nextLevel === 'aal2'
+    ) {
+      const factorsResp = await supabase.auth.mfa.listFactors();
+      if (factorsResp.data !== null) {
+        // `factors.totp` bevat alleen al-verified TOTP-factors (Supabase-API);
+        // eerste item is voldoende voor de challenge.
+        const verifiedTotp = factorsResp.data.totp[0];
+        if (verifiedTotp !== undefined) {
+          return { kind: 'mfa_challenge_required', factorId: verifiedTotp.id };
+        }
       }
+      // Geen verified factor maar aal-upgrade vereist: shouldn't happen.
+      // Door naar normale flow; mfa-enroll-check vangt het op.
     }
-    // Geen verified factor maar aal-upgrade vereist: shouldn't happen.
-    // Door naar normale flow; mfa-enroll-check vangt het op.
   }
 
   // Stap 2: profiel laden + whitelist
@@ -155,12 +166,15 @@ async function determineAuthState(): Promise<AuthState> {
     return { kind: 'force_password_change', author: access.author };
   }
 
-  // Stap 4: forced MFA enrollment? Vereist voor IEDEREEN (admins + auteurs).
-  // `factors.totp` bevat alleen verified factors; lege array = nog niet
-  // geconfigureerd → enrollment afdwingen.
-  const factorsResp = await supabase.auth.mfa.listFactors();
-  if (factorsResp.data !== null && factorsResp.data.totp.length === 0) {
-    return { kind: 'mfa_enroll_required', author: access.author };
+  // Stap 4: forced MFA enrollment? Vereist voor IEDEREEN (admins + auteurs),
+  // tenzij de test-fase-kill-switch aanstaat. `factors.totp` bevat alleen
+  // verified factors; lege array = nog niet geconfigureerd → enrollment
+  // afdwingen.
+  if (!MFA_DISABLED) {
+    const factorsResp = await supabase.auth.mfa.listFactors();
+    if (factorsResp.data !== null && factorsResp.data.totp.length === 0) {
+      return { kind: 'mfa_enroll_required', author: access.author };
+    }
   }
 
   // Alle hekken open

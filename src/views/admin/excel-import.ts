@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase';
 import { reportError } from '@/dev/debug-panel';
 import { t } from '@/lib/i18n';
 import { parseExcelSerialDate } from '@/lib/excel-import-helpers';
+import { extractFnError, formatFnErrorMessage } from '@/lib/edge-function-errors';
 
 interface ImportResult {
   created: number;
@@ -181,10 +182,14 @@ async function runImport(
       body: { rows: parsed.rows },
     });
 
-    const fnError = extractFnError(result.error);
+    const fnError = await extractFnError(result.error);
     if (fnError !== null) {
-      reportError('admin.excelImport', fnError);
-      showStatus(status, 'error', `${t('admin.excel_import_failed')}: ${fnError.message}`);
+      reportError('admin.excelImport', new Error(fnError.message));
+      showStatus(
+        status,
+        'error',
+        `${t('admin.excel_import_failed')}: ${formatFnErrorMessage(fnError)}`
+      );
       submit.disabled = false;
       submit.textContent = t('admin.excel_import_submit');
       return;
@@ -342,19 +347,6 @@ function renderResult(box: HTMLElement, result: ImportResult): void {
     }
     box.appendChild(list);
   }
-}
-
-function extractFnError(errVal: unknown): Error | null {
-  if (errVal instanceof Error) {
-    return errVal;
-  }
-  if (typeof errVal === 'string') {
-    return new Error(errVal);
-  }
-  if (errVal !== null && errVal !== undefined) {
-    return new Error('Edge Function call failed');
-  }
-  return null;
 }
 
 function showStatus(box: HTMLElement, kind: 'error' | 'success', message: string): void {
