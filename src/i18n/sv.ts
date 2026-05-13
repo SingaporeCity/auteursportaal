@@ -274,10 +274,10 @@ export const sv: Translations = {
     'Specifik månad (sex siffror, ÅÅÅÅMM). Lämna tomt = beloppet gäller för ALLA författarens PDF:er i denna batch. För månadsspecifika belopp, fyll i denna kolumn.',
   'admin.card_bulk_statements_help_outro':
     'Välj båda filer tillsammans → klicka "Visa förhandsgranskning" → kontrollera tabellen med författarmatchningar → bekräfta. Dubbeluppladdningar av samma PDF hoppas över automatiskt.',
-  'admin.toolbar_excel_import': 'Importera Excel',
-  'admin.toolbar_bulk_statements': 'Bulk-avräkningar',
+  'admin.toolbar_excel_import': 'Importera befintliga författare',
+  'admin.toolbar_bulk_statements': 'Ladda upp avräkningar',
   'admin.toolbar_csv_export': 'Exportera till NetSuite',
-  'admin.toolbar_new_author': 'Ny författare',
+  'admin.toolbar_new_author': 'Importera ny författare',
   'admin.tooltip_excel_import':
     'Skapa flera författare samtidigt från NetSuite-leverantörsexporten. För författare som redan finns hos Noordhoff med ifyllda uppgifter.',
   'admin.tooltip_bulk_statements':

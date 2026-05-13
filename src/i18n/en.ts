@@ -267,10 +267,10 @@ export const en: Translations = {
     "Specific month (six digits, YYYYMM). Leave empty = amount applies to ALL of that author's PDFs in this batch — convenient when you want one amount per author per upload. For month-specific amounts, fill this column.",
   'admin.card_bulk_statements_help_outro':
     'Select both files together → click "Show preview" → check the table of author-matches → confirm. Duplicate uploads of the same PDF are automatically skipped.',
-  'admin.toolbar_excel_import': 'Import Excel',
-  'admin.toolbar_bulk_statements': 'Bulk statements',
+  'admin.toolbar_excel_import': 'Import existing authors',
+  'admin.toolbar_bulk_statements': 'Upload Statements',
   'admin.toolbar_csv_export': 'Export to NetSuite',
-  'admin.toolbar_new_author': 'New author',
+  'admin.toolbar_new_author': 'Import new author',
   'admin.tooltip_excel_import':
     'Create multiple authors at once from the NetSuite Vendor export. For authors who already exist at Noordhoff with their data filled in.',
   'admin.tooltip_bulk_statements':

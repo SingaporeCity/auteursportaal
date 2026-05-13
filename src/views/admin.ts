@@ -324,17 +324,16 @@ function buildActionCard(opts: ActionCardOpts): HTMLElement {
   const card = document.createElement('section');
   card.className = 'admin-action-card';
 
-  // -- Bovenste rij: titel + (optioneel) help-toggle links · knoppen rechts
+  // -- Bovenste rij: titel pakt alle resterende ruimte (flex:1), help-toggle
+  // hangt vóór de knoppen — zo lijnt de toggle bij elke card uit op dezelfde
+  // x-positie (vlak naast de actie-knoppen rechts).
   const topRow = document.createElement('div');
   topRow.className = 'admin-action-card-top';
-
-  const titleGroup = document.createElement('div');
-  titleGroup.className = 'admin-action-card-title-group';
 
   const h3 = document.createElement('h3');
   h3.className = 'admin-action-card-title';
   h3.textContent = opts.title;
-  titleGroup.appendChild(h3);
+  topRow.appendChild(h3);
 
   let helpBody: HTMLElement | undefined;
   let helpToggle: HTMLButtonElement | undefined;
@@ -344,10 +343,8 @@ function buildActionCard(opts: ActionCardOpts): HTMLElement {
     helpToggle.className = 'admin-action-card-help-toggle';
     helpToggle.setAttribute('aria-expanded', 'false');
     helpToggle.textContent = t('admin.action_help_summary');
-    titleGroup.appendChild(helpToggle);
+    topRow.appendChild(helpToggle);
   }
-
-  topRow.appendChild(titleGroup);
 
   const buttonsRow = document.createElement('div');
   buttonsRow.className = 'admin-action-card-buttons';

@@ -1102,6 +1102,9 @@ a:hover {
   color: var(--color-text);
   margin: 0;
   line-height: 1.25;
+  /* Pak alle resterende ruimte zodat help-toggle + knoppen rechts uitlijnen */
+  flex: 1;
+  min-width: 0;
 }
 
 .admin-action-card-buttons {
@@ -1110,15 +1113,6 @@ a:hover {
   flex-shrink: 0;
   flex-wrap: wrap;
   justify-content: flex-end;
-}
-
-/* Titel + inline "Hoe werkt dit?"-toggle */
-.admin-action-card-title-group {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  min-width: 0;
-  flex-wrap: wrap;
 }
 
 .admin-action-card-help-toggle {

@@ -269,10 +269,10 @@ export const nl: Translations = {
     'Specifieke maand (zes cijfers, JJJJMM). Leeg laten = bedrag geldt voor álle PDFs van die auteur in deze batch — handig als je per upload één auteur één bedrag wilt geven. Voor maand-specifieke bedragen vul je deze kolom wel in.',
   'admin.card_bulk_statements_help_outro':
     'Selecteer beide bestanden samen → klik "Voorbeeld tonen" → controleer de tabel met auteur-matches → bevestig. Dubbel-uploaden van dezelfde PDF wordt automatisch overgeslagen.',
-  'admin.toolbar_excel_import': 'Importeer Excel',
-  'admin.toolbar_bulk_statements': 'Bulk statements',
+  'admin.toolbar_excel_import': 'Importeer bestaande auteurs',
+  'admin.toolbar_bulk_statements': 'Upload Statements',
   'admin.toolbar_csv_export': 'Export naar NetSuite',
-  'admin.toolbar_new_author': 'Nieuwe auteur',
+  'admin.toolbar_new_author': 'Importeer nieuwe auteur',
   'admin.tooltip_excel_import':
     'Maak in één keer meerdere auteurs aan vanuit de NetSuite-Vendor-export. Voor auteurs die al bij Noordhoff bekend zijn en hun gegevens al ingevuld hebben.',
   'admin.tooltip_bulk_statements':
