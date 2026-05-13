@@ -324,14 +324,30 @@ function buildActionCard(opts: ActionCardOpts): HTMLElement {
   const card = document.createElement('section');
   card.className = 'admin-action-card';
 
-  // -- Bovenste rij: titel + actie-knoppen
+  // -- Bovenste rij: titel + (optioneel) help-toggle links · knoppen rechts
   const topRow = document.createElement('div');
   topRow.className = 'admin-action-card-top';
+
+  const titleGroup = document.createElement('div');
+  titleGroup.className = 'admin-action-card-title-group';
 
   const h3 = document.createElement('h3');
   h3.className = 'admin-action-card-title';
   h3.textContent = opts.title;
-  topRow.appendChild(h3);
+  titleGroup.appendChild(h3);
+
+  let helpBody: HTMLElement | undefined;
+  let helpToggle: HTMLButtonElement | undefined;
+  if (opts.helpBuilder !== undefined) {
+    helpToggle = document.createElement('button');
+    helpToggle.type = 'button';
+    helpToggle.className = 'admin-action-card-help-toggle';
+    helpToggle.setAttribute('aria-expanded', 'false');
+    helpToggle.textContent = t('admin.action_help_summary');
+    titleGroup.appendChild(helpToggle);
+  }
+
+  topRow.appendChild(titleGroup);
 
   const buttonsRow = document.createElement('div');
   buttonsRow.className = 'admin-action-card-buttons';
@@ -345,22 +361,21 @@ function buildActionCard(opts: ActionCardOpts): HTMLElement {
 
   card.appendChild(topRow);
 
-  // -- Collapsible help-panel (native <details> voor accessibility)
-  if (opts.helpBuilder !== undefined) {
-    const details = document.createElement('details');
-    details.className = 'admin-action-card-help';
+  // -- Help-panel onder de top-row; standaard verborgen
+  if (opts.helpBuilder !== undefined && helpToggle !== undefined) {
+    helpBody = document.createElement('div');
+    helpBody.className = 'admin-action-card-help-body';
+    helpBody.hidden = true;
+    opts.helpBuilder(helpBody);
+    card.appendChild(helpBody);
 
-    const summary = document.createElement('summary');
-    summary.className = 'admin-action-card-help-summary';
-    summary.textContent = t('admin.action_help_summary');
-    details.appendChild(summary);
-
-    const body = document.createElement('div');
-    body.className = 'admin-action-card-help-body';
-    opts.helpBuilder(body);
-    details.appendChild(body);
-
-    card.appendChild(details);
+    helpToggle.addEventListener('click', () => {
+      const expanded = helpToggle.getAttribute('aria-expanded') === 'true';
+      helpToggle.setAttribute('aria-expanded', String(!expanded));
+      if (helpBody !== undefined) {
+        helpBody.hidden = expanded;
+      }
+    });
   }
 
   return card;
@@ -580,7 +595,11 @@ function renderFilterButtons(container: HTMLElement, state: ListState, onChange:
 
   const counts = countByDerivedStatus(state);
   const items: { value: FilterValue; label: string; count: number }[] = [
-    { value: 'all', label: t('admin.filter_all'), count: state.authors.length },
+    {
+      value: 'all',
+      label: t('admin.filter_all'),
+      count: state.authors.filter((a) => !a.is_admin).length,
+    },
     {
       value: 'persoonsgegevens',
       label: t('admin.status_persoonsgegevens_short'),
@@ -623,6 +642,10 @@ function countByDerivedStatus(state: ListState): Record<AdminStatus, number> {
     actief: 0,
   };
   for (const a of state.authors) {
+    // Admin-accounts horen niet in het auteursbeheer-overzicht.
+    if (a.is_admin) {
+      continue;
+    }
     const status = deriveAdminStatus(a, state.paymentsByAuthor.has(a.id));
     counts[status]++;
   }
@@ -636,6 +659,11 @@ function renderList(container: HTMLElement, state: ListState, statusBox: HTMLEle
   container.replaceChildren();
 
   const filtered = state.authors.filter((a) => {
+    // Admin-accounts horen niet in het auteursbeheer-overzicht — verberg ze
+    // ongeacht het actieve filter.
+    if (a.is_admin) {
+      return false;
+    }
     if (state.filter === 'all') {
       return true;
     }
