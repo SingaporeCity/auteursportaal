@@ -32,6 +32,44 @@ export const en: Translations = {
   'auth.set_password.title': 'Set your password',
   'auth.set_password.submit': 'Save password',
   'auth.logout': 'Sign out',
+
+  'auth.force_password.title': 'Choose your own password',
+  'auth.force_password.intro':
+    'Welcome! You are signed in with the initial password provided by Noordhoff. Please choose your own password to continue.',
+  'auth.force_password.field_new': 'New password',
+  'auth.force_password.field_confirm': 'Confirm password',
+  'auth.force_password.hint': 'At least {min} characters. Mix letters, numbers, and punctuation.',
+  'auth.force_password.submit': 'Save password',
+  'auth.force_password.error_too_short': 'Password must be at least {min} characters.',
+  'auth.force_password.error_mismatch': 'The passwords do not match.',
+  'auth.force_password.error_same_as_initial':
+    'Please choose a password different from the initial one.',
+  'auth.force_password.error_generic': 'Saving the password failed. Please try again.',
+  'auth.force_password.error_flag_failed':
+    'Password saved but status could not be updated. Please reload the page.',
+
+  'auth.mfa_enroll.title': 'Set up two-factor authentication',
+  'auth.mfa_enroll.intro':
+    'Secure your account with a second step. Install an authenticator app (e.g. Google Authenticator, Microsoft Authenticator, Authy or 1Password), scan the QR code, and enter the 6-digit code.',
+  'auth.mfa_enroll.step_scan': '1. Scan the QR code with your authenticator app',
+  'auth.mfa_enroll.qr_alt': 'QR code for authenticator app',
+  'auth.mfa_enroll.manual_label': "Can't scan? Enter this code manually:",
+  'auth.mfa_enroll.step_verify': '2. Enter the 6-digit code shown by your app',
+  'auth.mfa_enroll.code_label': 'Verification code (6 digits)',
+  'auth.mfa_enroll.submit': 'Confirm & activate',
+  'auth.mfa_enroll.error_enroll': '2FA setup failed. Please try again or sign out and back in.',
+  'auth.mfa_enroll.error_challenge': 'Could not start verification. Please try again.',
+  'auth.mfa_enroll.error_code_format': 'Please enter 6 digits.',
+  'auth.mfa_enroll.error_invalid_code':
+    'Incorrect code. Check your authenticator app and try again.',
+
+  'auth.mfa_challenge.title': 'Two-factor verification',
+  'auth.mfa_challenge.intro': 'Enter the 6-digit code from your authenticator app.',
+  'auth.mfa_challenge.code_label': 'Verification code',
+  'auth.mfa_challenge.submit': 'Sign in',
+  'auth.mfa_challenge.error_code_format': 'Please enter 6 digits.',
+  'auth.mfa_challenge.error_invalid_code': 'Incorrect code. Please try again.',
+  'auth.mfa_challenge.error_generic': 'Verification failed. Please try again.',
   'auth.no_access.title': 'No access',
   'auth.no_access.message':
     'This account does not have access to the author portal. Please contact Noordhoff.',
@@ -205,6 +243,14 @@ export const en: Translations = {
   'admin.btn_send_reminder': 'Send reminder',
   'admin.btn_activate': 'Activate',
   'admin.btn_upload_statement': 'Upload statement',
+  'admin.btn_reset_mfa': 'Reset 2FA',
+  'admin.confirm_reset_mfa':
+    'Reset 2FA for {name}? At their next sign-in, the author will need to set up an authenticator app again.',
+  'admin.reset_mfa_success': '2FA reset for {name} ({count} factor(s) removed).',
+  'admin.reset_mfa_failed': '2FA reset failed',
+  'admin.mfa_status_on': '2FA: on',
+  'admin.mfa_status_off': '2FA: off',
+  'admin.must_change_password_flag': 'password change required',
   'admin.status_admin': 'Admin',
   'admin.status_pending_data': 'Awaiting author',
   'admin.status_pending_review': 'Awaiting review',
@@ -216,7 +262,7 @@ export const en: Translations = {
 
   'admin.new_author_heading': 'New author',
   'admin.new_author_intro':
-    'Enter email + name. The author receives an invitation email immediately and fills in the profile before activation.',
+    'Enter email + name. The account is created with the initial password "Noordhoff". Share it personally with the author — at first login they\'ll choose their own password and then set up 2FA. No emails are sent during the test phase.',
   'admin.new_author_field_email': 'Email',
   'admin.new_author_field_firstname': 'First name',
   'admin.new_author_field_lastname': 'Last name',

@@ -213,7 +213,9 @@ serve(async (req: Request): Promise<Response> => {
         continue;
       }
 
-      // -- Authors-rij INSERT met dezelfde UUID
+      // -- Authors-rij INSERT met dezelfde UUID. `must_change_password=true`
+      // zorgt dat de auteur bij eerste login gedwongen wordt het start-
+      // wachtwoord 'Noordhoff' te vervangen (zie 0015 + force-password-change).
       const { error: insertErr } = await adminClient.from('authors').insert({
         id: author_id,
         email: normalized.email,
@@ -231,6 +233,7 @@ serve(async (req: Request): Promise<Response> => {
         netsuite_vendor_id: normalized.vendor_id === '' ? null : normalized.vendor_id,
         alliant_id: normalized.alliant_id === '' ? null : normalized.alliant_id,
         onboarding_status: 'pending_data',
+        must_change_password: true,
       });
 
       if (insertErr) {

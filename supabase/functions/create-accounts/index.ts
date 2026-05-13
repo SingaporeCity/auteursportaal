@@ -56,6 +56,12 @@ type Mode = 'invite' | 'activate';
 interface ActivateInput {
   author_id: string;
   email: string;
+  /**
+   * Optioneel start-wachtwoord voor nieuwe auth-users. Tijdens de test-fase
+   * gebruikt de admin-UI hier 'Noordhoff'; bij ontbreken valt ensureAuthUser
+   * terug op een random 64-char password (oude gedrag).
+   */
+  password?: string;
 }
 
 interface ActivateResult {
@@ -155,7 +161,13 @@ serve(async (req: Request): Promise<Response> => {
     const inputs: ActivateInput[] = Array.isArray(body.accounts)
       ? body.accounts
       : typeof body.author_id === 'string' && typeof body.email === 'string'
-        ? [{ author_id: body.author_id, email: body.email }]
+        ? [
+            {
+              author_id: body.author_id,
+              email: body.email,
+              password: typeof body.password === 'string' ? body.password : undefined,
+            },
+          ]
         : [];
 
     if (inputs.length === 0) {
@@ -217,7 +229,8 @@ async function sendRecoveryEmail(email: string): Promise<{ ok: boolean; error?: 
 async function ensureAuthUser(
   adminClient: ReturnType<typeof createClient>,
   author_id: string,
-  email: string
+  email: string,
+  password?: string
 ): Promise<{ ok: boolean; created: boolean; error?: string }> {
   // Check existing
   const { data: existingUsers } = await adminClient.auth.admin.listUsers();
@@ -228,11 +241,15 @@ async function ensureAuthUser(
     return { ok: true, created: false };
   }
 
-  const randomPassword = crypto.randomUUID() + crypto.randomUUID();
+  // Wachtwoord-keuze: caller mag een vast start-wachtwoord meegeven (test-fase
+  // 'Noordhoff' — auteur wordt bij eerste login geforceerd te wijzigen).
+  // Zonder caller-input val terug op random 64-char password (oude gedrag,
+  // dwingt invite-mail-flow af).
+  const effectivePassword = password ?? crypto.randomUUID() + crypto.randomUUID();
   const { error } = await adminClient.auth.admin.createUser({
     id: author_id,
     email,
-    password: randomPassword,
+    password: effectivePassword,
     email_confirm: true,
   });
   if (error) {
@@ -266,7 +283,7 @@ async function logAudit(
 
 async function processOne(
   adminClient: ReturnType<typeof createClient>,
-  { author_id, email }: ActivateInput,
+  { author_id, email, password }: ActivateInput,
   mode: Mode,
   actorId: string
 ): Promise<ActivateResult> {
@@ -281,9 +298,26 @@ async function processOne(
 
   try {
     // Maak/check auth-user (in beide modi nodig)
-    const ensure = await ensureAuthUser(adminClient, author_id, email);
+    const ensure = await ensureAuthUser(adminClient, author_id, email, password);
     if (!ensure.ok) {
       return { author_id, email, status: 'failed', error: ensure.error };
+    }
+
+    // Wanneer we zojuist een nieuwe auth-user hebben gemaakt met een vast
+    // start-wachtwoord, moet de auteur dat bij eerste inlog wijzigen. Dit
+    // vlaggetje wordt door de force-password-change view in de frontend
+    // uitgelezen en weer gereset zodra de gebruiker een eigen wachtwoord
+    // heeft gekozen via supabase.auth.updateUser.
+    if (ensure.created) {
+      const { error: flagErr } = await adminClient
+        .from('authors')
+        .update({ must_change_password: true })
+        .eq('id', author_id);
+      if (flagErr) {
+        // Niet fataal — gebruiker kan nog steeds inloggen. Loggen via audit
+        // is overkill; we leunen op de update-flow van de frontend om hem
+        // alsnog op de juiste plek te zetten bij volgende admin-actie.
+      }
     }
 
     // Mail-policy:

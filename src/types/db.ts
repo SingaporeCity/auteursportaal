@@ -49,6 +49,9 @@ export interface Database {
           data_submitted_at: string | null;
           reminder_sent_at: string | null;
           last_exported_at: string | null;
+          must_change_password: boolean;
+          password_changed_at: string | null;
+          mfa_enrolled: boolean;
           created_at: string;
           updated_at: string;
           activated_at: string | null;
@@ -79,6 +82,9 @@ export interface Database {
           data_submitted_at?: string | null;
           reminder_sent_at?: string | null;
           last_exported_at?: string | null;
+          must_change_password?: boolean;
+          password_changed_at?: string | null;
+          mfa_enrolled?: boolean;
           created_at?: string;
           updated_at?: string;
           activated_at?: string | null;
@@ -276,6 +282,10 @@ export interface Database {
       is_active_author: {
         Args: Record<string, never>;
         Returns: boolean;
+      };
+      admin_reset_mfa: {
+        Args: { p_author_id: string };
+        Returns: number;
       };
     };
     Enums: {

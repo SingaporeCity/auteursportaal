@@ -39,6 +39,45 @@ export const sv: Translations = {
   'auth.set_password.title': 'Ange ditt lösenord',
   'auth.set_password.submit': 'Spara lösenord',
   'auth.logout': 'Logga ut',
+
+  'auth.force_password.title': 'Välj ett eget lösenord',
+  'auth.force_password.intro':
+    'Välkommen! Du är inloggad med startlösenordet från Noordhoff. Välj nu ett eget lösenord för att fortsätta.',
+  'auth.force_password.field_new': 'Nytt lösenord',
+  'auth.force_password.field_confirm': 'Bekräfta lösenord',
+  'auth.force_password.hint': 'Minst {min} tecken. Blanda bokstäver, siffror och skiljetecken.',
+  'auth.force_password.submit': 'Spara lösenord',
+  'auth.force_password.error_too_short': 'Lösenordet måste vara minst {min} tecken.',
+  'auth.force_password.error_mismatch': 'Lösenorden stämmer inte överens.',
+  'auth.force_password.error_same_as_initial':
+    'Välj ett lösenord som skiljer sig från startlösenordet.',
+  'auth.force_password.error_generic': 'Det gick inte att spara lösenordet. Försök igen.',
+  'auth.force_password.error_flag_failed':
+    'Lösenordet har sparats men statusen kunde inte uppdateras. Ladda om sidan.',
+
+  'auth.mfa_enroll.title': 'Konfigurera tvåfaktorsautentisering',
+  'auth.mfa_enroll.intro':
+    'Säkra ditt konto med ett extra steg. Installera en autentiseringsapp (t.ex. Google Authenticator, Microsoft Authenticator, Authy eller 1Password), skanna QR-koden och ange den 6-siffriga koden.',
+  'auth.mfa_enroll.step_scan': '1. Skanna QR-koden med din autentiseringsapp',
+  'auth.mfa_enroll.qr_alt': 'QR-kod för autentiseringsapp',
+  'auth.mfa_enroll.manual_label': 'Kan du inte skanna? Ange denna kod manuellt:',
+  'auth.mfa_enroll.step_verify': '2. Ange den 6-siffriga koden som visas i din app',
+  'auth.mfa_enroll.code_label': 'Verifieringskod (6 siffror)',
+  'auth.mfa_enroll.submit': 'Bekräfta & aktivera',
+  'auth.mfa_enroll.error_enroll':
+    '2FA-konfigurationen misslyckades. Försök igen eller logga ut och in.',
+  'auth.mfa_enroll.error_challenge': 'Kunde inte starta verifieringen. Försök igen.',
+  'auth.mfa_enroll.error_code_format': 'Ange 6 siffror.',
+  'auth.mfa_enroll.error_invalid_code':
+    'Felaktig kod. Kontrollera din autentiseringsapp och försök igen.',
+
+  'auth.mfa_challenge.title': 'Tvåfaktorsverifiering',
+  'auth.mfa_challenge.intro': 'Ange den 6-siffriga koden från din autentiseringsapp.',
+  'auth.mfa_challenge.code_label': 'Verifieringskod',
+  'auth.mfa_challenge.submit': 'Logga in',
+  'auth.mfa_challenge.error_code_format': 'Ange 6 siffror.',
+  'auth.mfa_challenge.error_invalid_code': 'Felaktig kod. Försök igen.',
+  'auth.mfa_challenge.error_generic': 'Verifieringen misslyckades. Försök igen.',
   'auth.no_access.title': 'Ingen åtkomst',
   'auth.no_access.message':
     'Detta konto har ingen åtkomst till författarportalen. Kontakta Noordhoff.',
@@ -211,6 +250,14 @@ export const sv: Translations = {
   'admin.btn_send_reminder': 'Skicka påminnelse',
   'admin.btn_activate': 'Aktivera',
   'admin.btn_upload_statement': 'Ladda upp avräkning',
+  'admin.btn_reset_mfa': 'Återställ 2FA',
+  'admin.confirm_reset_mfa':
+    'Återställa 2FA för {name}? Vid nästa inloggning måste författaren konfigurera en autentiseringsapp på nytt.',
+  'admin.reset_mfa_success': '2FA återställd för {name} ({count} faktor(er) borttagna).',
+  'admin.reset_mfa_failed': '2FA-återställning misslyckades',
+  'admin.mfa_status_on': '2FA: på',
+  'admin.mfa_status_off': '2FA: av',
+  'admin.must_change_password_flag': 'lösenordsändring krävs',
   'admin.status_admin': 'Admin',
   'admin.status_pending_data': 'Väntar på författare',
   'admin.status_pending_review': 'Väntar på granskning',
@@ -222,7 +269,7 @@ export const sv: Translations = {
 
   'admin.new_author_heading': 'Ny författare',
   'admin.new_author_intro':
-    'Ange e-post + namn. Författaren får direkt en inbjudan via e-post och fyller själv i profilen innan kontot aktiveras.',
+    'Ange e-post + namn. Kontot skapas med startlösenordet "Noordhoff". Lämna det personligen till författaren — vid första inloggning väljer hen ett eget lösenord och därefter 2FA. Inga e-postmeddelanden skickas under testfasen.',
   'admin.new_author_field_email': 'E-post',
   'admin.new_author_field_firstname': 'Förnamn',
   'admin.new_author_field_lastname': 'Efternamn',

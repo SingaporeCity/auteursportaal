@@ -299,6 +299,10 @@ function renderAuthorCard(
   if (author.activated_at !== null) {
     parts.push(t('admin.activated_at').replace('{date}', formatShortDate(author.activated_at)));
   }
+  parts.push(author.mfa_enrolled ? t('admin.mfa_status_on') : t('admin.mfa_status_off'));
+  if (author.must_change_password) {
+    parts.push(t('admin.must_change_password_flag'));
+  }
   meta.textContent = parts.join(' · ');
   main.appendChild(meta);
 
@@ -353,6 +357,16 @@ function renderAuthorCard(
     actions.appendChild(expandBtn);
   }
 
+  // Reset-2FA-knop: alleen relevant als auteur al een verified factor heeft.
+  // Bij volgende inlog wordt automatisch nieuwe enrollment afgedwongen.
+  if (author.mfa_enrolled) {
+    actions.appendChild(
+      buildActionBtn(t('admin.btn_reset_mfa'), () => {
+        void resetMfaForAuthor(author, statusBox).then(onChanged);
+      })
+    );
+  }
+
   row.appendChild(actions);
 
   // Status-badge
@@ -387,6 +401,34 @@ function buildStatusBadge(author: AuthorRow): HTMLElement {
       break;
   }
   return badge;
+}
+
+async function resetMfaForAuthor(author: AuthorRow, statusBox: HTMLElement): Promise<void> {
+  const confirmMsg = t('admin.confirm_reset_mfa').replace(
+    '{name}',
+    `${author.first_name} ${author.last_name}`
+  );
+  // Native confirm — admin-tool, accessibility is acceptabel + voorkomt
+  // dat we hier een eigen modal-component moeten introduceren.
+  // eslint-disable-next-line no-alert
+  if (!window.confirm(confirmMsg)) {
+    return;
+  }
+
+  const { data, error } = await supabase.rpc('admin_reset_mfa', { p_author_id: author.id });
+  if (error !== null) {
+    reportError('admin.resetMfa', error);
+    showStatus(statusBox, 'error', `${t('admin.reset_mfa_failed')}: ${error.message}`);
+    return;
+  }
+  const deleted = typeof data === 'number' ? data : 0;
+  showStatus(
+    statusBox,
+    'success',
+    t('admin.reset_mfa_success')
+      .replace('{name}', `${author.first_name} ${author.last_name}`)
+      .replace('{count}', String(deleted))
+  );
 }
 
 function buildActionBtn(label: string, onClick: () => void): HTMLButtonElement {
@@ -576,12 +618,15 @@ async function createAndInviteAuthor(
   submit.disabled = true;
   submit.textContent = t('common.busy');
 
-  // Insert (status default = pending_data)
+  // Insert (status default = pending_data). `must_change_password=true` zorgt
+  // dat de auteur bij eerste inlog gedwongen wordt het start-wachtwoord
+  // 'Noordhoff' te wijzigen — symmetrisch met de bulk-import-flow.
   const { data, error } = await supabase
     .from('authors')
     .insert({
       ...values,
       is_admin: false,
+      must_change_password: true,
     })
     .select('id, email')
     .single();
@@ -598,8 +643,17 @@ async function createAndInviteAuthor(
   const insertedId: string = data.id;
   const insertedEmail: string = data.email;
 
+  // Tijdens test-fase: maak auth-user direct aan met wachtwoord 'Noordhoff'
+  // (zelfde patroon als bulk-import). Mail-flow is uit; admin geeft het
+  // wachtwoord persoonlijk door. Bij eerste inlog wordt het verplicht
+  // gewijzigd dankzij must_change_password.
   const inviteResult = await supabase.functions.invoke<CreateAccountsResult>('create-accounts', {
-    body: { author_id: insertedId, email: insertedEmail, mode: 'invite' },
+    body: {
+      author_id: insertedId,
+      email: insertedEmail,
+      password: INITIAL_PASSWORD,
+      mode: 'invite',
+    },
   });
 
   const fnErr = extractFnError(inviteResult.error);
@@ -610,11 +664,7 @@ async function createAndInviteAuthor(
     submit.disabled = false;
     submit.textContent = t('admin.new_author_submit');
     const reason = fnErr?.message ?? firstResult?.error ?? 'onbekend';
-    showStatus(
-      statusBox,
-      'error',
-      `Auteur aangemaakt maar invite-mail faalde (${reason}). Klik op "Stuur uitnodiging" in de lijst.`
-    );
+    showStatus(statusBox, 'error', `Auteur aangemaakt maar account-creatie faalde (${reason}).`);
     onCreated();
     return;
   }
@@ -623,10 +673,13 @@ async function createAndInviteAuthor(
   showStatus(
     statusBox,
     'success',
-    `${values.email} aangemaakt — invite-mail verstuurd. Auteur vult eigen profiel aan.`
+    `${values.email} aangemaakt. Geef de auteur persoonlijk het wachtwoord "${INITIAL_PASSWORD}" door — bij eerste inlog wordt deze automatisch gewijzigd.`
   );
   onCreated();
 }
+
+/** Vast start-wachtwoord voor de test-fase. Zie 0015_must_change_password.sql. */
+const INITIAL_PASSWORD = 'Noordhoff';
 
 // =============================================================================
 // Helpers

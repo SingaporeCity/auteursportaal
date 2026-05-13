@@ -32,6 +32,45 @@ export const nl: Translations = {
   'auth.set_password.title': 'Stel uw wachtwoord in',
   'auth.set_password.submit': 'Wachtwoord opslaan',
   'auth.logout': 'Uitloggen',
+
+  'auth.force_password.title': 'Kies een eigen wachtwoord',
+  'auth.force_password.intro':
+    'Welkom! U bent ingelogd met het door Noordhoff verstrekte start-wachtwoord. Kies nu een eigen wachtwoord om verder te gaan.',
+  'auth.force_password.field_new': 'Nieuw wachtwoord',
+  'auth.force_password.field_confirm': 'Bevestig wachtwoord',
+  'auth.force_password.hint':
+    'Minimaal {min} tekens. Gebruik een combinatie van letters, cijfers en leestekens.',
+  'auth.force_password.submit': 'Wachtwoord opslaan',
+  'auth.force_password.error_too_short': 'Wachtwoord moet minimaal {min} tekens zijn.',
+  'auth.force_password.error_mismatch': 'De wachtwoorden komen niet overeen.',
+  'auth.force_password.error_same_as_initial':
+    'Kies een wachtwoord dat niet gelijk is aan het start-wachtwoord.',
+  'auth.force_password.error_generic': 'Wachtwoord opslaan faalde. Probeer opnieuw.',
+  'auth.force_password.error_flag_failed':
+    'Wachtwoord is opgeslagen, maar de status kon niet worden bijgewerkt. Laad de pagina opnieuw.',
+
+  'auth.mfa_enroll.title': 'Stel 2-staps verificatie in',
+  'auth.mfa_enroll.intro':
+    'Beveilig uw account met een tweede stap. Installeer een authenticator-app (bv. Google Authenticator, Microsoft Authenticator, Authy of 1Password), scan de QR-code en voer vervolgens de 6-cijferige code in.',
+  'auth.mfa_enroll.step_scan': '1. Scan de QR-code met uw authenticator-app',
+  'auth.mfa_enroll.qr_alt': 'QR-code voor authenticator-app',
+  'auth.mfa_enroll.manual_label': 'Lukt scannen niet? Voer deze code handmatig in:',
+  'auth.mfa_enroll.step_verify': '2. Voer de 6-cijferige code in die uw app toont',
+  'auth.mfa_enroll.code_label': 'Verificatiecode (6 cijfers)',
+  'auth.mfa_enroll.submit': 'Bevestig & activeer',
+  'auth.mfa_enroll.error_enroll': '2FA opzetten faalde. Probeer opnieuw of log uit en weer in.',
+  'auth.mfa_enroll.error_challenge': 'Verificatie kon niet worden gestart. Probeer opnieuw.',
+  'auth.mfa_enroll.error_code_format': 'Voer 6 cijfers in.',
+  'auth.mfa_enroll.error_invalid_code':
+    'Onjuiste code. Controleer in uw authenticator-app en probeer opnieuw.',
+
+  'auth.mfa_challenge.title': '2-staps verificatie',
+  'auth.mfa_challenge.intro': 'Voer de 6-cijferige code uit uw authenticator-app in.',
+  'auth.mfa_challenge.code_label': 'Verificatiecode',
+  'auth.mfa_challenge.submit': 'Inloggen',
+  'auth.mfa_challenge.error_code_format': 'Voer 6 cijfers in.',
+  'auth.mfa_challenge.error_invalid_code': 'Onjuiste code. Probeer opnieuw.',
+  'auth.mfa_challenge.error_generic': 'Verificatie faalde. Probeer opnieuw.',
   'auth.no_access.title': 'Geen toegang',
   'auth.no_access.message':
     'Dit account heeft geen toegang tot het auteursportaal. Neem contact op met Noordhoff.',
@@ -206,6 +245,14 @@ export const nl: Translations = {
   'admin.btn_send_reminder': 'Stuur reminder',
   'admin.btn_activate': 'Activeer',
   'admin.btn_upload_statement': 'Statement uploaden',
+  'admin.btn_reset_mfa': 'Reset 2FA',
+  'admin.confirm_reset_mfa':
+    '2FA resetten voor {name}? Bij volgende inlog moet de auteur opnieuw een authenticator-app instellen.',
+  'admin.reset_mfa_success': '2FA gereset voor {name} ({count} factor(en) verwijderd).',
+  'admin.reset_mfa_failed': '2FA resetten faalde',
+  'admin.mfa_status_on': '2FA: aan',
+  'admin.mfa_status_off': '2FA: uit',
+  'admin.must_change_password_flag': 'wachtwoord wijzigen vereist',
   'admin.status_admin': 'Admin',
   'admin.status_pending_data': 'Wacht op auteur',
   'admin.status_pending_review': 'Wacht op review',
@@ -217,7 +264,7 @@ export const nl: Translations = {
 
   'admin.new_author_heading': 'Nieuwe auteur',
   'admin.new_author_intro':
-    'Vul email + naam in. De auteur ontvangt direct een invite-mail en vult het profiel zelf aan voordat het account geactiveerd wordt.',
+    'Vul email + naam in. Het account wordt aangemaakt met het start-wachtwoord "Noordhoff". Geef dat persoonlijk aan de auteur door — bij eerste inlog kiest hij/zij zelf een eigen wachtwoord en daarna 2FA. Tijdens de test-fase versturen we geen mails.',
   'admin.new_author_field_email': 'E-mail',
   'admin.new_author_field_firstname': 'Voornaam',
   'admin.new_author_field_lastname': 'Achternaam',

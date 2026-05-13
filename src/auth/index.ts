@@ -4,7 +4,14 @@
  * @module auth
  */
 
-export { decideAccess, type AuthorRow, type AccessDecision, type AccessRole } from './whitelist';
+export {
+  decideAccess,
+  type AuthorRow,
+  type AccessDecision,
+  type AccessGranted,
+  type AccessRole,
+  type AccessMode,
+} from './whitelist';
 export {
   restoreSession,
   getActiveSession,
