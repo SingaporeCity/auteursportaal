@@ -51,6 +51,9 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
           VITE_ADMIN_SSO_ENABLED: 'false'
+          # Test-fase: 2FA uitgeschakeld. Verwijder/zet op '' om enforcement
+          # weer aan te zetten — niemand zit dan vast, enroll-flow vangt het op.
+          VITE_DISABLE_MFA: 'true'
 
       - name: Verify no service_role JWT or env-var name in bundle
         run: |
