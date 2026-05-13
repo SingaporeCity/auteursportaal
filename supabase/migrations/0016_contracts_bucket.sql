@@ -20,6 +20,9 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Auteurs mogen eigen contract-PDFs downloaden (via signed URL gegenereerd
 -- door de frontend); admins mogen alle contracten lezen.
+-- DROP IF EXISTS maakt de migratie idempotent — veilig om opnieuw te draaien
+-- (bv. via `supabase db push` nadat een eerdere run de policies al aanmaakte).
+DROP POLICY IF EXISTS "contracts_select_own_or_admin" ON storage.objects;
 CREATE POLICY "contracts_select_own_or_admin"
     ON storage.objects
     FOR SELECT
@@ -34,6 +37,7 @@ CREATE POLICY "contracts_select_own_or_admin"
 -- Alleen admins mogen contracten toevoegen, vervangen of verwijderen.
 -- Auteurs mogen GEEN eigen contracten uploaden (in tegenstelling tot
 -- expense-receipts) — admin-only beheer.
+DROP POLICY IF EXISTS "contracts_admin_all" ON storage.objects;
 CREATE POLICY "contracts_admin_all"
     ON storage.objects
     FOR ALL
