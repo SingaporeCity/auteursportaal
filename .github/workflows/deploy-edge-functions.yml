@@ -1,0 +1,77 @@
+name: Deploy Supabase Edge Functions
+
+# Triggert bij wijzigingen in een Edge Function-folder of deze workflow zelf.
+# `workflow_dispatch` staat handmatige runs toe (eerste keer / re-deploy).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/**'
+      - '.github/workflows/deploy-edge-functions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Eén deploy tegelijk om race-condities op de Supabase-functions-API te vermijden.
+concurrency:
+  group: 'supabase-functions'
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy all Edge Functions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Verify required secrets are configured
+        env:
+          ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          if [ -z "$ACCESS_TOKEN" ]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN is leeg. Maak een Personal Access Token aan op https://supabase.com/dashboard/account/tokens en zet de waarde als repo-secret SUPABASE_ACCESS_TOKEN."
+            exit 1
+          fi
+          if [ -z "$PROJECT_REF" ]; then
+            echo "::error::SUPABASE_PROJECT_REF is leeg. Pak het project-ref-prefix uit je Supabase-dashboard-URL (https://supabase.com/dashboard/project/<REF>/...) en zet 't als repo-secret SUPABASE_PROJECT_REF."
+            exit 1
+          fi
+
+      - name: Deploy each function
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          set -e
+          for fn_dir in supabase/functions/*/; do
+            name=$(basename "$fn_dir")
+            # Skip private/shared dirs die geen deploybare function zijn
+            case "$name" in
+              _*|tests) echo "Skipping $name"; continue ;;
+            esac
+            echo "::group::Deploying $name"
+            supabase functions deploy "$name" --project-ref "$PROJECT_REF"
+            echo "::endgroup::"
+          done
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "## ✓ Edge Functions deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Live op project \`${{ secrets.SUPABASE_PROJECT_REF }}\`:" >> $GITHUB_STEP_SUMMARY
+          for fn_dir in supabase/functions/*/; do
+            name=$(basename "$fn_dir")
+            case "$name" in _*|tests) continue ;; esac
+            echo "- \`$name\`" >> $GITHUB_STEP_SUMMARY
+          done
