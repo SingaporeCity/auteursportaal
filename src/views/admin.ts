@@ -384,14 +384,12 @@ function renderAuthorCard(
   name.textContent = `${author.first_name} ${author.last_name}`;
   main.appendChild(name);
 
-  const email = document.createElement('div');
-  email.className = 'admin-author-email';
-  email.textContent = author.email;
-  main.appendChild(email);
-
+  // Tweede regel: email + aangemaakt-datum + (optioneel) vendor en/of meest
+  // recente lifecycle-datum. Eén regel om de card-hoogte compact te houden.
   const meta = document.createElement('div');
   meta.className = 'admin-author-meta';
   const parts: string[] = [
+    author.email,
     t('admin.created_at').replace('{date}', formatShortDate(author.created_at)),
   ];
   if (author.netsuite_vendor_id !== null) {
