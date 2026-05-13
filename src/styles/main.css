@@ -3663,6 +3663,89 @@ a:hover {
   }
 }
 
+/* ============================================================================
+ * "Welk formulier moet ik kiezen?" — collapsible help boven de download-cards
+ * ============================================================================ */
+.expenses-types-help {
+  margin: 0.5rem 0 1.25rem;
+}
+
+.expenses-types-help-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  font-size: 0.85rem;
+  font-variation-settings: 'wght' 550;
+  letter-spacing: -0.005em;
+  color: var(--color-primary);
+  transition: color 180ms ease;
+}
+
+.expenses-types-help-summary::-webkit-details-marker {
+  display: none;
+}
+
+.expenses-types-help-summary:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Custom chevron — draait 90° wanneer open */
+.expenses-types-help-summary::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 180ms ease;
+  margin-bottom: 2px;
+}
+
+.expenses-types-help[open] .expenses-types-help-summary::before {
+  transform: rotate(45deg);
+  margin-bottom: 0;
+}
+
+.expenses-types-help-body {
+  margin-top: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  max-width: 75ch;
+}
+
+.expenses-types-help-body > .expenses-types-help-title + .expenses-types-help-text {
+  margin-bottom: 0.5rem;
+}
+
+.expenses-types-help-title {
+  font-size: 0.92rem;
+  font-variation-settings: 'wght' 620;
+  letter-spacing: -0.005em;
+  color: var(--color-text);
+  margin: 0 0 0.4rem;
+  line-height: 1.3;
+}
+
+.expenses-types-help-title + .expenses-types-help-text + .expenses-types-help-title {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.expenses-types-help-text {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--color-text);
+  margin: 0;
+}
+
 .expenses-form-card-option {
   display: block;
   background: var(--color-surface);
