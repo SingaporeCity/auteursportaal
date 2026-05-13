@@ -303,6 +303,14 @@ interface NormalizedRow {
 function normalizeRow(raw: InputRow): NormalizedRow {
   const { first_name, last_name } = splitName(raw.name ?? '');
   const { street, house_number } = splitAddress(raw.address_line ?? '');
+
+  // Geboortedatum: implausibel jaartal (typisch placeholder 1900-01-01 voor
+  // bedrijven of >2010 voor invoerfouten) wordt stilzwijgend gewist zodat de
+  // rij gewoon importeert met `NULL`. Geen rij-fout — bedrijven horen sowieso
+  // geen geboortedatum te hebben.
+  const rawBirthDate = (raw.birth_date ?? '').trim();
+  const birth_date = rawBirthDate !== '' && !isPlausibleBirthDate(rawBirthDate) ? '' : rawBirthDate;
+
   return {
     email: (raw.email ?? '').trim().toLowerCase(),
     first_name,
@@ -315,7 +323,7 @@ function normalizeRow(raw: InputRow): NormalizedRow {
     bsn: (raw.bsn ?? '').replace(/\s/g, ''),
     bic: (raw.bic ?? '').trim().toUpperCase(),
     iban: (raw.iban ?? '').replace(/\s/g, '').toUpperCase(),
-    birth_date: (raw.birth_date ?? '').trim(),
+    birth_date,
     vendor_id: (raw.vendor_id ?? '').trim(),
     alliant_id: (raw.internal_id ?? '').trim(),
   };
@@ -410,8 +418,11 @@ function validateNormalized(row: NormalizedRow): string[] {
   if (row.iban !== '' && !isValidIBAN(row.iban)) {
     errs.push('IBAN ongeldig (mod-97 faalt)');
   }
-  if (row.birth_date !== '' && !isPlausibleBirthDate(row.birth_date)) {
-    errs.push(`Geboortedatum implausibel of foutief geformatteerd: "${row.birth_date}"`);
+  // Format-check: na normalizeRow zijn implausibele datums al ge-NULL'd, dus
+  // wat hier overblijft moet ISO YYYY-MM-DD zijn. Faalt alleen bij echte
+  // parsing-rotzooi vanuit de frontend (zou niet mogen).
+  if (row.birth_date !== '' && !/^\d{4}-\d{2}-\d{2}$/.test(row.birth_date)) {
+    errs.push(`Geboortedatum heeft onbekend formaat: "${row.birth_date}"`);
   }
   return errs;
 }

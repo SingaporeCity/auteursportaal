@@ -24,7 +24,19 @@ export interface SetPasswordResult {
   error?: 'too_short' | 'no_recovery_session' | 'network' | 'unknown';
 }
 
-const MIN_PASSWORD_LENGTH = 12;
+/**
+ * Minimum-lengte voor zelfgekozen wachtwoorden. Default 12 (OWASP-baseline
+ * voor accounts zonder MFA). Tijdens test-fase kan dit verlaagd worden via
+ * `VITE_PASSWORD_MIN_LENGTH=6` zodat testers niet hoeven uit te wijken naar
+ * een wachtwoordmanager. Waardes buiten [1, 128] worden genegeerd.
+ */
+const ENV_MIN_PASSWORD_LENGTH = Number(import.meta.env.VITE_PASSWORD_MIN_LENGTH);
+const MIN_PASSWORD_LENGTH =
+  Number.isFinite(ENV_MIN_PASSWORD_LENGTH) &&
+  ENV_MIN_PASSWORD_LENGTH >= 1 &&
+  ENV_MIN_PASSWORD_LENGTH <= 128
+    ? ENV_MIN_PASSWORD_LENGTH
+    : 12;
 
 /**
  * Logt in met email + password. Geeft `success: false` met type-classified

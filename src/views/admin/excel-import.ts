@@ -135,28 +135,48 @@ export function openExcelImportModal(onDone: () => void): void {
   });
   document.addEventListener('keydown', escHandler);
 
+  // Volg de status van een geslaagde import: na renderResult heet de knop
+  // "Sluiten" en moet een klik de modal dichtdoen, niet opnieuw uploaden.
+  let submissionDone = false;
+
   submit.addEventListener('click', () => {
+    if (submissionDone) {
+      close();
+      return;
+    }
     const file = fileInput.files?.[0];
     if (file === undefined) {
       showStatus(status, 'error', t('admin.excel_import_no_file'));
       return;
     }
-    void runImport(file, submit, status, resultBox);
+    void runImport(file, submit, status, resultBox).then((outcome) => {
+      if (outcome === 'done') {
+        submissionDone = true;
+      }
+    });
   });
 
   document.body.appendChild(overlay);
 }
+
+type ImportOutcome = 'done' | 'aborted';
 
 async function runImport(
   file: File,
   submit: HTMLButtonElement,
   status: HTMLElement,
   resultBox: HTMLElement
-): Promise<void> {
+): Promise<ImportOutcome> {
   submit.disabled = true;
   submit.textContent = t('common.busy');
   status.hidden = true;
   resultBox.hidden = true;
+
+  const abort = (): ImportOutcome => {
+    submit.disabled = false;
+    submit.textContent = t('admin.excel_import_submit');
+    return 'aborted';
+  };
 
   try {
     const buffer = await file.arrayBuffer();
@@ -166,16 +186,12 @@ async function runImport(
     const parsed = parseExcelBuffer(XLSX, buffer);
     if ('error' in parsed) {
       showStatus(status, 'error', parsed.error);
-      submit.disabled = false;
-      submit.textContent = t('admin.excel_import_submit');
-      return;
+      return abort();
     }
 
     if (parsed.rows.length === 0) {
       showStatus(status, 'error', t('admin.excel_import_empty'));
-      submit.disabled = false;
-      submit.textContent = t('admin.excel_import_submit');
-      return;
+      return abort();
     }
 
     const result = await supabase.functions.invoke<ImportResult>('bulk-create-existing-authors', {
@@ -190,27 +206,23 @@ async function runImport(
         'error',
         `${t('admin.excel_import_failed')}: ${formatFnErrorMessage(fnError)}`
       );
-      submit.disabled = false;
-      submit.textContent = t('admin.excel_import_submit');
-      return;
+      return abort();
     }
 
     const data = result.data;
     if (data === null) {
       showStatus(status, 'error', t('admin.excel_import_no_response'));
-      submit.disabled = false;
-      submit.textContent = t('admin.excel_import_submit');
-      return;
+      return abort();
     }
 
     renderResult(resultBox, data);
     submit.textContent = t('admin.excel_import_close');
     submit.disabled = false;
+    return 'done';
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     showStatus(status, 'error', `${t('admin.excel_import_unexpected')}: ${message}`);
-    submit.disabled = false;
-    submit.textContent = t('admin.excel_import_submit');
+    return abort();
   }
 }
 
