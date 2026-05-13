@@ -231,6 +231,14 @@ export const en: Translations = {
   'admin.section_overline': 'Management',
   'admin.section_heading': 'Author management',
   'admin.empty_filter': 'No authors in this filter.',
+  'admin.tab_accounts': 'Accounts',
+  'admin.tab_persoonsgegevens': 'Personal details',
+  'admin.card_add_authors_title': 'Add authors',
+  'admin.card_add_authors_explanation':
+    'Two ways to create authors. "Import Excel" handles multiple at once from a NetSuite Vendor export (the default route). "New author" is for one-off exceptions added manually. Both create a working account with the initial password "Noordhoff" — which the author changes at first sign-in. You still need to activate the account before the author is notified.',
+  'admin.card_bulk_statements_title': 'Upload royalty statements',
+  'admin.card_bulk_statements_explanation':
+    'Upload multiple royalty statement PDFs at once. Authors are matched automatically via the Alliant ID in the filename (NU_SC_<id>_<name>_<YYYYMM>.pdf). The matching amount comes from a companion Excel.',
   'admin.toolbar_excel_import': 'Import Excel',
   'admin.toolbar_bulk_statements': 'Bulk statements',
   'admin.toolbar_csv_export': 'Export to NetSuite',
@@ -266,6 +274,9 @@ export const en: Translations = {
   'admin.status_gereed_short': 'Ready for activation',
   'admin.status_actief': 'Active',
   'admin.status_actief_short': 'Active',
+  'admin.card_export_title': 'Export to NetSuite',
+  'admin.card_export_explanation':
+    'Generate a CSV with all author data changed since the last export. Upload the file to Noordhoff SharePoint so the NetSuite team can import the new data. A timestamp is recorded per export so the same change is never reported twice.',
   'admin.created_at': 'Created {date}',
   'admin.invited_at': 'Invited {date}',
   'admin.reminder_at': 'Reminder {date}',

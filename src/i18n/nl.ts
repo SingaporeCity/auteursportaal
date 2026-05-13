@@ -233,6 +233,14 @@ export const nl: Translations = {
   'admin.section_overline': 'Beheer',
   'admin.section_heading': 'Auteursbeheer',
   'admin.empty_filter': 'Geen auteurs in dit filter.',
+  'admin.tab_accounts': 'Accounts',
+  'admin.tab_persoonsgegevens': 'Persoonsgegevens',
+  'admin.card_add_authors_title': 'Auteurs toevoegen',
+  'admin.card_add_authors_explanation':
+    'Twee manieren om auteurs aan te maken. "Importeer Excel" doet er meerdere tegelijk vanuit een NetSuite-Vendor-export (de standaard-route). "Nieuwe auteur" is voor uitzonderingen die handmatig moeten. Beide leveren een werkend account met start-wachtwoord "Noordhoff" dat de auteur bij eerste inlog wijzigt — daarna moet je het account nog activeren voordat de auteur een melding krijgt.',
+  'admin.card_bulk_statements_title': 'Royaltystatements uploaden',
+  'admin.card_bulk_statements_explanation':
+    'Upload meerdere royalty-statement-PDFs tegelijk. Auteurs worden automatisch gekoppeld via hun Alliant ID in de filename (NU_SC_<id>_<naam>_<YYYYMM>.pdf). Het bijhorende bedrag haal je uit een meegeleverde Excel.',
   'admin.toolbar_excel_import': 'Importeer Excel',
   'admin.toolbar_bulk_statements': 'Bulk statements',
   'admin.toolbar_csv_export': 'Export naar NetSuite',
@@ -268,6 +276,9 @@ export const nl: Translations = {
   'admin.status_gereed_short': 'Gereed voor activatie',
   'admin.status_actief': 'Actief',
   'admin.status_actief_short': 'Actief',
+  'admin.card_export_title': 'Export naar NetSuite',
+  'admin.card_export_explanation':
+    'Genereer een CSV met alle auteursgegevens die gewijzigd zijn sinds de laatste export. Upload het bestand vervolgens naar Noordhoff SharePoint zodat NetSuite-administratie de nieuwe gegevens overneemt. Per export wordt een tijdstempel bijgehouden zodat dezelfde wijziging niet twee keer gerapporteerd wordt.',
   'admin.created_at': 'Aangemaakt {date}',
   'admin.invited_at': 'Uitgenodigd {date}',
   'admin.reminder_at': 'Reminder {date}',

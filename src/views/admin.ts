@@ -38,6 +38,30 @@ interface ListState {
   paymentsByAuthor: Set<string>;
 }
 
+/** Twee tabs in het admin-portaal. Keuze wordt in localStorage bewaard. */
+type AdminTab = 'accounts' | 'persoonsgegevens';
+const TAB_STORAGE_KEY = 'admin-tab';
+
+function getInitialTab(): AdminTab {
+  try {
+    const stored = localStorage.getItem(TAB_STORAGE_KEY);
+    if (stored === 'accounts' || stored === 'persoonsgegevens') {
+      return stored;
+    }
+  } catch {
+    // localStorage kan in private-browsing geblokkeerd zijn — val terug op default
+  }
+  return 'accounts';
+}
+
+function persistTab(tab: AdminTab): void {
+  try {
+    localStorage.setItem(TAB_STORAGE_KEY, tab);
+  } catch {
+    // best-effort
+  }
+}
+
 export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   root.replaceChildren();
 
@@ -49,17 +73,101 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   main.className = 'admin-content';
   layout.appendChild(main);
 
-  // -- Pending change_requests bovenaan
-  const changesWrapper = document.createElement('section');
-  changesWrapper.className = 'admin-section';
-  main.appendChild(changesWrapper);
-  const refreshChanges = (): void => {
-    changesWrapper.replaceChildren();
-    void renderChangesSection(changesWrapper, admin.id, refreshChanges);
-  };
-  refreshChanges();
+  // Section-header met tab-bar
+  main.appendChild(buildSectionHeader());
 
-  // -- Auteursbeheer-sectie
+  // -- Gedeeld state-object: authors + payments. Eén bron van waarheid die
+  // beide tabs gebruiken (Accounts-tab toont auteurslijst, Persoonsgegevens
+  // gebruikt 'm voor de change-requests-section).
+  const state: ListState = { filter: 'all', authors: [], paymentsByAuthor: new Set() };
+
+  const statusBox = document.createElement('div');
+  statusBox.className = 'admin-status';
+  statusBox.hidden = true;
+  main.appendChild(statusBox);
+
+  // -- Tab-bar
+  let currentTab = getInitialTab();
+  const tabBar = document.createElement('nav');
+  tabBar.className = 'admin-tab-bar';
+  tabBar.setAttribute('role', 'tablist');
+  main.appendChild(tabBar);
+
+  const tabPanel = document.createElement('div');
+  tabPanel.className = 'admin-tab-panel';
+  main.appendChild(tabPanel);
+
+  const switchTab = (next: AdminTab): void => {
+    currentTab = next;
+    persistTab(next);
+    renderTabBar();
+    renderActiveTab();
+  };
+
+  function renderTabBar(): void {
+    tabBar.replaceChildren();
+    const tabs: { value: AdminTab; label: string }[] = [
+      { value: 'accounts', label: t('admin.tab_accounts') },
+      { value: 'persoonsgegevens', label: t('admin.tab_persoonsgegevens') },
+    ];
+    for (const tab of tabs) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'admin-tab-btn';
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', String(tab.value === currentTab));
+      if (tab.value === currentTab) {
+        btn.classList.add('admin-tab-btn--active');
+      }
+      btn.textContent = tab.label;
+      btn.addEventListener('click', () => {
+        switchTab(tab.value);
+      });
+      tabBar.appendChild(btn);
+    }
+  }
+
+  function rerenderAccounts(filtersEl: HTMLElement, listEl: HTMLElement): void {
+    renderFilterButtons(filtersEl, state, () => {
+      rerenderAccounts(filtersEl, listEl);
+    });
+    renderList(listEl, state, statusBox);
+  }
+
+  function renderActiveTab(): void {
+    tabPanel.replaceChildren();
+    if (currentTab === 'accounts') {
+      renderAccountsTab(tabPanel, state, statusBox, () => {
+        void loadAuthors(
+          state,
+          () => {
+            // re-render filter + lijst zonder de hele tab opnieuw te tekenen
+            const filtersEl = tabPanel.querySelector('.admin-filters');
+            const listEl = tabPanel.querySelector('.admin-author-list');
+            if (filtersEl instanceof HTMLElement && listEl instanceof HTMLElement) {
+              rerenderAccounts(filtersEl, listEl);
+            }
+          },
+          statusBox
+        );
+      });
+    } else {
+      renderPersoonsgegevensTab(tabPanel, admin.id, state, statusBox);
+    }
+  }
+
+  renderTabBar();
+
+  // Eerst auteurs laden, dan tab tonen — voorkomt flicker van 'leeg' → 'vol'.
+  void loadAuthors(state, renderActiveTab, statusBox);
+
+  root.appendChild(layout);
+}
+
+// =============================================================================
+// Section-header (overline + heading boven de tabs)
+// =============================================================================
+function buildSectionHeader(): HTMLElement {
   const sectionHeader = document.createElement('header');
   sectionHeader.className = 'admin-section-header';
 
@@ -73,95 +181,169 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   heading.textContent = t('admin.section_heading');
   sectionHeader.appendChild(heading);
 
-  main.appendChild(sectionHeader);
+  return sectionHeader;
+}
 
-  const statusBox = document.createElement('div');
-  statusBox.className = 'admin-status';
-  statusBox.hidden = true;
-  main.appendChild(statusBox);
-
-  // Toolbar: actie-knoppen
-  const toolbar = document.createElement('div');
-  toolbar.className = 'admin-toolbar';
-  main.appendChild(toolbar);
-
-  const excelBtn = buildToolbarBtn(
-    t('admin.toolbar_excel_import'),
-    ICON_DOWNLOAD,
-    t('admin.tooltip_excel_import')
+// =============================================================================
+// Tab "Accounts"
+// =============================================================================
+function renderAccountsTab(
+  container: HTMLElement,
+  state: ListState,
+  statusBox: HTMLElement,
+  onAuthorsChanged: () => void
+): void {
+  // ---- Action-card 1: Auteurs toevoegen (Excel + handmatig)
+  container.appendChild(
+    buildActionCard({
+      title: t('admin.card_add_authors_title'),
+      explanation: t('admin.card_add_authors_explanation'),
+      buttons: [
+        {
+          label: t('admin.toolbar_excel_import'),
+          icon: ICON_DOWNLOAD,
+          tooltip: t('admin.tooltip_excel_import'),
+          variant: 'primary',
+          onClick: () => {
+            openExcelImportModal(onAuthorsChanged);
+          },
+        },
+        {
+          label: t('admin.toolbar_new_author'),
+          icon: ICON_PLUS,
+          tooltip: t('admin.tooltip_new_author'),
+          variant: 'secondary',
+          onClick: () => {
+            openNewAuthorForm(container, onAuthorsChanged, statusBox);
+          },
+        },
+      ],
+    })
   );
-  toolbar.appendChild(excelBtn);
 
-  const bulkStmtBtn = buildToolbarBtn(
-    t('admin.toolbar_bulk_statements'),
-    ICON_UPLOAD,
-    t('admin.tooltip_bulk_statements')
+  // ---- Action-card 2: Royaltystatements uploaden
+  container.appendChild(
+    buildActionCard({
+      title: t('admin.card_bulk_statements_title'),
+      explanation: t('admin.card_bulk_statements_explanation'),
+      buttons: [
+        {
+          label: t('admin.toolbar_bulk_statements'),
+          icon: ICON_UPLOAD,
+          tooltip: t('admin.tooltip_bulk_statements'),
+          variant: 'primary',
+          onClick: () => {
+            openBulkStatementUploadModal(onAuthorsChanged);
+          },
+        },
+      ],
+    })
   );
-  toolbar.appendChild(bulkStmtBtn);
 
-  const exportBtn = buildToolbarBtn(
-    t('admin.toolbar_csv_export'),
-    ICON_UPLOAD,
-    t('admin.tooltip_csv_export')
-  );
-  toolbar.appendChild(exportBtn);
-
-  const newAuthorBtn = buildToolbarBtn(
-    t('admin.toolbar_new_author'),
-    ICON_PLUS,
-    t('admin.tooltip_new_author')
-  );
-  toolbar.appendChild(newAuthorBtn);
-
-  // Filter-tabs
+  // ---- Filter-pills + auteurslijst
   const filters = document.createElement('div');
   filters.className = 'admin-filters';
-  main.appendChild(filters);
+  container.appendChild(filters);
 
   const list = document.createElement('div');
   list.className = 'admin-author-list';
   list.textContent = t('common.loading');
-  main.appendChild(list);
+  container.appendChild(list);
 
-  const state: ListState = { filter: 'all', authors: [], paymentsByAuthor: new Set() };
-
-  function rerender(): void {
-    renderFilterButtons(filters, state, () => {
-      rerender();
-    });
+  const rerender = (): void => {
+    renderFilterButtons(filters, state, rerender);
     renderList(list, state, statusBox);
+  };
+  rerender();
+}
+
+// =============================================================================
+// Tab "Persoonsgegevens"
+// =============================================================================
+function renderPersoonsgegevensTab(
+  container: HTMLElement,
+  adminId: string,
+  state: ListState,
+  statusBox: HTMLElement
+): void {
+  // ---- Wachtende wijzigingsverzoeken (gerenderd door bestaande module)
+  const changesWrapper = document.createElement('section');
+  changesWrapper.className = 'admin-section admin-section--changes';
+  container.appendChild(changesWrapper);
+
+  const refreshChanges = (): void => {
+    changesWrapper.replaceChildren();
+    void renderChangesSection(changesWrapper, adminId, refreshChanges);
+  };
+  refreshChanges();
+
+  // ---- Action-card: Export naar NetSuite
+  container.appendChild(
+    buildActionCard({
+      title: t('admin.card_export_title'),
+      explanation: t('admin.card_export_explanation'),
+      buttons: [
+        {
+          label: t('admin.toolbar_csv_export'),
+          icon: ICON_UPLOAD,
+          tooltip: t('admin.tooltip_csv_export'),
+          variant: 'primary',
+          onClick: () => {
+            openCsvExportModal(state.authors, () => {
+              void loadAuthors(state, () => undefined, statusBox);
+            });
+          },
+        },
+      ],
+    })
+  );
+}
+
+// =============================================================================
+// Action-card helper
+// =============================================================================
+interface ActionCardButton {
+  label: string;
+  icon: string;
+  tooltip?: string;
+  variant: 'primary' | 'secondary';
+  onClick: () => void;
+}
+
+function buildActionCard(opts: {
+  title: string;
+  explanation: string;
+  buttons: ActionCardButton[];
+}): HTMLElement {
+  const card = document.createElement('section');
+  card.className = 'admin-action-card';
+
+  const header = document.createElement('div');
+  header.className = 'admin-action-card-info';
+
+  const h3 = document.createElement('h3');
+  h3.className = 'admin-action-card-title';
+  h3.textContent = opts.title;
+  header.appendChild(h3);
+
+  const p = document.createElement('p');
+  p.className = 'admin-action-card-explanation';
+  p.textContent = opts.explanation;
+  header.appendChild(p);
+
+  card.appendChild(header);
+
+  const buttonsRow = document.createElement('div');
+  buttonsRow.className = 'admin-action-card-buttons';
+  for (const btnSpec of opts.buttons) {
+    const btn = buildToolbarBtn(btnSpec.label, btnSpec.icon, btnSpec.tooltip);
+    btn.classList.add(`admin-action--${btnSpec.variant}`);
+    btn.addEventListener('click', btnSpec.onClick);
+    buttonsRow.appendChild(btn);
   }
+  card.appendChild(buttonsRow);
 
-  excelBtn.addEventListener('click', () => {
-    openExcelImportModal(() => {
-      void loadAuthors(state, rerender, statusBox);
-    });
-  });
-
-  bulkStmtBtn.addEventListener('click', () => {
-    openBulkStatementUploadModal(() => {
-      void loadAuthors(state, rerender, statusBox);
-    });
-  });
-
-  exportBtn.addEventListener('click', () => {
-    openCsvExportModal(state.authors, () => {
-      void loadAuthors(state, rerender, statusBox);
-    });
-  });
-
-  newAuthorBtn.addEventListener('click', () => {
-    openNewAuthorForm(
-      main,
-      () => {
-        void loadAuthors(state, rerender, statusBox);
-      },
-      statusBox
-    );
-  });
-
-  void loadAuthors(state, rerender, statusBox);
-  root.appendChild(layout);
+  return card;
 }
 
 async function loadAuthors(

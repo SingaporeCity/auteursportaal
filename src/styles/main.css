@@ -1013,9 +1013,148 @@ a:hover {
 
 /* Section header met overline + heading */
 .admin-section-header {
-  margin: 2.5rem 0 1.25rem;
-  padding-bottom: 1rem;
+  margin: 2.5rem 0 0.75rem;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* ============================================================================
+ * Tab-bar onder de section-header. Hairline-onderlijn + actieve tab heeft
+ * een dikkere primary-kleur-underline. Modern dashboard-pattern.
+ * ============================================================================ */
+.admin-tab-bar {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0 0 1.5rem;
   border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0;
+}
+
+.admin-tab-btn {
+  position: relative;
+  padding: 0.65rem 0.25rem;
+  margin-right: 1.5rem;
+  background: transparent;
+  border: none;
+  font-size: 0.95rem;
+  font-variation-settings: 'wght' 540;
+  letter-spacing: -0.005em;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+.admin-tab-btn:hover {
+  color: var(--color-text);
+}
+
+.admin-tab-btn--active {
+  color: var(--color-text);
+  font-variation-settings: 'wght' 620;
+}
+
+.admin-tab-btn--active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px; /* overlapt de tab-bar bottom-border */
+  height: 2px;
+  background: var(--color-primary);
+  border-radius: 1px;
+}
+
+.admin-tab-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================================
+ * Action-card: gegroepeerde toolbar-knoppen met titel + uitleg. Maakt voor
+ * nieuwe admins onmiddellijk duidelijk wat een set knoppen doet (geen "ik
+ * heb 5 onbekende knoppen in een rij"-syndroom).
+ * ============================================================================ */
+.admin-action-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.admin-action-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-action-card-title {
+  font-size: 0.95rem;
+  font-variation-settings: 'wght' 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  margin: 0 0 0.35rem;
+  line-height: 1.25;
+}
+
+.admin-action-card-explanation {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--color-text-light);
+  margin: 0;
+  max-width: 65ch;
+}
+
+.admin-action-card-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Primary variant: solid primary-kleur, voor de "default"-actie in een groep */
+.admin-action.admin-action--primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.admin-action.admin-action--primary:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.admin-action.admin-action--primary .admin-action-icon {
+  color: #fff;
+}
+
+/* Secondary variant: outline-stijl, voor de "alternative"-actie */
+.admin-action.admin-action--secondary {
+  background: var(--color-surface);
+}
+
+.admin-action.admin-action--secondary:hover {
+  background: var(--color-bg);
+}
+
+@media (max-width: 640px) {
+  .admin-action-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin-action-card-buttons {
+    justify-content: stretch;
+  }
+  .admin-action-card-buttons .admin-action {
+    flex: 1;
+    justify-content: center;
+  }
 }
 
 .admin-section-overline {

@@ -238,6 +238,14 @@ export const sv: Translations = {
   'admin.section_overline': 'Förvaltning',
   'admin.section_heading': 'Författarhantering',
   'admin.empty_filter': 'Inga författare i detta filter.',
+  'admin.tab_accounts': 'Konton',
+  'admin.tab_persoonsgegevens': 'Personuppgifter',
+  'admin.card_add_authors_title': 'Lägg till författare',
+  'admin.card_add_authors_explanation':
+    'Två sätt att skapa författare. "Importera Excel" hanterar flera samtidigt från en NetSuite-leverantörsexport (standardvägen). "Ny författare" är för enstaka undantag som läggs till manuellt. Båda skapar ett fungerande konto med startlösenordet "Noordhoff" — som författaren byter vid första inloggning. Du måste fortfarande aktivera kontot innan författaren meddelas.',
+  'admin.card_bulk_statements_title': 'Ladda upp royalty-avräkningar',
+  'admin.card_bulk_statements_explanation':
+    'Ladda upp flera royalty-avräknings-PDF:er samtidigt. Författare matchas automatiskt via Alliant ID i filnamnet (NU_SC_<id>_<namn>_<YYYYMM>.pdf). Matchande belopp kommer från en medföljande Excel.',
   'admin.toolbar_excel_import': 'Importera Excel',
   'admin.toolbar_bulk_statements': 'Bulk-avräkningar',
   'admin.toolbar_csv_export': 'Exportera till NetSuite',
@@ -273,6 +281,9 @@ export const sv: Translations = {
   'admin.status_gereed_short': 'Redo för aktivering',
   'admin.status_actief': 'Aktiv',
   'admin.status_actief_short': 'Aktiv',
+  'admin.card_export_title': 'Exportera till NetSuite',
+  'admin.card_export_explanation':
+    'Generera en CSV med alla författaruppgifter som ändrats sedan föregående export. Ladda upp filen till Noordhoff SharePoint så att NetSuite-teamet kan importera den nya datan. En tidsstämpel sparas per export så att samma ändring aldrig rapporteras två gånger.',
   'admin.created_at': 'Skapad {date}',
   'admin.invited_at': 'Inbjuden {date}',
   'admin.reminder_at': 'Påminnelse {date}',
