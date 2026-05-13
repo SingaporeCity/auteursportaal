@@ -8,14 +8,18 @@
  * @module views/admin/statement-upload
  */
 
-import { supabase } from '@/lib/supabase';
 import { reportError } from '@/dev/debug-panel';
 import { t } from '@/lib/i18n';
 import type { Database, PaymentType } from '@/types/db';
+import {
+  MAX_FILE_BYTES,
+  buildStoragePath,
+  uploadStatementFile,
+  insertPaymentRecord,
+  removeStatementFile,
+} from '@/lib/statement-upload-core';
 
 type AuthorRow = Database['public']['Tables']['authors']['Row'];
-
-const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB voor royalty-statements
 
 const TYPE_OPTIONS: { value: PaymentType; label: string }[] = [
   { value: 'royalty', label: 'Royalty-afrekening' },
@@ -148,21 +152,17 @@ async function doUpload(
   submitBtn.disabled = true;
   showStatus(statusBox, 'info', t('admin.statement_upload_busy'));
 
-  const filename = sanitize(input.file.name);
-  const path = `${input.author.id}/${input.type}/${String(input.year)}/${filename}`;
+  const path = buildStoragePath(input.author.id, input.type, input.year, input.file.name);
 
-  const { error: uploadError } = await supabase.storage
-    .from('statements')
-    .upload(path, input.file, { contentType: 'application/pdf', upsert: false });
-
-  if (uploadError !== null) {
-    reportError('admin.upload', uploadError);
-    showStatus(statusBox, 'error', `Upload faalde: ${uploadError.message}`);
+  const upload = await uploadStatementFile(input.file, path);
+  if (!upload.ok) {
+    reportError('admin.upload', new Error(upload.error ?? 'unknown'));
+    showStatus(statusBox, 'error', `Upload faalde: ${upload.error ?? 'onbekende fout'}`);
     submitBtn.disabled = false;
     return;
   }
 
-  const { error: insertError } = await supabase.from('payments').insert({
+  const insert = await insertPaymentRecord({
     author_id: input.author.id,
     type: input.type,
     year: input.year,
@@ -174,9 +174,15 @@ async function doUpload(
 
   submitBtn.disabled = false;
 
-  if (insertError !== null) {
-    reportError('admin.payment.insert', insertError);
-    showStatus(statusBox, 'error', `Payment record faalde: ${insertError.message}`);
+  if (insert === 'duplicate') {
+    showStatus(statusBox, 'error', 'Dit statement bestaat al voor deze auteur + jaar + type.');
+    return;
+  }
+  if (insert !== 'created') {
+    // PDF in storage opruimen — anders blijft een wees-bestand achter
+    await removeStatementFile(path);
+    reportError('admin.payment.insert', new Error(insert.error));
+    showStatus(statusBox, 'error', `Payment record faalde: ${insert.error}`);
     return;
   }
 
@@ -223,6 +229,5 @@ function showStatus(box: HTMLElement, kind: 'error' | 'success' | 'info', messag
   box.hidden = false;
 }
 
-function sanitize(filename: string): string {
-  return filename.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100);
-}
+// sanitizeFilename leeft nu in src/lib/statement-upload-core.ts en wordt
+// daar gebruikt door buildStoragePath.

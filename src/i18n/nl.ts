@@ -235,6 +235,7 @@ export const nl: Translations = {
   'admin.empty_filter': 'Geen auteurs in dit filter.',
   'admin.toolbar_csv_import': 'Importeer CSV',
   'admin.toolbar_excel_import': 'Importeer Excel',
+  'admin.toolbar_bulk_statements': 'Bulk statements',
   'admin.toolbar_csv_export': 'Export naar NetSuite',
   'admin.toolbar_new_author': 'Nieuwe auteur',
   'admin.filter_all': 'Alle',
@@ -300,6 +301,46 @@ export const nl: Translations = {
   'admin.excel_import_failed': 'Importeren faalde',
   'admin.excel_import_no_response': 'Geen resultaat ontvangen van Edge Function.',
   'admin.excel_import_unexpected': 'Onverwachte fout',
+
+  'admin.bulk_stmt_heading': 'Royalty-statements bulk uploaden',
+  'admin.bulk_stmt_intro':
+    'Upload meerdere NU_SC_*.pdf bestanden tegelijk plus een Excel met de bijbehorende bedragen (kolommen: alliant_id, amount, yyyymm). Auteurs worden automatisch gematcht via hun Alliant ID.',
+  'admin.bulk_stmt_type_label': 'Type afrekening',
+  'admin.bulk_stmt_type_royalty': 'Royalty',
+  'admin.bulk_stmt_type_subsidiary': 'Nevenrechten',
+  'admin.bulk_stmt_type_foreign': 'Buitenlandse rechten',
+  'admin.bulk_stmt_type_jaaropgave': 'Jaaropgave',
+  'admin.bulk_stmt_pdf_label': 'Statement-PDFs (meerdere selecteerbaar)',
+  'admin.bulk_stmt_amounts_label': 'Excel met bedragen (alliant_id, amount, yyyymm)',
+  'admin.bulk_stmt_preview_btn': 'Voorbeeld tonen',
+  'admin.bulk_stmt_re_preview_btn': 'Opnieuw voorbeeldweergave',
+  'admin.bulk_stmt_no_pdfs': 'Selecteer minstens één PDF.',
+  'admin.bulk_stmt_no_amounts': 'Selecteer een bedragen-Excel.',
+  'admin.bulk_stmt_pdf_too_large': 'Bestand "{file}" is groter dan {max} MB.',
+  'admin.bulk_stmt_batch_too_large':
+    'Totaal van geselecteerde bestanden is {mb} MB — dat kan traag laden in de browser. Knip de batch eventueel op.',
+  'admin.bulk_stmt_unexpected': 'Onverwachte fout',
+  'admin.bulk_stmt_preview_summary':
+    '{ready} klaar voor upload · {duplicate} al aanwezig · {error} probleem',
+  'admin.bulk_stmt_col_filename': 'Bestand',
+  'admin.bulk_stmt_col_alliant': 'Alliant ID',
+  'admin.bulk_stmt_col_author': 'Auteur',
+  'admin.bulk_stmt_col_period': 'Periode',
+  'admin.bulk_stmt_col_amount': 'Bedrag',
+  'admin.bulk_stmt_col_status': 'Status',
+  'admin.bulk_stmt_status_ready': 'Klaar voor upload',
+  'admin.bulk_stmt_status_no_author':
+    'Geen auteur gevonden voor Alliant ID {id}. Maak de auteur eerst aan via "Importeer Excel".',
+  'admin.bulk_stmt_status_duplicate':
+    'Statement al aanwezig voor deze auteur + periode — wordt overgeslagen.',
+  'admin.bulk_stmt_status_no_amount':
+    'Bedrag ontbreekt voor Alliant ID {id}. Voeg een rij toe in de bedragen-Excel.',
+  'admin.bulk_stmt_upload_btn': 'Upload {count} statements',
+  'admin.bulk_stmt_uploading': 'Uploaden…',
+  'admin.bulk_stmt_result_succeeded': 'Succesvol',
+  'admin.bulk_stmt_result_skipped': 'Overgeslagen',
+  'admin.bulk_stmt_result_failed': 'Mislukt',
+  'admin.bulk_stmt_result_errors_heading': 'Details ({count})',
 
   'admin.csv_export_heading': 'Export naar NetSuite',
   'admin.csv_export_intro':

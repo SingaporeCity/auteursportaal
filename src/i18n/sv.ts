@@ -240,6 +240,7 @@ export const sv: Translations = {
   'admin.empty_filter': 'Inga författare i detta filter.',
   'admin.toolbar_csv_import': 'Importera CSV',
   'admin.toolbar_excel_import': 'Importera Excel',
+  'admin.toolbar_bulk_statements': 'Bulk-avräkningar',
   'admin.toolbar_csv_export': 'Exportera till NetSuite',
   'admin.toolbar_new_author': 'Ny författare',
   'admin.filter_all': 'Alla',
@@ -305,6 +306,46 @@ export const sv: Translations = {
   'admin.excel_import_failed': 'Import misslyckades',
   'admin.excel_import_no_response': 'Inget svar mottaget från Edge Function.',
   'admin.excel_import_unexpected': 'Oväntat fel',
+
+  'admin.bulk_stmt_heading': 'Bulkuppladdning av royalty-avräkningar',
+  'admin.bulk_stmt_intro':
+    'Ladda upp flera NU_SC_*.pdf-filer samtidigt plus en Excel med motsvarande belopp (kolumner: alliant_id, amount, yyyymm). Författare matchas automatiskt via Alliant ID.',
+  'admin.bulk_stmt_type_label': 'Avräkningstyp',
+  'admin.bulk_stmt_type_royalty': 'Royalty',
+  'admin.bulk_stmt_type_subsidiary': 'Bilaterala rättigheter',
+  'admin.bulk_stmt_type_foreign': 'Utländska rättigheter',
+  'admin.bulk_stmt_type_jaaropgave': 'Årsbesked',
+  'admin.bulk_stmt_pdf_label': 'Avräknings-PDF-filer (flera valbara)',
+  'admin.bulk_stmt_amounts_label': 'Belopps-Excel (alliant_id, amount, yyyymm)',
+  'admin.bulk_stmt_preview_btn': 'Visa förhandsgranskning',
+  'admin.bulk_stmt_re_preview_btn': 'Uppdatera förhandsgranskning',
+  'admin.bulk_stmt_no_pdfs': 'Välj minst en PDF.',
+  'admin.bulk_stmt_no_amounts': 'Välj en belopps-Excel.',
+  'admin.bulk_stmt_pdf_too_large': 'Filen "{file}" är större än {max} MB.',
+  'admin.bulk_stmt_batch_too_large':
+    'Total batchstorlek är {mb} MB — det kan göra webbläsaren långsam. Dela upp om möjligt.',
+  'admin.bulk_stmt_unexpected': 'Oväntat fel',
+  'admin.bulk_stmt_preview_summary':
+    '{ready} klara · {duplicate} redan uppladdade · {error} problem',
+  'admin.bulk_stmt_col_filename': 'Fil',
+  'admin.bulk_stmt_col_alliant': 'Alliant ID',
+  'admin.bulk_stmt_col_author': 'Författare',
+  'admin.bulk_stmt_col_period': 'Period',
+  'admin.bulk_stmt_col_amount': 'Belopp',
+  'admin.bulk_stmt_col_status': 'Status',
+  'admin.bulk_stmt_status_ready': 'Klar att ladda upp',
+  'admin.bulk_stmt_status_no_author':
+    'Ingen författare hittades för Alliant ID {id}. Skapa författaren först via "Importera Excel".',
+  'admin.bulk_stmt_status_duplicate':
+    'Avräkning finns redan för denna författare + period — hoppas över.',
+  'admin.bulk_stmt_status_no_amount':
+    'Belopp saknas för Alliant ID {id}. Lägg till en rad i belopps-Excel.',
+  'admin.bulk_stmt_upload_btn': 'Ladda upp {count} avräkningar',
+  'admin.bulk_stmt_uploading': 'Laddar upp…',
+  'admin.bulk_stmt_result_succeeded': 'Lyckades',
+  'admin.bulk_stmt_result_skipped': 'Hoppades över',
+  'admin.bulk_stmt_result_failed': 'Misslyckades',
+  'admin.bulk_stmt_result_errors_heading': 'Detaljer ({count})',
 
   'admin.csv_export_heading': 'Exportera till NetSuite',
   'admin.csv_export_intro':

@@ -233,6 +233,7 @@ export const en: Translations = {
   'admin.empty_filter': 'No authors in this filter.',
   'admin.toolbar_csv_import': 'Import CSV',
   'admin.toolbar_excel_import': 'Import Excel',
+  'admin.toolbar_bulk_statements': 'Bulk statements',
   'admin.toolbar_csv_export': 'Export to NetSuite',
   'admin.toolbar_new_author': 'New author',
   'admin.filter_all': 'All',
@@ -298,6 +299,46 @@ export const en: Translations = {
   'admin.excel_import_failed': 'Import failed',
   'admin.excel_import_no_response': 'No response received from Edge Function.',
   'admin.excel_import_unexpected': 'Unexpected error',
+
+  'admin.bulk_stmt_heading': 'Bulk upload royalty statements',
+  'admin.bulk_stmt_intro':
+    'Upload multiple NU_SC_*.pdf files at once plus an Excel with the matching amounts (columns: alliant_id, amount, yyyymm). Authors are matched automatically via their Alliant ID.',
+  'admin.bulk_stmt_type_label': 'Statement type',
+  'admin.bulk_stmt_type_royalty': 'Royalty',
+  'admin.bulk_stmt_type_subsidiary': 'Subsidiary rights',
+  'admin.bulk_stmt_type_foreign': 'Foreign rights',
+  'admin.bulk_stmt_type_jaaropgave': 'Annual statement',
+  'admin.bulk_stmt_pdf_label': 'Statement PDFs (multiple selectable)',
+  'admin.bulk_stmt_amounts_label': 'Amounts Excel (alliant_id, amount, yyyymm)',
+  'admin.bulk_stmt_preview_btn': 'Show preview',
+  'admin.bulk_stmt_re_preview_btn': 'Refresh preview',
+  'admin.bulk_stmt_no_pdfs': 'Please select at least one PDF.',
+  'admin.bulk_stmt_no_amounts': 'Please select an amounts Excel.',
+  'admin.bulk_stmt_pdf_too_large': 'File "{file}" exceeds {max} MB.',
+  'admin.bulk_stmt_batch_too_large':
+    'Selected batch totals {mb} MB — that may load slowly in the browser. Consider splitting it.',
+  'admin.bulk_stmt_unexpected': 'Unexpected error',
+  'admin.bulk_stmt_preview_summary':
+    '{ready} ready · {duplicate} already present · {error} issue(s)',
+  'admin.bulk_stmt_col_filename': 'File',
+  'admin.bulk_stmt_col_alliant': 'Alliant ID',
+  'admin.bulk_stmt_col_author': 'Author',
+  'admin.bulk_stmt_col_period': 'Period',
+  'admin.bulk_stmt_col_amount': 'Amount',
+  'admin.bulk_stmt_col_status': 'Status',
+  'admin.bulk_stmt_status_ready': 'Ready for upload',
+  'admin.bulk_stmt_status_no_author':
+    'No author found for Alliant ID {id}. Create the author first via "Import Excel".',
+  'admin.bulk_stmt_status_duplicate':
+    'Statement already exists for this author + period — will be skipped.',
+  'admin.bulk_stmt_status_no_amount':
+    'Amount missing for Alliant ID {id}. Add a row to the amounts Excel.',
+  'admin.bulk_stmt_upload_btn': 'Upload {count} statements',
+  'admin.bulk_stmt_uploading': 'Uploading…',
+  'admin.bulk_stmt_result_succeeded': 'Succeeded',
+  'admin.bulk_stmt_result_skipped': 'Skipped',
+  'admin.bulk_stmt_result_failed': 'Failed',
+  'admin.bulk_stmt_result_errors_heading': 'Details ({count})',
 
   'admin.csv_export_heading': 'Export to NetSuite',
   'admin.csv_export_intro':

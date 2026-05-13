@@ -19,6 +19,7 @@ import { buildStatementUploadForm } from './admin/statement-upload';
 import { openCsvImportModal } from './admin/csv-import';
 import { openCsvExportModal } from './admin/csv-export';
 import { openExcelImportModal } from './admin/excel-import';
+import { openBulkStatementUploadModal } from './admin/bulk-statement-upload';
 import { buildAppHeader } from './shared/header';
 import type { OnboardingStatus } from '@/types/db';
 
@@ -84,6 +85,9 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   const excelBtn = buildToolbarBtn(t('admin.toolbar_excel_import'), ICON_DOWNLOAD);
   toolbar.appendChild(excelBtn);
 
+  const bulkStmtBtn = buildToolbarBtn(t('admin.toolbar_bulk_statements'), ICON_UPLOAD);
+  toolbar.appendChild(bulkStmtBtn);
+
   const exportBtn = buildToolbarBtn(t('admin.toolbar_csv_export'), ICON_UPLOAD);
   toolbar.appendChild(exportBtn);
 
@@ -117,6 +121,12 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
 
   excelBtn.addEventListener('click', () => {
     openExcelImportModal(() => {
+      void loadAuthors(state, rerender, statusBox);
+    });
+  });
+
+  bulkStmtBtn.addEventListener('click', () => {
+    openBulkStatementUploadModal(() => {
       void loadAuthors(state, rerender, statusBox);
     });
   });
