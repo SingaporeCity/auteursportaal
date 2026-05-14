@@ -209,6 +209,16 @@ serve(async (req: Request): Promise<Response> => {
       submittedAt: ex.submitted_at,
     });
 
+    // Test-fase: MAIL_OVERRIDE_TO routeert alle uitgaande mail naar één
+    // test-ontvanger. Subject krijgt prefix met het echte ontvangstadres
+    // (hier `notifyTo`, normaliter rights@noordhoff.nl) zodat duidelijk
+    // blijft wat de productie-route zou zijn geweest. Productie: secret
+    // unset (`supabase secrets unset MAIL_OVERRIDE_TO`).
+    const overrideTo = Deno.env.get('MAIL_OVERRIDE_TO');
+    const finalTo = overrideTo !== undefined && overrideTo !== '' ? overrideTo : notifyTo;
+    const finalSubject =
+      overrideTo !== undefined && overrideTo !== '' ? `[TEST → ${notifyTo}] ${subject}` : subject;
+
     const resendResp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -217,9 +227,9 @@ serve(async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: notifyFrom,
-        to: [notifyTo],
+        to: [finalTo],
         reply_to: au.email,
-        subject,
+        subject: finalSubject,
         html,
         attachments: [
           {

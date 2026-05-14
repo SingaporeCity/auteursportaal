@@ -238,6 +238,14 @@ async function sendAccountMail(args: {
     mode: args.mode,
   });
 
+  // Test-fase: alle mails naar één adres routeren (MAIL_OVERRIDE_TO). Het
+  // originele bestemmingsadres komt in de subject-prefix zodat duidelijk
+  // blijft voor wie de mail eigenlijk bedoeld was. Productie: secret unset.
+  const overrideTo = Deno.env.get('MAIL_OVERRIDE_TO');
+  const finalTo = overrideTo !== undefined && overrideTo !== '' ? [overrideTo] : [args.email];
+  const finalSubject =
+    overrideTo !== undefined && overrideTo !== '' ? `[TEST → ${args.email}] ${subject}` : subject;
+
   try {
     const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -245,7 +253,7 @@ async function sendAccountMail(args: {
         Authorization: `Bearer ${resendKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ from, to: [args.email], subject, html }),
+      body: JSON.stringify({ from, to: finalTo, subject: finalSubject, html }),
     });
     if (!resp.ok) {
       const text = await resp.text();
