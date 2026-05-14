@@ -229,14 +229,12 @@ async function sendAccountMail(args: {
 
   const from = Deno.env.get('ACCOUNT_MAIL_FROM') ?? 'Noordhoff <onboarding@resend.dev>';
   const portalUrl = Deno.env.get('PORTAL_URL') ?? 'https://mijn-noordhoff.nl';
-  const fullName = `${args.first_name} ${args.last_name}`.trim();
+  const firstName = args.first_name.trim();
 
-  const { subject, html } = renderAccountMail({
-    fullName,
-    email: args.email,
-    portalUrl,
-    mode: args.mode,
-  });
+  const { subject, html } =
+    args.mode === 'invite'
+      ? renderInviteMail({ firstName, email: args.email, portalUrl })
+      : renderActivateMail({ firstName, email: args.email, portalUrl });
 
   // Test-fase: alle mails naar één adres routeren (MAIL_OVERRIDE_TO). Het
   // originele bestemmingsadres komt in de subject-prefix zodat duidelijk
@@ -265,53 +263,146 @@ async function sendAccountMail(args: {
   }
 }
 
-function renderAccountMail(args: {
-  fullName: string;
-  email: string;
-  portalUrl: string;
-  mode: Mode;
-}): { subject: string; html: string } {
-  const greeting = args.fullName === '' ? 'Beste auteur' : `Beste ${args.fullName}`;
-  if (args.mode === 'invite') {
-    return {
-      subject: 'Welkom bij het Noordhoff Auteursportaal',
-      html: `
-        <div style="font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;line-height:1.5;">
-          <p>${greeting},</p>
-          <p>Er is een account voor u aangemaakt in het Noordhoff Auteursportaal.</p>
-          <p>
-            <strong>Inloggen:</strong> <a href="${args.portalUrl}">${args.portalUrl}</a><br />
-            <strong>E-mail:</strong> ${args.email}<br />
-            <strong>Wachtwoord:</strong> Noordhoff
-          </p>
-          <p>
-            Log in en vul uw persoonsgegevens aan. Zodra de gegevens compleet zijn,
-            klikt u op "Verzend gegevens" en activeren wij uw account. Pas dan
-            wordt u gevraagd het wachtwoord te wijzigen en twee-staps-verificatie
-            in te stellen.
-          </p>
-          <p>Met vriendelijke groet,<br/>Noordhoff</p>
-        </div>
-      `,
-    };
-  }
+/* =============================================================================
+ * Mail-templates
+ *
+ * Twee branded mails (welkomst + activatie). Beide gebruiken `mailLayout`
+ * voor logo + container + footer; `ctaButton` voor de teal-knop en
+ * `infoTile` voor het inloggegevens-blok.
+ * ============================================================================= */
+
+const BRAND_TEAL = '#007460';
+const BRAND_TEAL_DARK = '#005a49';
+const BG_SUBTLE = '#f7f8fa';
+const BORDER = '#e5e7eb';
+const TEXT = '#1a1a1a';
+const TEXT_MUTED = '#6b7280';
+
+function mailLayout(opts: { logoUrl: string; preheader: string; bodyHtml: string }): string {
+  return `<!doctype html>
+<html lang="nl"><body style="margin:0;padding:24px 12px;background:${BG_SUBTLE};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+  <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;overflow:hidden;">${escapeText(opts.preheader)}</span>
+  <table role="presentation" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;width:100%;background:#fff;border:1px solid ${BORDER};border-radius:10px;overflow:hidden;">
+    <tr><td style="padding:28px 32px 8px 32px;text-align:left;">
+      <img src="${opts.logoUrl}" alt="Noordhoff" height="32" style="display:block;height:32px;width:auto;border:0;outline:none;text-decoration:none;" />
+    </td></tr>
+    <tr><td style="padding:8px 32px 28px 32px;color:${TEXT};font-size:15px;line-height:1.6;">
+      ${opts.bodyHtml}
+    </td></tr>
+    <tr><td style="padding:20px 32px 24px 32px;border-top:1px solid ${BORDER};background:${BG_SUBTLE};color:${TEXT_MUTED};font-size:12px;line-height:1.55;">
+      Vragen of opmerkingen? Mail naar <a href="mailto:rights@noordhoff.nl" style="color:${BRAND_TEAL};text-decoration:none;">rights@noordhoff.nl</a>.<br />
+      Met vriendelijke groet, <strong style="color:${TEXT};">Noordhoff</strong>
+    </td></tr>
+  </table>
+</body></html>`;
+}
+
+function ctaButton(label: string, href: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="border-radius:6px;background:${BRAND_TEAL};">
+    <a href="${href}" style="display:inline-block;padding:13px 28px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.01em;border-radius:6px;background:${BRAND_TEAL};">${escapeText(label)}</a>
+  </td></tr></table>`;
+}
+
+function infoTile(rows: { label: string; value: string; valueHref?: string }[]): string {
+  const inner = rows
+    .map((r) => {
+      const valueHtml =
+        r.valueHref !== undefined
+          ? `<a href="${r.valueHref}" style="color:${BRAND_TEAL_DARK};text-decoration:none;">${escapeText(r.value)}</a>`
+          : escapeText(r.value);
+      return `<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;">
+        <span style="color:${TEXT_MUTED};font-size:13px;">${escapeText(r.label)}</span>
+        <span style="color:${TEXT};font-size:14px;font-weight:600;text-align:right;">${valueHtml}</span>
+      </div>`;
+    })
+    .join('');
+  return `<div style="background:${BG_SUBTLE};border:1px solid ${BORDER};border-radius:8px;padding:14px 18px;margin:18px 0;">${inner}</div>`;
+}
+
+function escapeText(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function greetingFor(firstName: string): string {
+  return firstName === '' ? 'Beste auteur' : `Beste ${escapeText(firstName)}`;
+}
+
+/** Welkomstmail — nieuwe auteur is net aangemaakt. Enthousiaste introductie
+ *  van het portaal, met een heldere drie-staps-flow: eerst gegevens
+ *  aanvullen, dan activeert Noordhoff het account, dan kan auteur zijn
+ *  statements en contracten inzien. */
+function renderInviteMail(args: { firstName: string; email: string; portalUrl: string }): {
+  subject: string;
+  html: string;
+} {
+  const logoUrl = `${args.portalUrl}/noordhoff-logo.png`;
+  const body = `
+    <h1 style="margin:8px 0 16px 0;font-size:22px;line-height:1.25;font-weight:700;color:${TEXT};letter-spacing:-0.01em;">Welkom in het Noordhoff Auteursportaal</h1>
+    <p style="margin:0 0 14px 0;">${greetingFor(args.firstName)},</p>
+    <p style="margin:0 0 14px 0;">Wat fijn dat u uw nieuwe Auteursportaal in gebruik gaat nemen! Vanaf nu vindt u uw royaltystatements, contracten en declaraties allemaal op één centrale, beveiligde plek. Geen losse mails of papieren overzichten meer; alles overzichtelijk in één omgeving.</p>
+    <p style="margin:0 0 10px 0;">Om uw portaal in gebruik te nemen doorlopen we samen drie stappen:</p>
+    <ol style="margin:0 0 16px 22px;padding:0;color:${TEXT};">
+      <li style="margin-bottom:6px;"><strong>U logt in</strong> met onderstaande gegevens en vult uw persoonsgegevens aan op uw profielpagina.</li>
+      <li style="margin-bottom:6px;"><strong>Wij activeren uw account</strong> zodra uw gegevens compleet zijn. Dit gebeurt meestal binnen enkele werkdagen.</li>
+      <li><strong>U krijgt volledige toegang</strong> tot uw royaltystatements, contracten, forecasts en declaratiefunctie. U ontvangt hierover nog een aparte bevestiging.</li>
+    </ol>
+    ${infoTile([
+      { label: 'Inloggen', value: args.portalUrl, valueHref: args.portalUrl },
+      { label: 'E-mailadres', value: args.email },
+      { label: 'Wachtwoord', value: 'Noordhoff' },
+    ])}
+    <p style="margin:0 0 8px 0;color:${TEXT_MUTED};font-size:13px;">Bij uw eerste inlog vragen wij u nog niet om uw wachtwoord te wijzigen. Dat komt pas zodra uw account actief is.</p>
+    ${ctaButton('Log in op het portaal', args.portalUrl)}
+  `;
   return {
-    subject: 'Uw account is geactiveerd',
-    html: `
-      <div style="font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;line-height:1.5;">
-        <p>${greeting},</p>
-        <p>Uw account in het Noordhoff Auteursportaal is zojuist geactiveerd.
-           U kunt nu uw royaltystatements en contracten inzien.</p>
-        <p>
-          <strong>Inloggen:</strong> <a href="${args.portalUrl}">${args.portalUrl}</a><br />
-          <strong>E-mail:</strong> ${args.email}<br />
-          <strong>Wachtwoord:</strong> Noordhoff (mits nog niet gewijzigd — bij
-          eerste inlog kiest u een nieuw wachtwoord en stelt u
-          twee-staps-verificatie in).
-        </p>
-        <p>Met vriendelijke groet,<br/>Noordhoff</p>
-      </div>
-    `,
+    subject: 'Welkom in het Noordhoff Auteursportaal',
+    html: mailLayout({
+      logoUrl,
+      preheader: 'Uw account staat klaar. Log in om uw persoonsgegevens aan te vullen.',
+      bodyHtml: body,
+    }),
+  };
+}
+
+/** Activatiemail — admin heeft het account zojuist geactiveerd. Het portaal
+ *  is nu volledig beschikbaar; korte opsomming van wat de auteur kan doen
+ *  en een directe CTA om in te loggen. */
+function renderActivateMail(args: { firstName: string; email: string; portalUrl: string }): {
+  subject: string;
+  html: string;
+} {
+  const logoUrl = `${args.portalUrl}/noordhoff-logo.png`;
+  const body = `
+    <h1 style="margin:8px 0 16px 0;font-size:22px;line-height:1.25;font-weight:700;color:${TEXT};letter-spacing:-0.01em;">Uw portaal is nu beschikbaar</h1>
+    <p style="margin:0 0 14px 0;">${greetingFor(args.firstName)},</p>
+    <p style="margin:0 0 14px 0;">Goed nieuws: uw account is zojuist geactiveerd. Het volledige Auteursportaal staat vanaf nu voor u open. U kunt op elk moment inloggen om:</p>
+    <ul style="margin:0 0 18px 22px;padding:0;color:${TEXT};">
+      <li style="margin-bottom:6px;">uw royaltystatements te bekijken en te downloaden;</li>
+      <li style="margin-bottom:6px;">uw contracten met Noordhoff in te zien;</li>
+      <li style="margin-bottom:6px;">onkosten en projectkosten te declareren;</li>
+      <li>uw forecasts te raadplegen.</li>
+    </ul>
+    ${infoTile([
+      { label: 'Inloggen', value: args.portalUrl, valueHref: args.portalUrl },
+      { label: 'E-mailadres', value: args.email },
+      { label: 'Wachtwoord', value: 'Noordhoff' },
+    ])}
+    <p style="margin:0 0 8px 0;color:${TEXT_MUTED};font-size:13px;">Bij uw eerste inlog kiest u een eigen wachtwoord en stelt u twee-staps-verificatie in. Daarna is uw account volledig beveiligd.</p>
+    ${ctaButton('Open mijn portaal', args.portalUrl)}
+  `;
+  return {
+    subject: 'Uw Noordhoff Auteursportaal is nu beschikbaar',
+    html: mailLayout({
+      logoUrl,
+      preheader:
+        'Uw account is geactiveerd. Open uw portaal en bekijk uw statements en contracten.',
+      bodyHtml: body,
+    }),
   };
 }
 

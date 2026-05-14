@@ -199,7 +199,8 @@ serve(async (req: Request): Promise<Response> => {
     // -- 7. Mail samenstellen + via Resend versturen
     const typeLabel = ex.expense_type === 'idc' ? 'Projectkosten (IDC)' : 'Onkosten';
     const fullName = `${au.first_name} ${au.last_name}`.trim();
-    const subject = `Nieuwe declaratie — ${typeLabel} — ${fullName}`;
+    const subject = `Nieuwe declaratie · ${typeLabel} · ${fullName}`;
+    const portalUrl = Deno.env.get('PORTAL_URL') ?? 'https://mijn-noordhoff.nl';
     const html = buildMailHtml({
       authorName: fullName,
       authorEmail: au.email,
@@ -207,6 +208,7 @@ serve(async (req: Request): Promise<Response> => {
       typeLabel,
       description: ex.description,
       submittedAt: ex.submitted_at,
+      portalUrl,
     });
 
     // Test-fase: MAIL_OVERRIDE_TO routeert alle uitgaande mail naar één
@@ -282,6 +284,29 @@ function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
+/** Formatteert een ISO-timestamp naar leesbare Nederlandse datum-tijd.
+ *  `2026-05-14T10:23:00Z` → `14 mei 2026, 10:23`. */
+function formatDateNL(iso: string): string {
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) {
+      return iso;
+    }
+    const date = new Intl.DateTimeFormat('nl-NL', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(d);
+    const time = new Intl.DateTimeFormat('nl-NL', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d);
+    return `${date}, ${time}`;
+  } catch {
+    return iso;
+  }
+}
+
 function buildMailHtml(args: {
   authorName: string;
   authorEmail: string;
@@ -289,12 +314,13 @@ function buildMailHtml(args: {
   typeLabel: string;
   description: string;
   submittedAt: string;
+  portalUrl: string;
 }): string {
   const rows: [string, string][] = [
     ['Auteur', escapeHtml(args.authorName)],
     [
       'E-mail',
-      `<a href="mailto:${escapeHtml(args.authorEmail)}">${escapeHtml(args.authorEmail)}</a>`,
+      `<a href="mailto:${escapeHtml(args.authorEmail)}" style="color:#005a49;text-decoration:none;">${escapeHtml(args.authorEmail)}</a>`,
     ],
   ];
   if (args.vendorId !== null) {
@@ -302,30 +328,35 @@ function buildMailHtml(args: {
   }
   rows.push(['Type', escapeHtml(args.typeLabel)]);
   rows.push(['Beschrijving', escapeHtml(args.description)]);
-  rows.push(['Ingediend op', escapeHtml(args.submittedAt)]);
+  rows.push(['Ingediend op', escapeHtml(formatDateNL(args.submittedAt))]);
 
   const rowsHtml = rows
     .map(
       ([label, value]) =>
-        `<tr><td style="padding:6px 12px;color:#6b7280;font-size:13px;border-bottom:1px solid #e5e7eb">${escapeHtml(label)}</td><td style="padding:6px 12px;color:#111827;font-size:14px;border-bottom:1px solid #e5e7eb">${value}</td></tr>`
+        `<tr><td style="padding:8px 12px;color:#6b7280;font-size:13px;border-bottom:1px solid #e5e7eb;width:38%">${escapeHtml(label)}</td><td style="padding:8px 12px;color:#111827;font-size:14px;border-bottom:1px solid #e5e7eb">${value}</td></tr>`
     )
     .join('');
 
+  const adminUrl = `${args.portalUrl}/admin`;
+
   return `<!doctype html>
-<html><body style="font-family:system-ui,-apple-system,sans-serif;background:#f9fafb;padding:24px;margin:0">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:24px">
-    <h2 style="margin:0 0 16px;font-size:18px;color:#111827">Nieuwe declaratie ingediend</h2>
-    <p style="margin:0 0 16px;color:#374151;font-size:14px;line-height:1.5">
-      Een auteur heeft via het auteursportaal een declaratie ingediend.
-      De ingevulde PDF zit als bijlage bij deze mail. De gegevens hieronder
-      komen rechtstreeks uit de portaal-database; controleer ze samen met
-      de bijlage.
+<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#f9fafb;padding:24px 12px;margin:0">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:28px 32px">
+    <h2 style="margin:0 0 12px;font-size:18px;color:#111827;letter-spacing:-0.01em;">Nieuwe declaratie ingediend</h2>
+    <p style="margin:0 0 18px;color:#374151;font-size:14px;line-height:1.55">
+      Een auteur heeft via het Auteursportaal een declaratie ingediend.
+      De ingevulde PDF zit als bijlage. De gegevens hieronder komen
+      rechtstreeks uit de portaal-database; controleer ze samen met de
+      bijlage.
     </p>
-    <table style="width:100%;border-collapse:collapse;margin:0 0 16px">${rowsHtml}</table>
-    <p style="margin:16px 0 0;color:#6b7280;font-size:12px">
-      Verzonden namens het Noordhoff Auteursportaal — beantwoord deze mail
-      direct om met de auteur in gesprek te gaan (reply-to is op de auteur
-      gezet).
+    <table style="width:100%;border-collapse:collapse;margin:0 0 18px">${rowsHtml}</table>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 18px;"><tr><td style="border-radius:6px;background:#007460;">
+      <a href="${adminUrl}" style="display:inline-block;padding:11px 22px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:6px;background:#007460;">Bekijk in admin-portaal</a>
+    </td></tr></table>
+    <p style="margin:0;color:#6b7280;font-size:12px;line-height:1.55">
+      Verzonden namens het Noordhoff Auteursportaal. Beantwoord deze mail
+      direct om met de auteur in gesprek te gaan; de reply-to is op de
+      auteur gezet.
     </p>
   </div>
 </body></html>`;
