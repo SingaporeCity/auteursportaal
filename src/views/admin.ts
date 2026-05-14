@@ -613,21 +613,19 @@ function buildActionCard(opts: ActionCardOpts): HTMLElement {
 function buildAddAuthorsHelp(root: HTMLElement): void {
   appendParagraph(root, t('admin.card_add_authors_help_intro'));
 
-  const dl = document.createElement('dl');
-  dl.className = 'admin-help-dl';
+  // Labels boven hun tekst (h4 + p), full-width onder elkaar in plaats
+  // van een 2-koloms-dl die de tekst rechts ingedrukt zou houden.
+  const h4Existing = document.createElement('h4');
+  h4Existing.className = 'admin-help-subheading';
+  h4Existing.textContent = t('admin.card_add_authors_help_existing_label');
+  root.appendChild(h4Existing);
+  appendParagraph(root, t('admin.card_add_authors_help_existing_text'));
 
-  appendDlEntry(
-    dl,
-    t('admin.card_add_authors_help_existing_label'),
-    t('admin.card_add_authors_help_existing_text')
-  );
-  appendDlEntry(
-    dl,
-    t('admin.card_add_authors_help_new_label'),
-    t('admin.card_add_authors_help_new_text')
-  );
-
-  root.appendChild(dl);
+  const h4New = document.createElement('h4');
+  h4New.className = 'admin-help-subheading';
+  h4New.textContent = t('admin.card_add_authors_help_new_label');
+  root.appendChild(h4New);
+  appendParagraph(root, t('admin.card_add_authors_help_new_text'));
 
   appendParagraph(root, t('admin.card_add_authors_help_outro'), 'admin-help-note');
 }

@@ -103,12 +103,12 @@ export const nl: Translations = {
   'onboarding.banner_blocking_text':
     'Er ontbreken nog gegevens die nodig zijn voor activatie: adres, IBAN, BIC en/of BSN. Zonder deze informatie kan Noordhoff uw account niet activeren. Vul de ontbrekende velden hieronder aan op uw profielpagina.',
   'onboarding.banner_softmissing_title':
-    'Uw gegevens zijn compleet — Noordhoff activeert uw account binnenkort',
+    'Uw gegevens zijn compleet. Noordhoff activeert uw account binnenkort',
   'onboarding.banner_softmissing_text':
     'Bedankt voor het invullen. Uw account wordt zo snel mogelijk geactiveerd. Telefoonnummer en geboortedatum mag u nu nog rustig aanvullen via uw profielpagina hieronder.',
   'onboarding.banner_pending_review_title': 'Uw aanvraag wordt verwerkt',
   'onboarding.banner_pending_review_text':
-    'Bedankt voor het invullen. Noordhoff verwerkt nu uw gegevens — dit duurt doorgaans enkele werkdagen. Zodra uw account actief is komen alle onderdelen van het portaal automatisch beschikbaar. U krijgt hierover bericht per e-mail.',
+    'Bedankt voor het invullen. Noordhoff verwerkt nu uw gegevens; dit duurt doorgaans enkele werkdagen. Zodra uw account actief is komen alle onderdelen van het portaal automatisch beschikbaar. U krijgt hierover bericht per e-mail.',
   'onboarding.tab_disabled_tooltip': 'Beschikbaar zodra uw account is geactiveerd',
   'onboarding.activate_button': 'Verzend gegevens',
   'onboarding.activate_button_disabled_hint':
@@ -282,21 +282,21 @@ export const nl: Translations = {
     'Auteurs komen op twee manieren in het portaal. Welke je kiest hangt af van of de auteur al bij Noordhoff geregistreerd staat.',
   'admin.card_add_authors_help_existing_label': 'Bestaande auteurs (via "Importeer Excel")',
   'admin.card_add_authors_help_existing_text':
-    'Auteurs die al bij Noordhoff bekend zijn en in NetSuite staan. Exporteer ze als Excel uit NetSuite (Vendor-list export, 12 kolommen) en upload het bestand hier. In één keer worden alle accounts aangemaakt mét de bestaande NetSuite-gegevens — naam, adres, IBAN, BIC, BSN en geboortedatum — al ingevuld. Dit is de standaard-route voor je beginpopulatie en voor periodieke updates wanneer NetSuite nieuwe auteurs toevoegt.',
+    'Auteurs die al bij Noordhoff bekend zijn en in NetSuite staan. Exporteer ze als Excel uit NetSuite (Vendor-list export, 12 kolommen) en upload het bestand hier. In één keer worden alle accounts aangemaakt mét de bestaande NetSuite-gegevens (naam, adres, IBAN, BIC, BSN en geboortedatum) al ingevuld. Dit is de standaard-route voor je beginpopulatie en voor periodieke updates wanneer NetSuite nieuwe auteurs toevoegt.',
   'admin.card_add_authors_help_new_label': 'Nieuwe auteurs (via "Nieuwe auteur")',
   'admin.card_add_authors_help_new_text':
-    'Auteurs die nog NIET bij Noordhoff bekend zijn — uitzonderingen zoals nieuwe contracten die nog niet in NetSuite verwerkt zijn. Vul alleen e-mail, voor- en achternaam in. De auteur logt vervolgens zelf in en vult de overige profielgegevens (adres, IBAN, BSN, geboortedatum) aan via het portaal. Die wijzigingen verschijnen in het tabblad "Persoonsgegevens" onder "Wachtende wijzigingsverzoeken" voor jouw goedkeuring.',
+    'Auteurs die nog NIET bij Noordhoff bekend zijn, bijvoorbeeld nieuwe contracten die nog niet in NetSuite verwerkt zijn. Vul alleen e-mail, voor- en achternaam in. De auteur logt vervolgens zelf in en vult de overige profielgegevens (adres, IBAN, BSN, geboortedatum) aan via het portaal. Die wijzigingen verschijnen in het tabblad "Persoonsgegevens" onder "Wachtende wijzigingsverzoeken" voor jouw goedkeuring.',
   'admin.card_add_authors_help_outro':
-    'In beide gevallen krijgt het account start-wachtwoord "Noordhoff" dat de auteur bij eerste inlog wijzigt. Pas nadat jij in de auteurslijst op "Activeer" klikt krijgt de auteur een melding dat hij/zij kan inloggen. Tijdens de test-fase staan mails uit — informeer test-auteurs persoonlijk.',
+    'In beide gevallen krijgt het account start-wachtwoord "Noordhoff" dat de auteur bij eerste inlog wijzigt. Pas nadat jij in de auteurslijst op "Activeer" klikt krijgt de auteur een melding dat hij/zij kan inloggen. Tijdens de test-fase staan mails uit. Informeer test-auteurs persoonlijk.',
 
   'admin.card_bulk_statements_help_intro':
     'Voor een bulk-upload heb je TWEE bestanden nodig die samen geupload moeten worden: de statement-PDFs en een Excel met de bijhorende bedragen. Hieronder hoe elk eruit hoort te zien.',
-  'admin.card_bulk_statements_help_pdf_heading': 'Bestand 1 — Statement-PDFs',
+  'admin.card_bulk_statements_help_pdf_heading': 'Bestand 1: Statement-PDFs',
   'admin.card_bulk_statements_help_pdf_para':
-    'Eén PDF per auteur per maand. De Alliant ID in de filename wordt automatisch gematcht aan een auteur in het portaal — zorg dus dat die ID klopt, anders krijgt de statement geen eigenaar.',
+    'Eén PDF per auteur per maand. De Alliant ID in de filename wordt automatisch gematcht aan een auteur in het portaal. Zorg dus dat die ID klopt, anders krijgt de statement geen eigenaar.',
   'admin.card_bulk_statements_help_filename_label': 'Filename-conventie:',
   'admin.card_bulk_statements_help_example_label': 'Voorbeeld:',
-  'admin.card_bulk_statements_help_excel_heading': 'Bestand 2 — Bedragen-Excel',
+  'admin.card_bulk_statements_help_excel_heading': 'Bestand 2: Bedragen-Excel',
   'admin.card_bulk_statements_help_excel_para':
     'Eén Excel-bestand met de bedragen per auteur (de PDF zelf bevat geen machine-leesbare som). De eerste rij moet exact deze drie headers bevatten in deze volgorde:',
   'admin.card_bulk_statements_help_empty_cell': '(leeg)',
@@ -305,7 +305,7 @@ export const nl: Translations = {
   'admin.card_bulk_statements_help_col_amount':
     'Euro-bedrag voor deze statement. Decimaal-komma (1.234,56) of -punt (1234.56) is allebei OK. Wordt afgerond op 2 decimalen.',
   'admin.card_bulk_statements_help_col_yyyymm':
-    'Specifieke maand (zes cijfers, JJJJMM). Leeg laten = bedrag geldt voor álle PDFs van die auteur in deze batch — handig als je per upload één auteur één bedrag wilt geven. Voor maand-specifieke bedragen vul je deze kolom wel in.',
+    'Specifieke maand (zes cijfers, JJJJMM). Leeg laten betekent dat het bedrag geldt voor álle PDFs van die auteur in deze batch. Handig als je per upload één auteur één bedrag wilt geven. Voor maand-specifieke bedragen vul je deze kolom wel in.',
   'admin.card_bulk_statements_help_outro':
     'Selecteer beide bestanden samen → klik "Voorbeeld tonen" → controleer de tabel met auteur-matches → bevestig. Dubbel-uploaden van dezelfde PDF wordt automatisch overgeslagen.',
   'admin.toolbar_excel_import': 'Importeer bestaande auteurs',
@@ -407,9 +407,9 @@ export const nl: Translations = {
   'admin.reset_mfa_success': '2FA gereset voor {name} ({count} factor(en) verwijderd).',
   'admin.reset_mfa_failed': '2FA resetten faalde',
   'admin.status_admin': 'Admin',
-  'admin.status_persoonsgegevens': 'Inactief — Persoonsgegevens nog toe te voegen',
+  'admin.status_persoonsgegevens': 'Inactief: persoonsgegevens nog toe te voegen',
   'admin.status_persoonsgegevens_short': 'Persoonsgegevens toe te voegen',
-  'admin.status_id_koppelen': 'Inactief — IDs koppelen aan NetSuite',
+  'admin.status_id_koppelen': 'Inactief: IDs koppelen aan NetSuite',
   'admin.status_id_koppelen_short': 'IDs koppelen',
   'admin.btn_id_koppelen': 'IDs koppelen',
   'admin.tooltip_id_koppelen':
@@ -422,9 +422,9 @@ export const nl: Translations = {
   'admin.id_koppel_submit': 'Opslaan',
   'admin.id_koppel_success': 'IDs opgeslagen voor {name}.',
   'admin.id_koppel_error': 'Opslaan mislukt',
-  'admin.status_statements': 'Inactief — Statements nog toe te voegen',
+  'admin.status_statements': 'Inactief: statements nog toe te voegen',
   'admin.status_statements_short': 'Statements toe te voegen',
-  'admin.status_gereed': 'Inactief — Gereed voor activatie',
+  'admin.status_gereed': 'Inactief: gereed voor activatie',
   'admin.status_gereed_short': 'Gereed voor activatie',
   'admin.status_actief': 'Actief',
   'admin.status_actief_short': 'Actief',
@@ -442,13 +442,13 @@ export const nl: Translations = {
 
   'admin.new_author_heading': 'Nieuwe auteur',
   'admin.new_author_intro':
-    'Vul email + naam in. Het account wordt aangemaakt met het start-wachtwoord "Noordhoff". Geef dat persoonlijk aan de auteur door — bij eerste inlog kiest hij/zij zelf een eigen wachtwoord en daarna 2FA. Tijdens de test-fase versturen we geen mails.',
+    'Vul email + naam in. Het account wordt aangemaakt met het start-wachtwoord "Noordhoff". Geef dat persoonlijk aan de auteur door. Bij eerste inlog kiest hij/zij zelf een eigen wachtwoord en daarna 2FA. Tijdens de test-fase versturen we geen mails.',
   'admin.new_author_field_email': 'E-mail',
   'admin.new_author_field_firstname': 'Voornaam',
   'admin.new_author_field_lastname': 'Achternaam',
   'admin.new_author_submit': 'Aanmaken & uitnodigen',
   'admin.new_author_success':
-    '{email} aangemaakt. Geef het wachtwoord "{pw}" persoonlijk door — bij eerste inlog wordt het automatisch gewijzigd.',
+    '{email} aangemaakt. Geef het wachtwoord "{pw}" persoonlijk door. Bij eerste inlog wordt het automatisch gewijzigd.',
   'admin.new_author_error_required': 'Vul e-mail, voornaam en achternaam in.',
   'admin.new_author_error_email': 'Ongeldig e-mailadres.',
   'admin.new_author_error_insert': 'Aanmaken mislukt',
@@ -484,7 +484,7 @@ export const nl: Translations = {
   'admin.bulk_stmt_no_amounts': 'Selecteer een bedragen-Excel.',
   'admin.bulk_stmt_pdf_too_large': 'Bestand "{file}" is groter dan {max} MB.',
   'admin.bulk_stmt_batch_too_large':
-    'Totaal van geselecteerde bestanden is {mb} MB — dat kan traag laden in de browser. Knip de batch eventueel op.',
+    'Totaal van geselecteerde bestanden is {mb} MB. Dat kan traag laden in de browser. Knip de batch eventueel op.',
   'admin.bulk_stmt_unexpected': 'Onverwachte fout',
   'admin.bulk_stmt_group_ready': 'Klaar voor upload',
   'admin.bulk_stmt_group_duplicate': 'Al aanwezig',
@@ -493,7 +493,7 @@ export const nl: Translations = {
   'admin.bulk_stmt_status_no_author':
     'Geen auteur gevonden voor Alliant ID {id}. Maak de auteur eerst aan via "Importeer Excel".',
   'admin.bulk_stmt_status_duplicate':
-    'Statement al aanwezig voor deze auteur + periode — wordt overgeslagen.',
+    'Statement al aanwezig voor deze auteur + periode. Wordt overgeslagen.',
   'admin.bulk_stmt_status_no_amount':
     'Bedrag ontbreekt voor Alliant ID {id}. Voeg een rij toe in de bedragen-Excel.',
   'admin.bulk_stmt_upload_btn': 'Upload {count} statements',
@@ -505,8 +505,8 @@ export const nl: Translations = {
 
   'admin.csv_export_heading': 'Export naar NetSuite',
   'admin.csv_export_intro':
-    'Genereert een CSV met alle auteursgegevens die zijn gewijzigd of nieuw geactiveerd sinds vorige export. Bestand wordt gedownload — upload binnen enkele minuten naar Noordhoff SharePoint en verwijder lokaal.',
-  'admin.csv_export_reason_label': 'Reden / opmerking (optioneel — komt in audit-log)',
+    'Genereert een CSV met alle auteursgegevens die zijn gewijzigd of nieuw geactiveerd sinds vorige export. Bestand wordt gedownload. Upload binnen enkele minuten naar Noordhoff SharePoint en verwijder lokaal.',
+  'admin.csv_export_reason_label': 'Reden / opmerking (optioneel, komt in audit-log)',
   'admin.csv_export_reason_placeholder': 'bv. Wekelijkse NetSuite-sync',
   'admin.csv_export_submit_count': 'Exporteer & download ({count} rijen)',
   'admin.csv_export_submit': 'Exporteer & download',

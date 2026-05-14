@@ -110,12 +110,12 @@ export const sv: Translations = {
   'onboarding.banner_blocking_text':
     'Vissa uppgifter saknas som krävs för aktivering: adress, IBAN, BIC och/eller BSN. Utan denna information kan Noordhoff inte aktivera ditt konto. Fyll i de saknade fälten på din profilsida nedan.',
   'onboarding.banner_softmissing_title':
-    'Dina uppgifter är kompletta — Noordhoff aktiverar snart ditt konto',
+    'Dina uppgifter är kompletta. Noordhoff aktiverar snart ditt konto',
   'onboarding.banner_softmissing_text':
     'Tack för att du fyllde i uppgifterna. Ditt konto aktiveras så snart som möjligt. Telefonnummer och födelsedatum kan du fortfarande lägga till i lugn och ro via din profilsida nedan.',
   'onboarding.banner_pending_review_title': 'Din ansökan behandlas',
   'onboarding.banner_pending_review_text':
-    'Tack för att du fyllt i dina uppgifter. Noordhoff behandlar nu din information — det tar vanligtvis några arbetsdagar. När ditt konto är aktivt blir alla delar av portalen automatiskt tillgängliga. Du meddelas via e-post.',
+    'Tack för att du fyllt i dina uppgifter. Noordhoff behandlar nu din information; det tar vanligtvis några arbetsdagar. När ditt konto är aktivt blir alla delar av portalen automatiskt tillgängliga. Du meddelas via e-post.',
   'onboarding.tab_disabled_tooltip': 'Tillgänglig när ditt konto har aktiverats',
   'onboarding.activate_button': 'Skicka uppgifter',
   'onboarding.activate_button_disabled_hint':
@@ -290,18 +290,18 @@ export const sv: Translations = {
     'Författare som redan är kända hos Noordhoff och finns i NetSuite. Exportera dem som Excel från NetSuite (leverantörslista, 12 kolumner) och ladda upp filen här. Alla konton skapas på en gång MED de befintliga NetSuite-uppgifterna förifyllda. Standardvägen för din initiala population och periodiska uppdateringar.',
   'admin.card_add_authors_help_new_label': 'Nya författare (via "Ny författare")',
   'admin.card_add_authors_help_new_text':
-    'Författare som ÄNNU INTE är kända hos Noordhoff — undantag som nya kontrakt som inte ännu behandlats i NetSuite. Ange bara e-post, för- och efternamn. Författaren loggar sedan in själv och fyller i resterande profiluppgifter via portalen. Dessa ändringar visas i fliken "Personuppgifter" under "Väntande ändringsförfrågningar" för ditt godkännande.',
+    'Författare som ÄNNU INTE är kända hos Noordhoff, till exempel nya kontrakt som inte ännu behandlats i NetSuite. Ange bara e-post, för- och efternamn. Författaren loggar sedan in själv och fyller i resterande profiluppgifter via portalen. Dessa ändringar visas i fliken "Personuppgifter" under "Väntande ändringsförfrågningar" för ditt godkännande.',
   'admin.card_add_authors_help_outro':
-    'I båda fallen får kontot startlösenordet "Noordhoff" som författaren byter vid första inloggning. Först när du klickar "Aktivera" i författarlistan får författaren ett meddelande att de kan logga in. Mejl är av under testfasen — informera testförfattare personligen.',
+    'I båda fallen får kontot startlösenordet "Noordhoff" som författaren byter vid första inloggning. Först när du klickar "Aktivera" i författarlistan får författaren ett meddelande att de kan logga in. Mejl är av under testfasen. Informera testförfattare personligen.',
 
   'admin.card_bulk_statements_help_intro':
     'En bulk-uppladdning kräver TVÅ filer som laddas upp tillsammans: avräknings-PDF:erna och en Excel med matchande belopp. Nedan hur var och en ska se ut.',
-  'admin.card_bulk_statements_help_pdf_heading': 'Fil 1 — Avräknings-PDF:er',
+  'admin.card_bulk_statements_help_pdf_heading': 'Fil 1: Avräknings-PDF:er',
   'admin.card_bulk_statements_help_pdf_para':
-    'En PDF per författare per månad. Alliant ID i filnamnet matchas automatiskt mot en författare i portalen — se till att det ID:t är korrekt, annars hamnar avräkningen utan ägare.',
+    'En PDF per författare per månad. Alliant ID i filnamnet matchas automatiskt mot en författare i portalen. Se till att det ID:t är korrekt, annars hamnar avräkningen utan ägare.',
   'admin.card_bulk_statements_help_filename_label': 'Filnamnskonvention:',
   'admin.card_bulk_statements_help_example_label': 'Exempel:',
-  'admin.card_bulk_statements_help_excel_heading': 'Fil 2 — Belopps-Excel',
+  'admin.card_bulk_statements_help_excel_heading': 'Fil 2: Belopps-Excel',
   'admin.card_bulk_statements_help_excel_para':
     'En Excel-fil med beloppen per författare (PDF:n själv innehåller ingen maskinläsbar summa). Första raden måste innehålla exakt dessa tre rubriker i denna ordning:',
   'admin.card_bulk_statements_help_empty_cell': '(tom)',
@@ -413,9 +413,9 @@ export const sv: Translations = {
   'admin.reset_mfa_success': '2FA återställd för {name} ({count} faktor(er) borttagna).',
   'admin.reset_mfa_failed': '2FA-återställning misslyckades',
   'admin.status_admin': 'Admin',
-  'admin.status_persoonsgegevens': 'Inaktiv — Personuppgifter saknas',
+  'admin.status_persoonsgegevens': 'Inaktiv: personuppgifter saknas',
   'admin.status_persoonsgegevens_short': 'Personuppgifter att lägga till',
-  'admin.status_id_koppelen': 'Inaktiv — Länka ID:n till NetSuite',
+  'admin.status_id_koppelen': 'Inaktiv: länka ID:n till NetSuite',
   'admin.status_id_koppelen_short': 'Länka ID:n',
   'admin.btn_id_koppelen': 'Länka ID:n',
   'admin.tooltip_id_koppelen':
@@ -427,9 +427,9 @@ export const sv: Translations = {
   'admin.id_koppel_submit': 'Spara',
   'admin.id_koppel_success': 'ID:n sparade för {name}.',
   'admin.id_koppel_error': 'Sparande misslyckades',
-  'admin.status_statements': 'Inaktiv — Avräkningar saknas',
+  'admin.status_statements': 'Inaktiv: avräkningar saknas',
   'admin.status_statements_short': 'Avräkningar att lägga till',
-  'admin.status_gereed': 'Inaktiv — Redo för aktivering',
+  'admin.status_gereed': 'Inaktiv: redo för aktivering',
   'admin.status_gereed_short': 'Redo för aktivering',
   'admin.status_actief': 'Aktiv',
   'admin.status_actief_short': 'Aktiv',
@@ -447,13 +447,13 @@ export const sv: Translations = {
 
   'admin.new_author_heading': 'Ny författare',
   'admin.new_author_intro':
-    'Ange e-post + namn. Kontot skapas med startlösenordet "Noordhoff". Lämna det personligen till författaren — vid första inloggning väljer hen ett eget lösenord och därefter 2FA. Inga e-postmeddelanden skickas under testfasen.',
+    'Ange e-post + namn. Kontot skapas med startlösenordet "Noordhoff". Lämna det personligen till författaren. Vid första inloggning väljer hen ett eget lösenord och därefter 2FA. Inga e-postmeddelanden skickas under testfasen.',
   'admin.new_author_field_email': 'E-post',
   'admin.new_author_field_firstname': 'Förnamn',
   'admin.new_author_field_lastname': 'Efternamn',
   'admin.new_author_submit': 'Skapa & bjud in',
   'admin.new_author_success':
-    '{email} skapad. Dela lösenordet "{pw}" personligen — det byts vid första inloggning.',
+    '{email} skapad. Dela lösenordet "{pw}" personligen. Det byts vid första inloggning.',
   'admin.new_author_error_required': 'Fyll i e-post, förnamn och efternamn.',
   'admin.new_author_error_email': 'Ogiltig e-postadress.',
   'admin.new_author_error_insert': 'Skapande misslyckades',
@@ -489,7 +489,7 @@ export const sv: Translations = {
   'admin.bulk_stmt_no_amounts': 'Välj en belopps-Excel.',
   'admin.bulk_stmt_pdf_too_large': 'Filen "{file}" är större än {max} MB.',
   'admin.bulk_stmt_batch_too_large':
-    'Total batchstorlek är {mb} MB — det kan göra webbläsaren långsam. Dela upp om möjligt.',
+    'Total batchstorlek är {mb} MB. Det kan göra webbläsaren långsam. Dela upp om möjligt.',
   'admin.bulk_stmt_unexpected': 'Oväntat fel',
   'admin.bulk_stmt_group_ready': 'Klar att ladda upp',
   'admin.bulk_stmt_group_duplicate': 'Redan uppladdad',
@@ -498,7 +498,7 @@ export const sv: Translations = {
   'admin.bulk_stmt_status_no_author':
     'Ingen författare hittades för Alliant ID {id}. Skapa författaren först via "Importera Excel".',
   'admin.bulk_stmt_status_duplicate':
-    'Avräkning finns redan för denna författare + period — hoppas över.',
+    'Avräkning finns redan för denna författare + period. Hoppas över.',
   'admin.bulk_stmt_status_no_amount':
     'Belopp saknas för Alliant ID {id}. Lägg till en rad i belopps-Excel.',
   'admin.bulk_stmt_upload_btn': 'Ladda upp {count} avräkningar',
@@ -510,8 +510,8 @@ export const sv: Translations = {
 
   'admin.csv_export_heading': 'Exportera till NetSuite',
   'admin.csv_export_intro':
-    'Genererar en CSV med alla författaruppgifter som ändrats eller nyligen aktiverats sedan föregående export. Filen laddas ner — ladda upp till Noordhoff SharePoint inom minuter och radera lokalt.',
-  'admin.csv_export_reason_label': 'Anledning / kommentar (valfritt — sparas i revisionsloggen)',
+    'Genererar en CSV med alla författaruppgifter som ändrats eller nyligen aktiverats sedan föregående export. Filen laddas ner. Ladda upp till Noordhoff SharePoint inom minuter och radera lokalt.',
+  'admin.csv_export_reason_label': 'Anledning / kommentar (valfritt, sparas i revisionsloggen)',
   'admin.csv_export_reason_placeholder': 't.ex. Veckovis NetSuite-synk',
   'admin.csv_export_submit_count': 'Exportera & ladda ner ({count} rader)',
   'admin.csv_export_submit': 'Exportera & ladda ner',

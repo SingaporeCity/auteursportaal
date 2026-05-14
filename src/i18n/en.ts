@@ -102,12 +102,12 @@ export const en: Translations = {
   'onboarding.banner_blocking_text':
     "We're still missing some details required for activation: address, IBAN, BIC and/or BSN. Without this information Noordhoff cannot activate your account. Please fill in the missing fields on your profile page below.",
   'onboarding.banner_softmissing_title':
-    'Your details are complete — Noordhoff will activate your account shortly',
+    'Your details are complete. Noordhoff will activate your account shortly',
   'onboarding.banner_softmissing_text':
     'Thank you for completing your profile. Your account will be activated as soon as possible. Phone number and date of birth can still be filled in at your convenience via your profile page below.',
   'onboarding.banner_pending_review_title': 'Your request is being processed',
   'onboarding.banner_pending_review_text':
-    'Thank you for completing your profile. Noordhoff is now processing your details — this usually takes a few working days. Once your account is active, all sections of the portal will become available automatically. You will be notified by email.',
+    'Thank you for completing your profile. Noordhoff is now processing your details; this usually takes a few working days. Once your account is active, all sections of the portal will become available automatically. You will be notified by email.',
   'onboarding.tab_disabled_tooltip': 'Available once your account is activated',
   'onboarding.activate_button': 'Submit details',
   'onboarding.activate_button_disabled_hint':
@@ -280,21 +280,21 @@ export const en: Translations = {
     'Authors arrive in the portal in two ways. Which route you pick depends on whether the author is already registered with Noordhoff.',
   'admin.card_add_authors_help_existing_label': 'Existing authors (via "Import Excel")',
   'admin.card_add_authors_help_existing_text':
-    'Authors who are already known to Noordhoff and present in NetSuite. Export them as Excel from NetSuite (Vendor-list export, 12 columns) and upload the file here. All accounts are created in one go WITH the existing NetSuite data — name, address, IBAN, BIC, BSN, date of birth — pre-filled. This is the default route for your initial population and for periodic updates whenever NetSuite adds new authors.',
+    'Authors who are already known to Noordhoff and present in NetSuite. Export them as Excel from NetSuite (Vendor-list export, 12 columns) and upload the file here. All accounts are created in one go WITH the existing NetSuite data (name, address, IBAN, BIC, BSN, date of birth) pre-filled. This is the default route for your initial population and for periodic updates whenever NetSuite adds new authors.',
   'admin.card_add_authors_help_new_label': 'New authors (via "New author")',
   'admin.card_add_authors_help_new_text':
-    'Authors who are NOT yet known to Noordhoff — exceptions such as new contracts not yet processed in NetSuite. Enter only email, first and last name. The author then signs in and fills in their remaining profile details (address, IBAN, BSN, date of birth) via the portal. Those changes appear in the "Personal details" tab under "Pending change requests" for your approval.',
+    'Authors who are NOT yet known to Noordhoff, for example new contracts not yet processed in NetSuite. Enter only email, first and last name. The author then signs in and fills in their remaining profile details (address, IBAN, BSN, date of birth) via the portal. Those changes appear in the "Personal details" tab under "Pending change requests" for your approval.',
   'admin.card_add_authors_help_outro':
-    'In both cases the account starts with the initial password "Noordhoff" which the author changes at first sign-in. Only when you click "Activate" in the authors list does the author receive a notification that they can sign in. Mails are off during the test phase — inform test authors personally.',
+    'In both cases the account starts with the initial password "Noordhoff" which the author changes at first sign-in. Only when you click "Activate" in the authors list does the author receive a notification that they can sign in. Mails are off during the test phase. Inform test authors personally.',
 
   'admin.card_bulk_statements_help_intro':
     'A bulk upload requires TWO files uploaded together: the statement PDFs and an Excel with the matching amounts. Below how each one should look.',
-  'admin.card_bulk_statements_help_pdf_heading': 'File 1 — Statement PDFs',
+  'admin.card_bulk_statements_help_pdf_heading': 'File 1: Statement PDFs',
   'admin.card_bulk_statements_help_pdf_para':
-    'One PDF per author per month. The Alliant ID in the filename is matched automatically against an author in the portal — make sure that ID is correct, otherwise the statement ends up without an owner.',
+    'One PDF per author per month. The Alliant ID in the filename is matched automatically against an author in the portal. Make sure that ID is correct, otherwise the statement ends up without an owner.',
   'admin.card_bulk_statements_help_filename_label': 'Filename convention:',
   'admin.card_bulk_statements_help_example_label': 'Example:',
-  'admin.card_bulk_statements_help_excel_heading': 'File 2 — Amounts Excel',
+  'admin.card_bulk_statements_help_excel_heading': 'File 2: Amounts Excel',
   'admin.card_bulk_statements_help_excel_para':
     'One Excel file with the amounts per author (the PDF itself contains no machine-readable total). The first row must contain exactly these three headers in this order:',
   'admin.card_bulk_statements_help_empty_cell': '(empty)',
@@ -303,7 +303,7 @@ export const en: Translations = {
   'admin.card_bulk_statements_help_col_amount':
     'Euro amount for this statement. Decimal comma (1,234.56) or dot (1234.56) both work. Rounded to 2 decimals.',
   'admin.card_bulk_statements_help_col_yyyymm':
-    "Specific month (six digits, YYYYMM). Leave empty = amount applies to ALL of that author's PDFs in this batch — convenient when you want one amount per author per upload. For month-specific amounts, fill this column.",
+    "Specific month (six digits, YYYYMM). Leave empty to apply the amount to ALL of that author's PDFs in this batch. Convenient when you want one amount per author per upload. For month-specific amounts, fill this column.",
   'admin.card_bulk_statements_help_outro':
     'Select both files together → click "Show preview" → check the table of author-matches → confirm. Duplicate uploads of the same PDF are automatically skipped.',
   'admin.toolbar_excel_import': 'Import existing authors',
@@ -404,9 +404,9 @@ export const en: Translations = {
   'admin.reset_mfa_success': '2FA reset for {name} ({count} factor(s) removed).',
   'admin.reset_mfa_failed': '2FA reset failed',
   'admin.status_admin': 'Admin',
-  'admin.status_persoonsgegevens': 'Inactive — Personal details still to be added',
+  'admin.status_persoonsgegevens': 'Inactive: personal details still to be added',
   'admin.status_persoonsgegevens_short': 'Personal details to be added',
-  'admin.status_id_koppelen': 'Inactive — Link IDs to NetSuite',
+  'admin.status_id_koppelen': 'Inactive: Link IDs to NetSuite',
   'admin.status_id_koppelen_short': 'Link IDs',
   'admin.btn_id_koppelen': 'Link IDs',
   'admin.tooltip_id_koppelen': 'Enter Vendor ID and Alliant ID to link this author to NetSuite.',
@@ -417,9 +417,9 @@ export const en: Translations = {
   'admin.id_koppel_submit': 'Save',
   'admin.id_koppel_success': 'IDs saved for {name}.',
   'admin.id_koppel_error': 'Save failed',
-  'admin.status_statements': 'Inactive — Statements still to be added',
+  'admin.status_statements': 'Inactive: statements still to be added',
   'admin.status_statements_short': 'Statements to be added',
-  'admin.status_gereed': 'Inactive — Ready for activation',
+  'admin.status_gereed': 'Inactive: ready for activation',
   'admin.status_gereed_short': 'Ready for activation',
   'admin.status_actief': 'Active',
   'admin.status_actief_short': 'Active',
@@ -437,13 +437,13 @@ export const en: Translations = {
 
   'admin.new_author_heading': 'New author',
   'admin.new_author_intro':
-    'Enter email + name. The account is created with the initial password "Noordhoff". Share it personally with the author — at first login they\'ll choose their own password and then set up 2FA. No emails are sent during the test phase.',
+    'Enter email + name. The account is created with the initial password "Noordhoff". Share it personally with the author. At first login they\'ll choose their own password and then set up 2FA. No emails are sent during the test phase.',
   'admin.new_author_field_email': 'Email',
   'admin.new_author_field_firstname': 'First name',
   'admin.new_author_field_lastname': 'Last name',
   'admin.new_author_submit': 'Create & invite',
   'admin.new_author_success':
-    '{email} created. Share the password "{pw}" personally — it will be changed at first login.',
+    '{email} created. Share the password "{pw}" personally. It will be changed at first login.',
   'admin.new_author_error_required': 'Fill in email, first name and last name.',
   'admin.new_author_error_email': 'Invalid email address.',
   'admin.new_author_error_insert': 'Creation failed',
@@ -479,7 +479,7 @@ export const en: Translations = {
   'admin.bulk_stmt_no_amounts': 'Please select an amounts Excel.',
   'admin.bulk_stmt_pdf_too_large': 'File "{file}" exceeds {max} MB.',
   'admin.bulk_stmt_batch_too_large':
-    'Selected batch totals {mb} MB — that may load slowly in the browser. Consider splitting it.',
+    'Selected batch totals {mb} MB. That may load slowly in the browser. Consider splitting it.',
   'admin.bulk_stmt_unexpected': 'Unexpected error',
   'admin.bulk_stmt_group_ready': 'Ready for upload',
   'admin.bulk_stmt_group_duplicate': 'Already present',
@@ -488,7 +488,7 @@ export const en: Translations = {
   'admin.bulk_stmt_status_no_author':
     'No author found for Alliant ID {id}. Create the author first via "Import Excel".',
   'admin.bulk_stmt_status_duplicate':
-    'Statement already exists for this author + period — will be skipped.',
+    'Statement already exists for this author + period. Will be skipped.',
   'admin.bulk_stmt_status_no_amount':
     'Amount missing for Alliant ID {id}. Add a row to the amounts Excel.',
   'admin.bulk_stmt_upload_btn': 'Upload {count} statements',
@@ -500,8 +500,8 @@ export const en: Translations = {
 
   'admin.csv_export_heading': 'Export to NetSuite',
   'admin.csv_export_intro':
-    'Generates a CSV containing all author data changed or newly activated since the previous export. The file is downloaded — upload to Noordhoff SharePoint within minutes and delete locally.',
-  'admin.csv_export_reason_label': 'Reason / note (optional — saved in audit log)',
+    'Generates a CSV containing all author data changed or newly activated since the previous export. The file is downloaded. Upload to Noordhoff SharePoint within minutes and delete locally.',
+  'admin.csv_export_reason_label': 'Reason / note (optional, saved in audit log)',
   'admin.csv_export_reason_placeholder': 'e.g. Weekly NetSuite sync',
   'admin.csv_export_submit_count': 'Export & download ({count} rows)',
   'admin.csv_export_submit': 'Export & download',
