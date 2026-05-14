@@ -186,11 +186,18 @@ async function handleSubmit(
     const reason =
       fnErr !== null ? formatFnErrorMessage(fnErr) : (firstResult?.error ?? 'onbekend');
     reportError('admin.new_author.invite', new Error(reason));
+    // Schone-state-rollback: de Edge Function heeft de net-aangemaakte
+    // auth-user al opgeruimd (mode='invite' rollback bij mail-fail). Wij
+    // verwijderen hier de bijbehorende authors-rij zodat de admin direct
+    // opnieuw kan proberen zonder dat er een orphaned account in de
+    // lijst achterblijft.
+    const { error: delErr } = await supabase.from('authors').delete().eq('id', data.id);
+    if (delErr !== null) {
+      reportError('admin.new_author.rollback', delErr);
+    }
     showStatus(status, 'error', `${t('admin.new_author_error_invite')}: ${reason}`);
     submit.disabled = false;
     submit.removeAttribute('aria-busy');
-    // Auteur-rij blijft staan — admin kan opnieuw een invite triggeren via
-    // "Stuur herinnering" op de auteur-card.
     return;
   }
 

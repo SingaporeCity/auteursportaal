@@ -505,11 +505,26 @@ async function processOne(
       mode,
     });
     if (!sent.ok) {
+      // Rollback bij mail-fail in invite-mode wanneer de auth-user net is
+      // aangemaakt: anders blijft er een orphaned auth-user achter zonder
+      // dat de auteur de inloggegevens heeft ontvangen. De aanroeper
+      // (admin-UI) ruimt vervolgens zelf de authors-rij op. Voor
+      // mode='activate' geen rollback — daar bestond de auteur al en is
+      // een gemiste mail een soft fout (admin kan opnieuw klikken).
+      let rolledBack = false;
+      if (mode === 'invite' && ensure.created) {
+        const { error: delErr } = await adminClient.auth.admin.deleteUser(author_id);
+        if (delErr === null || delErr === undefined) {
+          rolledBack = true;
+        }
+      }
       return {
         author_id,
         email,
         status: 'failed',
-        error: `Auth user OK but mail send failed: ${sent.error}`,
+        error: rolledBack
+          ? `Mail-verzending mislukt: ${sent.error}. Account is opgeruimd; controleer mail-configuratie en probeer opnieuw.`
+          : `Mail-verzending mislukt: ${sent.error}`,
       };
     }
 
