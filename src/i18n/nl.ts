@@ -275,7 +275,7 @@ export const nl: Translations = {
   'admin.tab_accounts': 'Accounts',
   'admin.tab_persoonsgegevens': 'Persoonsgegevens',
   'admin.card_add_authors_title': 'Auteurs toevoegen',
-  'admin.card_bulk_statements_title': 'Royaltystatements uploaden',
+  'admin.card_bulk_statements_title': 'Statements & contracten',
   'admin.action_help_summary': 'Hoe werkt dit?',
 
   'admin.card_add_authors_help_intro':
@@ -327,6 +327,13 @@ export const nl: Translations = {
   'admin.tooltip_reset_mfa':
     "Verwijder de 2FA-instellingen van deze auteur. Bij volgende inlog moet hij/zij een nieuwe authenticator-app instellen. Gebruik dit als de auteur z'n device kwijt is.",
   'admin.filter_all': 'Alle',
+  'admin.search_placeholder': 'Zoek op naam of e-mail…',
+  'admin.search_no_results': 'Geen auteurs gevonden voor "{q}".',
+  'admin.stats_total': 'Auteurs',
+  'admin.author_picker_title': 'Voor welke auteur?',
+  'admin.author_picker_intro': 'Kies de auteur waarvoor je dit contract wilt uploaden.',
+  'admin.author_picker_search_placeholder': 'Zoek op naam of e-mail…',
+  'admin.author_picker_empty': 'Geen auteurs gevonden.',
   'admin.btn_send_reminder_label': 'Stuur reminder naar auteur',
   'admin.btn_activate': 'Activeer',
   'admin.btn_reset_mfa': 'Reset 2FA',

@@ -280,7 +280,7 @@ export const sv: Translations = {
   'admin.tab_accounts': 'Konton',
   'admin.tab_persoonsgegevens': 'Personuppgifter',
   'admin.card_add_authors_title': 'Lägg till författare',
-  'admin.card_bulk_statements_title': 'Ladda upp royalty-avräkningar',
+  'admin.card_bulk_statements_title': 'Avräkningar & kontrakt',
   'admin.action_help_summary': 'Hur fungerar det?',
 
   'admin.card_add_authors_help_intro':
@@ -332,6 +332,13 @@ export const sv: Translations = {
   'admin.tooltip_reset_mfa':
     'Ta bort författarens 2FA-inställningar. Vid nästa inloggning måste hen konfigurera en autentiseringsapp på nytt. Använd om författaren tappat sin enhet.',
   'admin.filter_all': 'Alla',
+  'admin.search_placeholder': 'Sök på namn eller e-post…',
+  'admin.search_no_results': 'Inga författare hittades för "{q}".',
+  'admin.stats_total': 'Författare',
+  'admin.author_picker_title': 'Vilken författare?',
+  'admin.author_picker_intro': 'Välj författaren du vill ladda upp detta kontrakt för.',
+  'admin.author_picker_search_placeholder': 'Sök på namn eller e-post…',
+  'admin.author_picker_empty': 'Inga författare hittades.',
   'admin.btn_send_reminder_label': 'Skicka påminnelse till författare',
   'admin.btn_activate': 'Aktivera',
   'admin.btn_reset_mfa': 'Återställ 2FA',

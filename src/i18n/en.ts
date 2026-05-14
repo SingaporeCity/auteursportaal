@@ -273,7 +273,7 @@ export const en: Translations = {
   'admin.tab_accounts': 'Accounts',
   'admin.tab_persoonsgegevens': 'Personal details',
   'admin.card_add_authors_title': 'Add authors',
-  'admin.card_bulk_statements_title': 'Upload royalty statements',
+  'admin.card_bulk_statements_title': 'Statements & contracts',
   'admin.action_help_summary': 'How does this work?',
 
   'admin.card_add_authors_help_intro':
@@ -325,6 +325,13 @@ export const en: Translations = {
   'admin.tooltip_reset_mfa':
     "Remove this author's 2FA settings. At their next sign-in they'll need to set up an authenticator app again. Use this if the author lost their device.",
   'admin.filter_all': 'All',
+  'admin.search_placeholder': 'Search by name or email…',
+  'admin.search_no_results': 'No authors found for "{q}".',
+  'admin.stats_total': 'Authors',
+  'admin.author_picker_title': 'For which author?',
+  'admin.author_picker_intro': 'Select the author you want to upload this contract for.',
+  'admin.author_picker_search_placeholder': 'Search by name or email…',
+  'admin.author_picker_empty': 'No authors found.',
   'admin.btn_send_reminder_label': 'Send reminder to author',
   'admin.btn_activate': 'Activate',
   'admin.btn_reset_mfa': 'Reset 2FA',

@@ -25,6 +25,7 @@ import { openExcelImportModal } from './admin/excel-import';
 import { openBulkStatementUploadModal } from './admin/bulk-statement-upload';
 import { openContractUploadModal } from './admin/contract-upload';
 import { openNewAuthorModal } from './admin/new-author-modal';
+import { openAuthorPickerModal } from './admin/author-picker';
 import { extractFnError, formatFnErrorMessage } from '@/lib/edge-function-errors';
 import { buildAppHeader } from './shared/header';
 
@@ -35,6 +36,8 @@ type FilterValue = 'all' | AdminStatus;
 
 interface ListState {
   filter: FilterValue;
+  /** Vrije-tekst-zoekopdracht; vergelijkt case-insensitive met naam + email. */
+  search: string;
   authors: AuthorRow[];
   /** Set van author-IDs die ten minste één `payments`-rij hebben. */
   paymentsByAuthor: Set<string>;
@@ -81,7 +84,12 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   // -- Gedeeld state-object: authors + payments. Eén bron van waarheid die
   // beide tabs gebruiken (Accounts-tab toont auteurslijst, Persoonsgegevens
   // gebruikt 'm voor de change-requests-section).
-  const state: ListState = { filter: 'all', authors: [], paymentsByAuthor: new Set() };
+  const state: ListState = {
+    filter: 'all',
+    search: '',
+    authors: [],
+    paymentsByAuthor: new Set(),
+  };
 
   const statusBox = document.createElement('div');
   statusBox.className = 'admin-status';
@@ -129,10 +137,16 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
     }
   }
 
-  function rerenderAccounts(filtersEl: HTMLElement, listEl: HTMLElement): void {
-    renderFilterButtons(filtersEl, state, () => {
-      rerenderAccounts(filtersEl, listEl);
-    });
+  function rerenderAccounts(
+    statsEl: HTMLElement,
+    filtersEl: HTMLElement,
+    listEl: HTMLElement
+  ): void {
+    const refresh = (): void => {
+      rerenderAccounts(statsEl, filtersEl, listEl);
+    };
+    renderStatsStrip(statsEl, state, refresh);
+    renderFilterButtons(filtersEl, state, refresh);
     renderList(listEl, state, statusBox);
   }
 
@@ -143,11 +157,16 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
         void loadAuthors(
           state,
           () => {
-            // re-render filter + lijst zonder de hele tab opnieuw te tekenen
+            // re-render filter + stats + lijst zonder de hele tab opnieuw te tekenen
+            const statsEl = tabPanel.querySelector('.admin-stats-strip');
             const filtersEl = tabPanel.querySelector('.admin-filters');
             const listEl = tabPanel.querySelector('.admin-author-list');
-            if (filtersEl instanceof HTMLElement && listEl instanceof HTMLElement) {
-              rerenderAccounts(filtersEl, listEl);
+            if (
+              statsEl instanceof HTMLElement &&
+              filtersEl instanceof HTMLElement &&
+              listEl instanceof HTMLElement
+            ) {
+              rerenderAccounts(statsEl, filtersEl, listEl);
             }
           },
           statusBox
@@ -195,7 +214,44 @@ function renderAccountsTab(
   statusBox: HTMLElement,
   onAuthorsChanged: () => void
 ): void {
-  // ---- Action-card 1: Auteurs toevoegen (Excel + handmatig)
+  // ---- Stats-strip: 4 klikbare tegels die direct als filter werken
+  const stats = document.createElement('div');
+  stats.className = 'admin-stats-strip';
+  container.appendChild(stats);
+
+  // ---- Toolbar: search-veld + filter-pills (één rij, wrap op mobiel)
+  const toolbar = document.createElement('div');
+  toolbar.className = 'admin-list-toolbar';
+  container.appendChild(toolbar);
+
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'admin-search-wrap';
+  const searchIcon = document.createElement('span');
+  searchIcon.className = 'admin-search-icon';
+  searchIcon.innerHTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+  searchWrap.appendChild(searchIcon);
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.className = 'admin-search-input';
+  searchInput.placeholder = t('admin.search_placeholder');
+  searchInput.value = state.search;
+  searchInput.setAttribute('aria-label', t('admin.search_placeholder'));
+  searchWrap.appendChild(searchInput);
+  toolbar.appendChild(searchWrap);
+
+  const filters = document.createElement('div');
+  filters.className = 'admin-filters';
+  toolbar.appendChild(filters);
+
+  // ---- Author-list (centraal — gebruiker werkt 99% hier)
+  const list = document.createElement('div');
+  list.className = 'admin-author-list';
+  list.textContent = t('common.loading');
+  container.appendChild(list);
+
+  // ---- Action-cards onder de lijst — minder gebruikt, dus secundair
   container.appendChild(
     buildActionCard({
       title: t('admin.card_add_authors_title'),
@@ -223,7 +279,6 @@ function renderAccountsTab(
     })
   );
 
-  // ---- Action-card 2: Royaltystatements uploaden
   container.appendChild(
     buildActionCard({
       title: t('admin.card_bulk_statements_title'),
@@ -238,25 +293,79 @@ function renderAccountsTab(
             openBulkStatementUploadModal(onAuthorsChanged);
           },
         },
+        {
+          label: t('admin.btn_upload_contract'),
+          icon: ICON_PLUS,
+          tooltip: t('admin.tooltip_upload_contract'),
+          variant: 'secondary',
+          onClick: () => {
+            openAuthorPickerModal(state.authors, (author) => {
+              openContractUploadModal(author, onAuthorsChanged);
+            });
+          },
+        },
       ],
     })
   );
 
-  // ---- Filter-pills + auteurslijst
-  const filters = document.createElement('div');
-  filters.className = 'admin-filters';
-  container.appendChild(filters);
-
-  const list = document.createElement('div');
-  list.className = 'admin-author-list';
-  list.textContent = t('common.loading');
-  container.appendChild(list);
-
   const rerender = (): void => {
     renderFilterButtons(filters, state, rerender);
+    renderStatsStrip(stats, state, rerender);
     renderList(list, state, statusBox);
   };
+
+  searchInput.addEventListener('input', () => {
+    state.search = searchInput.value;
+    renderList(list, state, statusBox);
+  });
+
   rerender();
+}
+
+/**
+ * Stats-strip: vier klikbare tegels die direct als filter werken. Geeft de
+ * admin in één oogopslag inzicht in wat er nog te doen valt: "5 wachten op
+ * data", "3 klaar voor activatie". Tegels zijn klikbaar — kortere weg naar
+ * de bijbehorende lijst-view.
+ */
+function renderStatsStrip(container: HTMLElement, state: ListState, onChange: () => void): void {
+  container.replaceChildren();
+  const counts = countByDerivedStatus(state);
+  const tiles: { value: AdminStatus; label: string; count: number }[] = [
+    {
+      value: 'persoonsgegevens',
+      label: t('admin.status_persoonsgegevens_short'),
+      count: counts.persoonsgegevens,
+    },
+    { value: 'statements', label: t('admin.status_statements_short'), count: counts.statements },
+    { value: 'gereed', label: t('admin.status_gereed_short'), count: counts.gereed },
+    { value: 'actief', label: t('admin.status_actief_short'), count: counts.actief },
+  ];
+
+  for (const tile of tiles) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `admin-stat-tile admin-stat-tile--${tile.value}`;
+    if (state.filter === tile.value) {
+      btn.classList.add('admin-stat-tile--active');
+    }
+
+    const value = document.createElement('span');
+    value.className = 'admin-stat-tile-value';
+    value.textContent = String(tile.count);
+    btn.appendChild(value);
+
+    const label = document.createElement('span');
+    label.className = 'admin-stat-tile-label';
+    label.textContent = tile.label;
+    btn.appendChild(label);
+
+    btn.addEventListener('click', () => {
+      state.filter = state.filter === tile.value ? 'all' : tile.value;
+      onChange();
+    });
+    container.appendChild(btn);
+  }
 }
 
 // =============================================================================
@@ -665,22 +774,35 @@ function countByDerivedStatus(state: ListState): Record<AdminStatus, number> {
 function renderList(container: HTMLElement, state: ListState, statusBox: HTMLElement): void {
   container.replaceChildren();
 
+  const needle = state.search.trim().toLowerCase();
   const filtered = state.authors.filter((a) => {
-    // Admin-accounts horen niet in het auteursbeheer-overzicht — verberg ze
-    // ongeacht het actieve filter.
+    // Admin-accounts horen niet in het auteursbeheer-overzicht.
     if (a.is_admin) {
       return false;
     }
-    if (state.filter === 'all') {
-      return true;
+    if (state.filter !== 'all') {
+      const status = deriveAdminStatus(a, state.paymentsByAuthor.has(a.id));
+      if (status !== state.filter) {
+        return false;
+      }
     }
-    return deriveAdminStatus(a, state.paymentsByAuthor.has(a.id)) === state.filter;
+    if (needle !== '') {
+      const haystack = `${a.first_name} ${a.last_name} ${a.email}`.toLowerCase();
+      if (!haystack.includes(needle)) {
+        return false;
+      }
+    }
+    return true;
   });
 
   if (filtered.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'admin-empty';
-    empty.textContent = t('admin.empty_filter');
+    if (needle !== '') {
+      empty.textContent = t('admin.search_no_results').replace('{q}', state.search);
+    } else {
+      empty.textContent = t('admin.empty_filter');
+    }
     container.appendChild(empty);
     return;
   }
@@ -803,19 +925,6 @@ function renderAuthorCard(
         )
       );
     }
-  }
-
-  // Contract-upload-knop: altijd beschikbaar voor non-admin auteurs.
-  if (!author.is_admin) {
-    actions.appendChild(
-      buildActionBtn(
-        t('admin.btn_upload_contract'),
-        () => {
-          openContractUploadModal(author, onChanged);
-        },
-        t('admin.tooltip_upload_contract')
-      )
-    );
   }
 
   // Reset-2FA-knop blijft beschikbaar voor accounts met verified factor.

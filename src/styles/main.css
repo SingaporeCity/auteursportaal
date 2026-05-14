@@ -1406,6 +1406,294 @@ a:hover {
   color: #fff;
 }
 
+/* =============================================================================
+ * Stats-strip: 4 grote tegels bovenaan de accounts-tab. Klikbaar = filter.
+ * Geeft admin in één blik inzicht in waar werk ligt. CEO-presentatie-waarde.
+ * ============================================================================= */
+.admin-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+}
+
+.admin-stat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 1rem 1.1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-stat-tile::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-border);
+  transition: background-color 180ms ease;
+}
+
+.admin-stat-tile:hover {
+  border-color: var(--color-text-muted);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 2px 8px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
+}
+
+.admin-stat-tile--active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.admin-stat-tile--persoonsgegevens::before {
+  background: var(--color-accent-amber);
+}
+
+.admin-stat-tile--statements::before {
+  background: #3b82f6;
+}
+
+.admin-stat-tile--gereed::before {
+  background: var(--color-success);
+}
+
+.admin-stat-tile--actief::before {
+  background: var(--color-primary);
+}
+
+.admin-stat-tile-value {
+  font-size: 1.8rem;
+  font-variation-settings:
+    'wght' 620,
+    'wdth' 95;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--color-text);
+  font-feature-settings: 'tnum' 1;
+}
+
+.admin-stat-tile-label {
+  font-size: 0.78rem;
+  font-variation-settings: 'wght' 500;
+  color: var(--color-text-light);
+  line-height: 1.3;
+}
+
+@media (max-width: 768px) {
+  .admin-stats-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-stat-tile {
+    padding: 0.75rem 0.9rem;
+  }
+  .admin-stat-tile-value {
+    font-size: 1.4rem;
+  }
+  .admin-stat-tile-label {
+    font-size: 0.72rem;
+  }
+}
+
+/* =============================================================================
+ * List-toolbar: search-veld + filter-pills in één rij. Wrapt op smal scherm.
+ * ============================================================================= */
+.admin-list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.admin-search-wrap {
+  position: relative;
+  flex: 1 1 240px;
+  max-width: 360px;
+  min-width: 200px;
+}
+
+.admin-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-light);
+  pointer-events: none;
+  display: inline-flex;
+}
+
+.admin-search-input {
+  width: 100%;
+  padding: 0.55rem 0.85rem 0.55rem 2.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-size: 0.88rem;
+  font-variation-settings: 'wght' 440;
+  color: var(--color-text);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.admin-search-input::placeholder {
+  color: var(--color-text-light);
+  font-variation-settings: 'wght' 400;
+}
+
+.admin-search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+.admin-search-input::-webkit-search-cancel-button {
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.admin-list-toolbar .admin-filters {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .admin-search-wrap {
+    flex-basis: 100%;
+    max-width: none;
+  }
+}
+
+/* =============================================================================
+ * Author-picker modal: list-style modal die één auteur teruggeeft, met
+ * search-filter en click-rows met avatar + naam + email.
+ * ============================================================================= */
+.author-picker-modal {
+  max-height: min(80vh, 640px);
+  display: flex;
+  flex-direction: column;
+}
+
+.author-picker-search {
+  margin: 0.5rem 0 0.75rem;
+}
+
+.author-picker-search-input {
+  width: 100%;
+  padding: 0.6rem 0.95rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-size: 0.9rem;
+  font-variation-settings: 'wght' 440;
+  color: var(--color-text);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.author-picker-search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+.author-picker-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-right: 0.25rem;
+  margin: 0 -0.25rem 0 -0.25rem;
+}
+
+.author-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
+  font: inherit;
+  color: inherit;
+}
+
+.author-picker-row:hover,
+.author-picker-row:focus-visible {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.author-picker-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.72rem;
+  font-variation-settings: 'wght' 620;
+  flex-shrink: 0;
+}
+
+.author-picker-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.author-picker-name {
+  font-size: 0.9rem;
+  font-variation-settings: 'wght' 560;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.author-picker-email {
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.author-picker-empty {
+  padding: 1.5rem 0.5rem;
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: 0.88rem;
+}
+
 .admin-author-actions {
   display: flex;
   gap: 0.5rem;
