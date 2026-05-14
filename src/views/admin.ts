@@ -323,43 +323,9 @@ function renderAccountsTab(
   statusBox: HTMLElement,
   onAuthorsChanged: () => void
 ): void {
-  // ---- Stats-strip: 4 klikbare tegels die direct als filter werken
-  const stats = document.createElement('div');
-  stats.className = 'admin-stats-strip';
-  container.appendChild(stats);
-
-  // ---- Toolbar: search-veld + filter-pills (één rij, wrap op mobiel)
-  const toolbar = document.createElement('div');
-  toolbar.className = 'admin-list-toolbar';
-  container.appendChild(toolbar);
-
-  const searchWrap = document.createElement('div');
-  searchWrap.className = 'admin-search-wrap';
-  const searchIcon = document.createElement('span');
-  searchIcon.className = 'admin-search-icon';
-  searchIcon.innerHTML =
-    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
-  searchWrap.appendChild(searchIcon);
-
-  const searchInput = document.createElement('input');
-  searchInput.type = 'search';
-  searchInput.className = 'admin-search-input';
-  searchInput.placeholder = t('admin.search_placeholder');
-  searchInput.value = state.search;
-  searchInput.setAttribute('aria-label', t('admin.search_placeholder'));
-  searchWrap.appendChild(searchInput);
-  toolbar.appendChild(searchWrap);
-
-  // ---- Author-list (centraal — gebruiker werkt 99% hier). renderList
-  // toont skeletons zolang state.loading=true (geen losse loading-string).
-  // Filteren gebeurt via de stats-tegels boven; aparte filter-pills zijn
-  // verwijderd (waren dubbel met de tegels).
-  const list = document.createElement('div');
-  list.className = 'admin-author-list';
-  container.appendChild(list);
-
-  // ---- Action-cards onder de lijst — minder gebruikt, dus secundair.
-  // Eén knop per card; achterliggende keuze-modal voor sub-types.
+  // ---- Action-cards bovenaan: directe toegang tot de hoofdacties
+  // (Auteur toevoegen, Documenten uploaden). Eén knop per card; de
+  // achterliggende keuze-modal toont de sub-types.
   container.appendChild(
     buildActionCard({
       title: t('admin.card_add_authors_title'),
@@ -395,6 +361,39 @@ function renderAccountsTab(
       ],
     })
   );
+
+  // ---- Stats-strip: 4 klikbare tegels die direct als filter werken
+  const stats = document.createElement('div');
+  stats.className = 'admin-stats-strip';
+  container.appendChild(stats);
+
+  // ---- Toolbar: alleen zoekveld (filter-pills vervallen — stats-tegels
+  // doen dat werk).
+  const toolbar = document.createElement('div');
+  toolbar.className = 'admin-list-toolbar';
+  container.appendChild(toolbar);
+
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'admin-search-wrap';
+  const searchIcon = document.createElement('span');
+  searchIcon.className = 'admin-search-icon';
+  searchIcon.innerHTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+  searchWrap.appendChild(searchIcon);
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.className = 'admin-search-input';
+  searchInput.placeholder = t('admin.search_placeholder');
+  searchInput.value = state.search;
+  searchInput.setAttribute('aria-label', t('admin.search_placeholder'));
+  searchWrap.appendChild(searchInput);
+  toolbar.appendChild(searchWrap);
+
+  // ---- Author-list (onderaan — uitgebreide scan-werk).
+  const list = document.createElement('div');
+  list.className = 'admin-author-list';
+  container.appendChild(list);
 
   const rerender = (): void => {
     renderStatsStrip(stats, state, rerender);
