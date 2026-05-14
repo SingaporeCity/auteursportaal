@@ -113,11 +113,17 @@ export function renderProfileTab(container: HTMLElement, author: AuthorRow): voi
   heading.textContent = t('profile.title');
   container.appendChild(heading);
 
-  const banner = document.createElement('div');
-  banner.className = 'id-banner';
-  banner.appendChild(idChip('profile.id_vendor', author.netsuite_vendor_id));
-  banner.appendChild(idChip('profile.id_alliant', author.alliant_id));
-  container.appendChild(banner);
+  // Vendor en Alliant ID zijn admin-velden (NetSuite-koppeling). Auteur
+  // ziet ze pas wanneer zijn account daadwerkelijk actief is — vóór die
+  // tijd is "ontbreekt" verwarrend want het auteur kan ze toch niet zelf
+  // invullen.
+  if (author.onboarding_status === 'active') {
+    const banner = document.createElement('div');
+    banner.className = 'id-banner';
+    banner.appendChild(idChip('profile.id_vendor', author.netsuite_vendor_id));
+    banner.appendChild(idChip('profile.id_alliant', author.alliant_id));
+    container.appendChild(banner);
+  }
 
   if (author.onboarding_status === 'pending_data') {
     renderOnboardingMode(container, author);

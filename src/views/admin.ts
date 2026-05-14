@@ -28,12 +28,13 @@ import { openNewAuthorModal } from './admin/new-author-modal';
 import { openAuthorPickerModal } from './admin/author-picker';
 import { openAuthorDetailPanel } from './admin/author-detail-panel';
 import { openChoiceModal } from './admin/choice-modal';
+import { openIdKoppelModal } from './admin/id-koppel-modal';
 import type { PaymentType } from '@/types/db';
 import { extractFnError, formatFnErrorMessage } from '@/lib/edge-function-errors';
 import { buildAppHeader } from './shared/header';
 
-/** Vier statussen die de admin in de UI ziet. */
-type AdminStatus = 'persoonsgegevens' | 'statements' | 'gereed' | 'actief';
+/** Vijf statussen die de admin in de UI ziet (in volgorde van flow). */
+type AdminStatus = 'persoonsgegevens' | 'id_koppelen' | 'statements' | 'gereed' | 'actief';
 
 type FilterValue = 'all' | AdminStatus;
 
@@ -417,10 +418,9 @@ function renderAccountsTab(
 }
 
 /**
- * Stats-strip: vier klikbare tegels die direct als filter werken. Geeft de
- * admin in één oogopslag inzicht in wat er nog te doen valt: "5 wachten op
- * data", "3 klaar voor activatie". Tegels zijn klikbaar — kortere weg naar
- * de bijbehorende lijst-view.
+ * Stats-strip: vijf klikbare tegels die direct als filter werken. Geeft de
+ * admin in één oogopslag inzicht in wat er nog te doen valt. Tegels zijn
+ * klikbaar — kortere weg naar de bijbehorende lijst-view.
  */
 function renderStatsStrip(container: HTMLElement, state: ListState, onChange: () => void): void {
   container.replaceChildren();
@@ -430,6 +430,11 @@ function renderStatsStrip(container: HTMLElement, state: ListState, onChange: ()
       value: 'persoonsgegevens',
       label: t('admin.status_persoonsgegevens_short'),
       count: counts.persoonsgegevens,
+    },
+    {
+      value: 'id_koppelen',
+      label: t('admin.status_id_koppelen_short'),
+      count: counts.id_koppelen,
     },
     { value: 'statements', label: t('admin.status_statements_short'), count: counts.statements },
     { value: 'gereed', label: t('admin.status_gereed_short'), count: counts.gereed },
@@ -780,23 +785,25 @@ async function loadAuthors(
 // Status-derivatie
 // =============================================================================
 /**
- * Bepaalt de UI-status puur op basis van `onboarding_status` + payments-
- * aanwezigheid. We kijken bewust NIET meer naar individuele data-velden:
+ * Bepaalt de UI-status puur op basis van `onboarding_status`, NetSuite-
+ * koppeling en payments-aanwezigheid. We kijken bewust NIET naar
+ * individuele profielvelden:
  *   - Bestaande auteurs (Excel-import) starten al op pending_admin_review
- *     en springen meteen naar "statements" of "gereed", ook al staat
- *     bijvoorbeeld phone leeg.
- *   - Nieuwe auteurs starten op pending_data en blijven daar tot ze in
- *     hun eigen profile-tab op "Verzend gegevens" klikken — die knop
- *     bewaakt zelf datacompleetheid.
+ *     mét Vendor + Alliant ID, en springen meteen naar "statements" of
+ *     "gereed".
+ *   - Nieuwe auteurs starten op pending_data; nadat ze "Verzend gegevens"
+ *     klikken landen ze op `id_koppelen` tot admin de twee IDs invult.
  *
  * Volgorde-ladder (eerste match wint):
- *   1. `actief`         — admin of `onboarding_status='active'`.
- *   2. `persoonsgegevens` — `onboarding_status='pending_data'` (nieuwe
- *      auteur die nog niet heeft ingediend).
- *   3. `gereed`         — heeft ingediend (pending_admin_review) én er
- *      staat minstens één statement: admin mag activeren.
- *   4. `statements`     — heeft ingediend (of via Excel-import direct
- *      in deze status), maar nog geen statements geupload.
+ *   1. `actief`           — admin of `onboarding_status='active'`.
+ *   2. `persoonsgegevens` — `pending_data` (nieuwe auteur, nog niet
+ *      ingediend).
+ *   3. `id_koppelen`      — `pending_admin_review` en minstens één van
+ *      Vendor/Alliant ID is leeg.
+ *   4. `gereed`           — `pending_admin_review` + beide IDs gevuld
+ *      + minstens één statement.
+ *   5. `statements`       — `pending_admin_review` + beide IDs gevuld
+ *      maar geen statements.
  */
 export function deriveAdminStatus(author: AuthorRow, hasPayments: boolean): AdminStatus {
   if (author.is_admin || author.onboarding_status === 'active') {
@@ -806,6 +813,9 @@ export function deriveAdminStatus(author: AuthorRow, hasPayments: boolean): Admi
     return 'persoonsgegevens';
   }
   // pending_admin_review
+  if (author.netsuite_vendor_id === null || author.alliant_id === null) {
+    return 'id_koppelen';
+  }
   if (hasPayments) {
     return 'gereed';
   }
@@ -815,6 +825,7 @@ export function deriveAdminStatus(author: AuthorRow, hasPayments: boolean): Admi
 function countByDerivedStatus(state: ListState): Record<AdminStatus, number> {
   const counts: Record<AdminStatus, number> = {
     persoonsgegevens: 0,
+    id_koppelen: 0,
     statements: 0,
     gereed: 0,
     actief: 0,
@@ -1038,6 +1049,8 @@ function statusLabel(status: AdminStatus): string {
   switch (status) {
     case 'persoonsgegevens':
       return t('admin.status_persoonsgegevens');
+    case 'id_koppelen':
+      return t('admin.status_id_koppelen');
     case 'statements':
       return t('admin.status_statements');
     case 'gereed':
@@ -1068,6 +1081,14 @@ function openDetailFor(
         tooltip: t('admin.tooltip_send_reminder'),
         onClick: () => {
           void invokeCreateAccounts(author, 'invite', statusBox).then(onChanged);
+        },
+      };
+    } else if (status === 'id_koppelen') {
+      primary = {
+        label: t('admin.btn_id_koppelen'),
+        tooltip: t('admin.tooltip_id_koppelen'),
+        onClick: () => {
+          openIdKoppelModal(author, onChanged);
         },
       };
     } else if (status === 'gereed') {
@@ -1127,6 +1148,9 @@ function buildStatusPill(author: AuthorRow, status: AdminStatus): HTMLElement {
   switch (status) {
     case 'persoonsgegevens':
       pill.textContent = t('admin.status_persoonsgegevens');
+      break;
+    case 'id_koppelen':
+      pill.textContent = t('admin.status_id_koppelen');
       break;
     case 'statements':
       pill.textContent = t('admin.status_statements');

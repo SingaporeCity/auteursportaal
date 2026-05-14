@@ -206,7 +206,16 @@ async function handleSubmit(
     'success',
     t('admin.new_author_success').replace('{email}', data.email).replace('{pw}', INITIAL_PASSWORD)
   );
-  setTimeout(close, 1500);
+  // Geen auto-close: admin moet de succes-melding rustig kunnen lezen. We
+  // hergebruiken de submit-knop als "Sluiten"-knop door 'm te vervangen
+  // (cloneNode wist de oude click-listener) en daarna de close-handler
+  // erop te zetten.
+  submit.disabled = false;
+  submit.removeAttribute('aria-busy');
+  submit.textContent = t('common.close');
+  const fresh = submit.cloneNode(true) as HTMLButtonElement;
+  submit.parentNode?.replaceChild(fresh, submit);
+  fresh.addEventListener('click', close);
 }
 
 function labeledInput(
