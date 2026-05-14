@@ -48,6 +48,9 @@ interface ListState {
    * zoekopdracht weer bij de eerste 50 begint.
    */
   visibleCount: number;
+  /** True tot de eerste loadAuthors-call gefinaliseerd is (success of error).
+   *  Stuurt of `renderList` skeleton-cards of echte content laat zien. */
+  loading: boolean;
 }
 
 const PAGE_SIZE = 50;
@@ -103,6 +106,7 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
     authors: [],
     paymentsByAuthor: new Set(),
     visibleCount: PAGE_SIZE,
+    loading: true,
   };
 
   const statusBox = document.createElement('div');
@@ -259,10 +263,10 @@ function renderAccountsTab(
   filters.className = 'admin-filters';
   toolbar.appendChild(filters);
 
-  // ---- Author-list (centraal — gebruiker werkt 99% hier)
+  // ---- Author-list (centraal — gebruiker werkt 99% hier). renderList
+  // toont skeletons zolang state.loading=true (geen losse loading-string).
   const list = document.createElement('div');
   list.className = 'admin-author-list';
-  list.textContent = t('common.loading');
   container.appendChild(list);
 
   // ---- Action-cards onder de lijst — minder gebruikt, dus secundair
@@ -657,6 +661,7 @@ async function loadAuthors(
     reportError('admin.loadAuthors', authorsResp.error);
     showStatus(statusBox, 'error', `Auteurs laden faalde: ${authorsResp.error.message}`);
     state.authors = [];
+    state.loading = false;
     onLoaded();
     return;
   }
@@ -674,6 +679,7 @@ async function loadAuthors(
 
   state.authors = authorsResp.data;
   state.paymentsByAuthor = paymentsByAuthor;
+  state.loading = false;
   onLoaded();
 }
 
@@ -797,6 +803,24 @@ function countByDerivedStatus(state: ListState): Record<AdminStatus, number> {
 // =============================================================================
 function renderList(container: HTMLElement, state: ListState, statusBox: HTMLElement): void {
   container.replaceChildren();
+
+  // Skeleton-cards tijdens initial load — vervangt de oudere "Aan het laden…"-
+  // tekst. Beter ervaarbare wachttijd: gebruiker ziet meteen de structuur die
+  // gevuld gaat worden i.p.v. een onbeschreven tekstlabel.
+  if (state.loading) {
+    for (let i = 0; i < 5; i += 1) {
+      container.appendChild(buildSkeletonCard());
+    }
+    return;
+  }
+
+  // Volledige empty-state: geen non-admin auteurs in de hele tabel. Eerste
+  // bezoek of demo-omgeving. Toon CTA naar de importeer-acties onderaan.
+  const hasAnyAuthor = state.authors.some((a) => !a.is_admin);
+  if (!hasAnyAuthor) {
+    container.appendChild(buildZeroAuthorsState());
+    return;
+  }
 
   const needle = state.search.trim().toLowerCase();
   const filtered = state.authors.filter((a) => {
@@ -1217,6 +1241,64 @@ function buildToolbarBtn(label: string, iconSvg: string, tooltip?: string): HTML
   btn.appendChild(labelEl);
 
   return btn;
+}
+
+/** Skeleton-versie van een author-card: dezelfde layout maar grijze blokken
+ *  i.p.v. echte content. Voorkomt layout-shift wanneer de echte cards
+ *  binnenkomen. */
+function buildSkeletonCard(): HTMLElement {
+  const card = document.createElement('div');
+  card.className = 'admin-author-card admin-author-card--skeleton';
+  card.setAttribute('aria-hidden', 'true');
+
+  const avatar = document.createElement('span');
+  avatar.className = 'admin-author-avatar skeleton-block skeleton-block--circle';
+  card.appendChild(avatar);
+
+  const main = document.createElement('div');
+  main.className = 'admin-author-main';
+  const name = document.createElement('span');
+  name.className = 'skeleton-block skeleton-block--name';
+  main.appendChild(name);
+  const meta = document.createElement('span');
+  meta.className = 'skeleton-block skeleton-block--meta';
+  main.appendChild(meta);
+  card.appendChild(main);
+
+  const right = document.createElement('div');
+  right.className = 'admin-author-right';
+  const pill = document.createElement('span');
+  pill.className = 'skeleton-block skeleton-block--pill';
+  right.appendChild(pill);
+  card.appendChild(right);
+
+  return card;
+}
+
+/** Vriendelijke onboarding-state voor wanneer er nog 0 niet-admin auteurs
+ *  in het systeem zitten. Inviting copy + visuele hint dat de acties
+ *  onderaan staan. */
+function buildZeroAuthorsState(): HTMLElement {
+  const wrap = document.createElement('div');
+  wrap.className = 'admin-empty-zero';
+
+  const icon = document.createElement('div');
+  icon.className = 'admin-empty-zero-icon';
+  icon.innerHTML =
+    '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>';
+  wrap.appendChild(icon);
+
+  const title = document.createElement('h3');
+  title.className = 'admin-empty-zero-title';
+  title.textContent = t('admin.empty_zero_title');
+  wrap.appendChild(title);
+
+  const intro = document.createElement('p');
+  intro.className = 'admin-empty-zero-intro';
+  intro.textContent = t('admin.empty_zero_intro');
+  wrap.appendChild(intro);
+
+  return wrap;
 }
 
 function formatShortDate(isoDate: string): string {

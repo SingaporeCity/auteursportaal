@@ -352,6 +352,9 @@ export const sv: Translations = {
   'admin.detail_more_actions': 'Fler åtgärder',
   'admin.list_count_total': '{shown} av {total} författare',
   'admin.btn_load_more': 'Visa {n} till',
+  'admin.empty_zero_title': 'Inga författare ännu',
+  'admin.empty_zero_intro':
+    'Importera författare från NetSuite eller lägg till en manuellt för att börja.',
   'admin.btn_send_reminder_label': 'Skicka påminnelse till författare',
   'admin.btn_activate': 'Aktivera',
   'admin.btn_reset_mfa': 'Återställ 2FA',

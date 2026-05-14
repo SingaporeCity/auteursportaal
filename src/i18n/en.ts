@@ -345,6 +345,8 @@ export const en: Translations = {
   'admin.detail_more_actions': 'More actions',
   'admin.list_count_total': '{shown} of {total} authors',
   'admin.btn_load_more': 'Show {n} more',
+  'admin.empty_zero_title': 'No authors yet',
+  'admin.empty_zero_intro': 'Import authors from NetSuite or add one manually to get started.',
   'admin.btn_send_reminder_label': 'Send reminder to author',
   'admin.btn_activate': 'Activate',
   'admin.btn_reset_mfa': 'Reset 2FA',

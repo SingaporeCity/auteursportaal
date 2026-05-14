@@ -347,6 +347,9 @@ export const nl: Translations = {
   'admin.detail_more_actions': 'Meer acties',
   'admin.list_count_total': '{shown} van {total} auteurs',
   'admin.btn_load_more': 'Toon nog {n}',
+  'admin.empty_zero_title': 'Nog geen auteurs',
+  'admin.empty_zero_intro':
+    'Importeer auteurs uit NetSuite of voeg er handmatig één toe om te beginnen.',
   'admin.btn_send_reminder_label': 'Stuur reminder naar auteur',
   'admin.btn_activate': 'Activeer',
   'admin.btn_reset_mfa': 'Reset 2FA',

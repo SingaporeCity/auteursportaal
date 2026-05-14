@@ -349,6 +349,8 @@ export type TranslationKey =
   | 'admin.detail_more_actions'
   | 'admin.list_count_total'
   | 'admin.btn_load_more'
+  | 'admin.empty_zero_title'
+  | 'admin.empty_zero_intro'
   | 'admin.btn_send_reminder_label'
   | 'admin.btn_activate'
   | 'admin.btn_reset_mfa'
