@@ -26,6 +26,7 @@ import { openBulkStatementUploadModal } from './admin/bulk-statement-upload';
 import { openContractUploadModal } from './admin/contract-upload';
 import { openNewAuthorModal } from './admin/new-author-modal';
 import { openAuthorPickerModal } from './admin/author-picker';
+import { openAuthorDetailPanel } from './admin/author-detail-panel';
 import { extractFnError, formatFnErrorMessage } from '@/lib/edge-function-errors';
 import { buildAppHeader } from './shared/header';
 
@@ -858,8 +859,23 @@ function renderAuthorCard(
   const hasPayments = state.paymentsByAuthor.has(author.id);
   const status = deriveAdminStatus(author, hasPayments);
 
-  const card = document.createElement('div');
+  // Hele kaart is klikbaar — opent het detail-paneel. We gebruiken
+  // `<button>` zodat tastatuur/screenreader-ondersteuning er gratis bij komt.
+  const card = document.createElement('button');
+  card.type = 'button';
   card.className = `admin-author-card admin-author-card--${status}`;
+  card.setAttribute(
+    'aria-label',
+    `${author.first_name} ${author.last_name} — ${statusLabel(status)}`
+  );
+
+  // -- Avatar (initials in primary-cirkel)
+  const avatar = document.createElement('span');
+  avatar.className = 'admin-author-avatar';
+  const initials =
+    `${author.first_name.trim()[0] ?? ''}${author.last_name.trim()[0] ?? ''}`.toUpperCase();
+  avatar.textContent = initials === '' ? '·' : initials;
+  card.appendChild(avatar);
 
   // -- Hoofd-info-kolom (naam + meta)
   const main = document.createElement('div');
@@ -870,14 +886,9 @@ function renderAuthorCard(
   name.textContent = `${author.first_name} ${author.last_name}`;
   main.appendChild(name);
 
-  // Tweede regel: email + aangemaakt-datum + (optioneel) vendor en/of meest
-  // recente lifecycle-datum. Eén regel om de card-hoogte compact te houden.
   const meta = document.createElement('div');
   meta.className = 'admin-author-meta';
-  const parts: string[] = [
-    author.email,
-    t('admin.created_at').replace('{date}', formatShortDate(author.created_at)),
-  ];
+  const parts: string[] = [author.email];
   if (author.netsuite_vendor_id !== null) {
     parts.push(`Vendor ${author.netsuite_vendor_id}`);
   }
@@ -887,63 +898,110 @@ function renderAuthorCard(
     parts.push(t('admin.reminder_at').replace('{date}', formatShortDate(author.reminder_sent_at)));
   } else if (author.invited_at !== null) {
     parts.push(t('admin.invited_at').replace('{date}', formatShortDate(author.invited_at)));
+  } else {
+    parts.push(t('admin.created_at').replace('{date}', formatShortDate(author.created_at)));
   }
   meta.textContent = parts.join(' · ');
   main.appendChild(meta);
 
   card.appendChild(main);
 
-  // -- Rechter-kolom: status-pill + actie
+  // -- Status-pill rechts
   const right = document.createElement('div');
   right.className = 'admin-author-right';
-
   right.appendChild(buildStatusPill(author, status));
+  card.appendChild(right);
 
-  const actions = document.createElement('div');
-  actions.className = 'admin-author-actions';
+  // -- Klik = open detail-paneel met passende acties voor deze status
+  card.addEventListener('click', () => {
+    openDetailFor(author, status, onChanged, statusBox);
+  });
 
-  // Per-status actie-knop
+  return card;
+}
+
+interface DetailAction {
+  label: string;
+  tooltip?: string;
+  onClick: () => void;
+}
+
+function statusLabel(status: AdminStatus): string {
+  switch (status) {
+    case 'persoonsgegevens':
+      return t('admin.status_persoonsgegevens');
+    case 'statements':
+      return t('admin.status_statements');
+    case 'gereed':
+      return t('admin.status_gereed');
+    case 'actief':
+      return t('admin.status_actief');
+  }
+}
+
+/**
+ * Opent het detail-paneel met status-afhankelijke primary action en de
+ * vaste secundaire acties (Reset MFA, Contract uploaden).
+ */
+function openDetailFor(
+  author: AuthorRow,
+  status: AdminStatus,
+  onChanged: () => void,
+  statusBox: HTMLElement
+): void {
+  const statusPill = buildStatusPill(author, status);
+
+  let primary: DetailAction | null = null;
+
   if (!author.is_admin) {
     if (status === 'persoonsgegevens') {
-      actions.appendChild(
-        buildActionBtn(
-          t('admin.btn_send_reminder_label'),
-          () => {
-            void invokeCreateAccounts(author, 'invite', statusBox).then(onChanged);
-          },
-          t('admin.tooltip_send_reminder')
-        )
-      );
+      primary = {
+        label: t('admin.btn_send_reminder_label'),
+        tooltip: t('admin.tooltip_send_reminder'),
+        onClick: () => {
+          void invokeCreateAccounts(author, 'invite', statusBox).then(onChanged);
+        },
+      };
     } else if (status === 'gereed') {
-      actions.appendChild(
-        buildActionBtn(
-          t('admin.btn_activate'),
-          () => {
-            void invokeCreateAccounts(author, 'activate', statusBox).then(onChanged);
-          },
-          t('admin.tooltip_activate')
-        )
-      );
+      primary = {
+        label: t('admin.btn_activate'),
+        tooltip: t('admin.tooltip_activate'),
+        onClick: () => {
+          void invokeCreateAccounts(author, 'activate', statusBox).then(onChanged);
+        },
+      };
     }
   }
 
-  // Reset-2FA-knop blijft beschikbaar voor accounts met verified factor.
+  const secondaries: DetailAction[] = [];
+  if (!author.is_admin) {
+    secondaries.push({
+      label: t('admin.btn_upload_contract'),
+      tooltip: t('admin.tooltip_upload_contract'),
+      onClick: () => {
+        openContractUploadModal(author, onChanged);
+      },
+    });
+  }
   if (author.mfa_enrolled) {
-    actions.appendChild(
-      buildActionBtn(
-        t('admin.btn_reset_mfa'),
-        () => {
-          void resetMfaForAuthor(author, statusBox).then(onChanged);
-        },
-        t('admin.tooltip_reset_mfa')
-      )
-    );
+    secondaries.push({
+      label: t('admin.btn_reset_mfa'),
+      tooltip: t('admin.tooltip_reset_mfa'),
+      onClick: () => {
+        void resetMfaForAuthor(author, statusBox).then(onChanged);
+      },
+    });
   }
 
-  right.appendChild(actions);
-  card.appendChild(right);
-
-  return card;
+  openAuthorDetailPanel({
+    author,
+    statusPill,
+    primaryAction: primary,
+    secondaryActions: secondaries,
+    onClose: () => {
+      // Geen extra werk — onChanged wordt al gevoerd door de individuele actie-handlers.
+    },
+  });
 }
 
 /** Status-pill rechtsboven in de card. Kleur via modifier-class in CSS. */
@@ -1001,19 +1059,6 @@ async function resetMfaForAuthor(author: AuthorRow, statusBox: HTMLElement): Pro
       .replace('{name}', `${author.first_name} ${author.last_name}`)
       .replace('{count}', String(deleted))
   );
-}
-
-function buildActionBtn(label: string, onClick: () => void, tooltip?: string): HTMLButtonElement {
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'admin-activate';
-  btn.textContent = label;
-  if (tooltip !== undefined) {
-    btn.title = tooltip;
-    btn.setAttribute('aria-label', `${label} — ${tooltip}`);
-  }
-  btn.addEventListener('click', onClick);
-  return btn;
 }
 
 // =============================================================================
