@@ -213,9 +213,13 @@ serve(async (req: Request): Promise<Response> => {
         continue;
       }
 
-      // -- Authors-rij INSERT met dezelfde UUID. `must_change_password=true`
-      // zorgt dat de auteur bij eerste login gedwongen wordt het start-
-      // wachtwoord 'Noordhoff' te vervangen (zie 0015 + force-password-change).
+      // -- Authors-rij INSERT met dezelfde UUID.
+      // `onboarding_status='pending_admin_review'` slaat de persoons-
+      // gegevens-stap over — NetSuite-data is leidend, dus deze auteurs
+      // verschijnen direct als "Nog statement toevoegen" in admin.
+      // `must_change_password=false` hier: bulk-imported auteurs loggen
+      // pas in nadat admin ze geactiveerd heeft (welkomstmail komt dan),
+      // en pas op dat moment zet de activeer-flow de vlag op true.
       const { error: insertErr } = await adminClient.from('authors').insert({
         id: author_id,
         email: normalized.email,
@@ -232,8 +236,8 @@ serve(async (req: Request): Promise<Response> => {
         bic: normalized.bic === '' ? null : normalized.bic,
         netsuite_vendor_id: normalized.vendor_id === '' ? null : normalized.vendor_id,
         alliant_id: normalized.alliant_id === '' ? null : normalized.alliant_id,
-        onboarding_status: 'pending_data',
-        must_change_password: true,
+        onboarding_status: 'pending_admin_review',
+        must_change_password: false,
       });
 
       if (insertErr) {

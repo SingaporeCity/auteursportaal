@@ -366,14 +366,18 @@ export type TranslationKey =
   | 'admin.reminder_at'
   | 'admin.activated_at'
 
-  // Admin — nieuwe auteur form
+  // Admin — nieuwe auteur modal
   | 'admin.new_author_heading'
   | 'admin.new_author_intro'
   | 'admin.new_author_field_email'
   | 'admin.new_author_field_firstname'
   | 'admin.new_author_field_lastname'
-  | 'admin.new_author_field_vendor'
   | 'admin.new_author_submit'
+  | 'admin.new_author_success'
+  | 'admin.new_author_error_required'
+  | 'admin.new_author_error_email'
+  | 'admin.new_author_error_insert'
+  | 'admin.new_author_error_invite'
 
   // Admin — Excel import (bestaande auteurs uit NetSuite, test-fase)
   | 'admin.excel_import_heading'

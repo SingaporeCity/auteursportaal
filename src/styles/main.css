@@ -4353,15 +4353,6 @@ a:hover {
   color: var(--color-text);
 }
 
-.admin-new-author-form {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-6);
-  margin-bottom: var(--space-5);
-  box-shadow: var(--shadow-soft);
-}
-
 /* Change requests */
 .changes-list {
   padding: var(--space-2) var(--space-6);

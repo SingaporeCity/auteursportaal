@@ -378,8 +378,13 @@ export const en: Translations = {
   'admin.new_author_field_email': 'Email',
   'admin.new_author_field_firstname': 'First name',
   'admin.new_author_field_lastname': 'Last name',
-  'admin.new_author_field_vendor': 'Vendor ID (optional)',
   'admin.new_author_submit': 'Create & invite',
+  'admin.new_author_success':
+    '{email} created. Share the password "{pw}" personally — it will be changed at first login.',
+  'admin.new_author_error_required': 'Fill in email, first name and last name.',
+  'admin.new_author_error_email': 'Invalid email address.',
+  'admin.new_author_error_insert': 'Creation failed',
+  'admin.new_author_error_invite': 'Account created, but invite failed',
 
   'admin.excel_import_heading': 'Import existing authors from NetSuite Excel',
   'admin.excel_import_intro':

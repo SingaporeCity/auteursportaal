@@ -380,8 +380,13 @@ export const nl: Translations = {
   'admin.new_author_field_email': 'E-mail',
   'admin.new_author_field_firstname': 'Voornaam',
   'admin.new_author_field_lastname': 'Achternaam',
-  'admin.new_author_field_vendor': 'Vendor ID (optioneel)',
   'admin.new_author_submit': 'Aanmaken & uitnodigen',
+  'admin.new_author_success':
+    '{email} aangemaakt. Geef het wachtwoord "{pw}" persoonlijk door — bij eerste inlog wordt het automatisch gewijzigd.',
+  'admin.new_author_error_required': 'Vul e-mail, voornaam en achternaam in.',
+  'admin.new_author_error_email': 'Ongeldig e-mailadres.',
+  'admin.new_author_error_insert': 'Aanmaken mislukt',
+  'admin.new_author_error_invite': 'Account aangemaakt, maar uitnodiging mislukt',
 
   'admin.excel_import_heading': 'Bestaande auteurs uit NetSuite-Excel importeren',
   'admin.excel_import_intro':

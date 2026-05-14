@@ -161,19 +161,27 @@ async function determineAuthState(): Promise<AuthState> {
     return { kind: 'no_access', reason: access.reason };
   }
 
-  // Stap 3: forced password change?
-  if (access.author.must_change_password) {
-    return { kind: 'force_password_change', author: access.author };
-  }
+  // Stap 3 + 4 zijn alleen relevant voor accounts in 'full'-mode (admins
+  // en geactiveerde auteurs). Een auteur in onboarding-modus mag direct
+  // zijn persoonsgegevens invullen zonder eerst zijn wachtwoord te
+  // wijzigen of TOTP te enrollen — die hekken komen pas zodra de admin
+  // het account activeert (de activeer-flow zet `must_change_password`
+  // dan op true).
+  if (access.mode === 'full') {
+    // Stap 3: forced password change?
+    if (access.author.must_change_password) {
+      return { kind: 'force_password_change', author: access.author };
+    }
 
-  // Stap 4: forced MFA enrollment? Vereist voor IEDEREEN (admins + auteurs),
-  // tenzij de test-fase-kill-switch aanstaat. `factors.totp` bevat alleen
-  // verified factors; lege array = nog niet geconfigureerd → enrollment
-  // afdwingen.
-  if (!MFA_DISABLED) {
-    const factorsResp = await supabase.auth.mfa.listFactors();
-    if (factorsResp.data !== null && factorsResp.data.totp.length === 0) {
-      return { kind: 'mfa_enroll_required', author: access.author };
+    // Stap 4: forced MFA enrollment? Vereist voor IEDEREEN met een actief
+    // account (admins + geactiveerde auteurs), tenzij de test-fase-kill-
+    // switch aanstaat. `factors.totp` bevat alleen verified factors;
+    // lege array = nog niet geconfigureerd → enrollment afdwingen.
+    if (!MFA_DISABLED) {
+      const factorsResp = await supabase.auth.mfa.listFactors();
+      if (factorsResp.data !== null && factorsResp.data.totp.length === 0) {
+        return { kind: 'mfa_enroll_required', author: access.author };
+      }
     }
   }
 

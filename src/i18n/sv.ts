@@ -385,8 +385,13 @@ export const sv: Translations = {
   'admin.new_author_field_email': 'E-post',
   'admin.new_author_field_firstname': 'Förnamn',
   'admin.new_author_field_lastname': 'Efternamn',
-  'admin.new_author_field_vendor': 'Vendor ID (valfritt)',
   'admin.new_author_submit': 'Skapa & bjud in',
+  'admin.new_author_success':
+    '{email} skapad. Dela lösenordet "{pw}" personligen — det byts vid första inloggning.',
+  'admin.new_author_error_required': 'Fyll i e-post, förnamn och efternamn.',
+  'admin.new_author_error_email': 'Ogiltig e-postadress.',
+  'admin.new_author_error_insert': 'Skapande misslyckades',
+  'admin.new_author_error_invite': 'Konto skapat, men inbjudan misslyckades',
 
   'admin.excel_import_heading': 'Importera befintliga författare från NetSuite-Excel',
   'admin.excel_import_intro':

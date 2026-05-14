@@ -194,36 +194,117 @@ serve(async (req: Request): Promise<Response> => {
   }
 });
 
-async function sendRecoveryEmail(email: string): Promise<{ ok: boolean; error?: string }> {
-  // Kill-switch (test-fase): bij DISABLE_AUTH_EMAILS=true verstuurt geen
-  // enkele invite/recovery-mail vanuit deze Edge Function. De caller flow
-  // (invited_at zetten, status-updates) blijft draaien alsof het wel
-  // verstuurd is — handig om het portaal te testen zonder dat testauteurs
-  // mails ontvangen. Zet de secret uit zodra mail-deliverability live mag:
-  //   supabase secrets unset DISABLE_AUTH_EMAILS
+/**
+ * Verstuurt een welkomst- of activatiemail via Resend.
+ *
+ * - `mode='invite'`: nieuwe auteur is net aangemaakt door de admin. Mail
+ *   bevat de inloggegevens (initieel wachtwoord 'Noordhoff'). Auteur logt
+ *   in op een **inactief** account, vult zijn persoonsgegevens aan en
+ *   klikt "Verzend gegevens". GEEN wachtwoord-wijzigen-prompt — die komt
+ *   pas bij login op een actief account.
+ *
+ * - `mode='activate'`: admin heeft de auteur zojuist geactiveerd. Mail
+ *   bevat dezelfde inloggegevens. Bij eerste login op het nu-actieve
+ *   account wordt het wachtwoord verplicht gewijzigd en 2FA enrolled.
+ *
+ * Kill-switch (test-fase): bij `DISABLE_AUTH_EMAILS=true` wordt geen
+ * mail verzonden; functie geeft `ok` terug zodat de rest van de flow
+ * (invited_at, status-updates) blijft draaien. Productie: zet de secret
+ * uit (`supabase secrets unset DISABLE_AUTH_EMAILS`).
+ */
+async function sendAccountMail(args: {
+  email: string;
+  first_name: string;
+  last_name: string;
+  mode: Mode;
+}): Promise<{ ok: boolean; error?: string }> {
   if (Deno.env.get('DISABLE_AUTH_EMAILS') === 'true') {
     return { ok: true };
   }
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+  const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
+  if (resendKey === '') {
+    return { ok: false, error: 'RESEND_API_KEY not configured' };
+  }
+
+  const from = Deno.env.get('ACCOUNT_MAIL_FROM') ?? 'Noordhoff <onboarding@resend.dev>';
+  const portalUrl = Deno.env.get('PORTAL_URL') ?? 'https://mijn-noordhoff.nl';
+  const fullName = `${args.first_name} ${args.last_name}`.trim();
+
+  const { subject, html } = renderAccountMail({
+    fullName,
+    email: args.email,
+    portalUrl,
+    mode: args.mode,
+  });
+
   try {
-    const response = await fetch(`${supabaseUrl}/auth/v1/recover`, {
+    const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
+        Authorization: `Bearer ${resendKey}`,
         'Content-Type': 'application/json',
-        apikey: anonKey,
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ from, to: [args.email], subject, html }),
     });
-    if (!response.ok) {
-      const text = await response.text();
-      return { ok: false, error: `recover endpoint ${String(response.status)}: ${text}` };
+    if (!resp.ok) {
+      const text = await resp.text();
+      return { ok: false, error: `Resend ${String(resp.status)}: ${text.slice(0, 400)}` };
     }
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
+}
+
+function renderAccountMail(args: {
+  fullName: string;
+  email: string;
+  portalUrl: string;
+  mode: Mode;
+}): { subject: string; html: string } {
+  const greeting = args.fullName === '' ? 'Beste auteur' : `Beste ${args.fullName}`;
+  if (args.mode === 'invite') {
+    return {
+      subject: 'Welkom bij het Noordhoff Auteursportaal',
+      html: `
+        <div style="font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;line-height:1.5;">
+          <p>${greeting},</p>
+          <p>Er is een account voor u aangemaakt in het Noordhoff Auteursportaal.</p>
+          <p>
+            <strong>Inloggen:</strong> <a href="${args.portalUrl}">${args.portalUrl}</a><br />
+            <strong>E-mail:</strong> ${args.email}<br />
+            <strong>Wachtwoord:</strong> Noordhoff
+          </p>
+          <p>
+            Log in en vul uw persoonsgegevens aan. Zodra de gegevens compleet zijn,
+            klikt u op "Verzend gegevens" en activeren wij uw account. Pas dan
+            wordt u gevraagd het wachtwoord te wijzigen en twee-staps-verificatie
+            in te stellen.
+          </p>
+          <p>Met vriendelijke groet,<br/>Noordhoff</p>
+        </div>
+      `,
+    };
+  }
+  return {
+    subject: 'Uw account is geactiveerd',
+    html: `
+      <div style="font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;line-height:1.5;">
+        <p>${greeting},</p>
+        <p>Uw account in het Noordhoff Auteursportaal is zojuist geactiveerd.
+           U kunt nu uw royaltystatements en contracten inzien.</p>
+        <p>
+          <strong>Inloggen:</strong> <a href="${args.portalUrl}">${args.portalUrl}</a><br />
+          <strong>E-mail:</strong> ${args.email}<br />
+          <strong>Wachtwoord:</strong> Noordhoff (mits nog niet gewijzigd — bij
+          eerste inlog kiest u een nieuw wachtwoord en stelt u
+          twee-staps-verificatie in).
+        </p>
+        <p>Met vriendelijke groet,<br/>Noordhoff</p>
+      </div>
+    `,
+  };
 }
 
 async function ensureAuthUser(
@@ -303,51 +384,39 @@ async function processOne(
       return { author_id, email, status: 'failed', error: ensure.error };
     }
 
-    // Wanneer we zojuist een nieuwe auth-user hebben gemaakt met een vast
-    // start-wachtwoord, moet de auteur dat bij eerste inlog wijzigen. Dit
-    // vlaggetje wordt door de force-password-change view in de frontend
-    // uitgelezen en weer gereset zodra de gebruiker een eigen wachtwoord
-    // heeft gekozen via supabase.auth.updateUser.
-    if (ensure.created) {
-      const { error: flagErr } = await adminClient
-        .from('authors')
-        .update({ must_change_password: true })
-        .eq('id', author_id);
-      if (flagErr) {
-        // Niet fataal — gebruiker kan nog steeds inloggen. Loggen via audit
-        // is overkill; we leunen op de update-flow van de frontend om hem
-        // alsnog op de juiste plek te zetten bij volgende admin-actie.
-      }
-    }
+    // Auteur-data ophalen voor de mail-template (first/last name) en om
+    // te bepalen of dit een eerste invite of reminder is.
+    const { data: authorRow } = await adminClient
+      .from('authors')
+      .select('first_name, last_name, invited_at')
+      .eq('id', author_id)
+      .maybeSingle();
 
-    // Mail-policy:
-    //  - mode='invite' → altijd sturen (de mail IS het doel van de invite)
-    //  - mode='activate' + nieuwe auth-user → sturen (nieuwe user moet password instellen)
-    //  - mode='activate' + bestaande auth-user → NIET sturen (user heeft al password,
-    //    extra mail verwart + verbrandt onnodig de Supabase email-rate-limit)
-    const shouldSendMail = mode === 'invite' || ensure.created;
-    if (shouldSendMail) {
-      const sent = await sendRecoveryEmail(email);
-      if (!sent.ok) {
-        return {
-          author_id,
-          email,
-          status: 'failed',
-          error: `Auth user OK but recovery mail failed: ${sent.error}`,
-        };
-      }
+    const firstName = (authorRow?.first_name as string | null) ?? '';
+    const lastName = (authorRow?.last_name as string | null) ?? '';
+
+    // Welkomst- of activatiemail versturen. In test-fase houdt
+    // DISABLE_AUTH_EMAILS=true de daadwerkelijke verzending stil.
+    // mode='invite' → welkomstmail (ook bij reminder — dezelfde inhoud).
+    // mode='activate' → activatiemail (altijd).
+    const sent = await sendAccountMail({
+      email,
+      first_name: firstName,
+      last_name: lastName,
+      mode,
+    });
+    if (!sent.ok) {
+      return {
+        author_id,
+        email,
+        status: 'failed',
+        error: `Auth user OK but mail send failed: ${sent.error}`,
+      };
     }
 
     // Mode-specifieke side-effects
     if (mode === 'invite') {
-      // Bepaal of dit een eerste invite of reminder is
-      const { data: row } = await adminClient
-        .from('authors')
-        .select('invited_at')
-        .eq('id', author_id)
-        .maybeSingle();
-
-      const isReminder = row?.invited_at !== null && row?.invited_at !== undefined;
+      const isReminder = authorRow?.invited_at !== null && authorRow?.invited_at !== undefined;
       const updateField = isReminder
         ? { reminder_sent_at: new Date().toISOString() }
         : { invited_at: new Date().toISOString() };
@@ -385,10 +454,13 @@ async function processOne(
     }
 
     // mode === 'activate'
-    // DB-trigger zet activated_at automatisch + sync_is_active_with_status zet is_active=true
+    // - onboarding_status='active' → DB-trigger zet activated_at + sync_is_active_with_status
+    // - must_change_password=true → bij eerste login op het actieve account
+    //   wordt het wachtwoord verplicht gewijzigd. Tijdens onboarding (inactief)
+    //   krijgt de auteur deze prompt bewust NIET.
     const { error: actErr } = await adminClient
       .from('authors')
-      .update({ onboarding_status: 'active' })
+      .update({ onboarding_status: 'active', must_change_password: true })
       .eq('id', author_id);
 
     if (actErr) {

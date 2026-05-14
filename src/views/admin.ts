@@ -24,6 +24,7 @@ import { openCsvExportModal } from './admin/csv-export';
 import { openExcelImportModal } from './admin/excel-import';
 import { openBulkStatementUploadModal } from './admin/bulk-statement-upload';
 import { openContractUploadModal } from './admin/contract-upload';
+import { openNewAuthorModal } from './admin/new-author-modal';
 import { extractFnError, formatFnErrorMessage } from '@/lib/edge-function-errors';
 import { buildAppHeader } from './shared/header';
 
@@ -215,7 +216,7 @@ function renderAccountsTab(
           tooltip: t('admin.tooltip_new_author'),
           variant: 'secondary',
           onClick: () => {
-            openNewAuthorForm(container, onAuthorsChanged, statusBox);
+            openNewAuthorModal(onAuthorsChanged);
           },
         },
       ],
@@ -548,42 +549,36 @@ async function loadAuthors(
 // Status-derivatie
 // =============================================================================
 /**
- * Bepaalt de UI-status voor één auteur volgens de prioriteits-ladder:
- *   1. `actief` als onboarding_status = 'active' (admin heeft expliciet
- *      geactiveerd; vanaf hier is verder check niet meer relevant).
- *   2. `persoonsgegevens` als naam/adres/IBAN/BIC ontbreekt.
- *   3. `statements` als er nog geen enkele payment-rij is.
- *   4. `gereed` — alles compleet, wacht op admin-activatie.
+ * Bepaalt de UI-status puur op basis van `onboarding_status` + payments-
+ * aanwezigheid. We kijken bewust NIET meer naar individuele data-velden:
+ *   - Bestaande auteurs (Excel-import) starten al op pending_admin_review
+ *     en springen meteen naar "statements" of "gereed", ook al staat
+ *     bijvoorbeeld phone leeg.
+ *   - Nieuwe auteurs starten op pending_data en blijven daar tot ze in
+ *     hun eigen profile-tab op "Verzend gegevens" klikken — die knop
+ *     bewaakt zelf datacompleetheid.
  *
- * Admins krijgen `actief` (los van checks) zodat ze niet in een verkeerde
- * filter belanden.
+ * Volgorde-ladder (eerste match wint):
+ *   1. `actief`         — admin of `onboarding_status='active'`.
+ *   2. `persoonsgegevens` — `onboarding_status='pending_data'` (nieuwe
+ *      auteur die nog niet heeft ingediend).
+ *   3. `gereed`         — heeft ingediend (pending_admin_review) én er
+ *      staat minstens één statement: admin mag activeren.
+ *   4. `statements`     — heeft ingediend (of via Excel-import direct
+ *      in deze status), maar nog geen statements geupload.
  */
 export function deriveAdminStatus(author: AuthorRow, hasPayments: boolean): AdminStatus {
   if (author.is_admin || author.onboarding_status === 'active') {
     return 'actief';
   }
-  if (!hasCompletePersonData(author)) {
+  if (author.onboarding_status === 'pending_data') {
     return 'persoonsgegevens';
   }
-  if (!hasPayments) {
-    return 'statements';
+  // pending_admin_review
+  if (hasPayments) {
+    return 'gereed';
   }
-  return 'gereed';
-}
-
-function hasCompletePersonData(a: AuthorRow): boolean {
-  const filled = (v: string | null): boolean => v !== null && v.trim().length > 0;
-  return (
-    filled(a.first_name) &&
-    filled(a.last_name) &&
-    filled(a.street) &&
-    filled(a.house_number) &&
-    filled(a.postcode) &&
-    filled(a.city) &&
-    filled(a.bank_account) &&
-    filled(a.bic) &&
-    filled(a.bsn)
-  );
+  return 'statements';
 }
 
 // =============================================================================
@@ -960,185 +955,8 @@ async function invokeCreateAccounts(
 }
 
 // =============================================================================
-// Nieuwe-auteur form
-// =============================================================================
-interface NewAuthorValues {
-  email: string;
-  first_name: string;
-  last_name: string;
-  netsuite_vendor_id: string | null;
-}
-
-function openNewAuthorForm(
-  parent: HTMLElement,
-  onCreated: () => void,
-  statusBox: HTMLElement
-): void {
-  const existing = parent.querySelector('.admin-new-author-form');
-  if (existing !== null) {
-    existing.remove();
-    return;
-  }
-
-  const form = document.createElement('form');
-  form.className = 'admin-new-author-form';
-
-  const heading = document.createElement('h3');
-  heading.textContent = t('admin.new_author_heading');
-  form.appendChild(heading);
-
-  const intro = document.createElement('p');
-  intro.className = 'profile-edit-intro';
-  intro.textContent = t('admin.new_author_intro');
-  form.appendChild(intro);
-
-  const emailField = labeledInput('email', t('admin.new_author_field_email'), 'email', true);
-  const firstNameField = labeledInput(
-    'first_name',
-    t('admin.new_author_field_firstname'),
-    'text',
-    true
-  );
-  const lastNameField = labeledInput(
-    'last_name',
-    t('admin.new_author_field_lastname'),
-    'text',
-    true
-  );
-  const vendorField = labeledInput(
-    'netsuite_vendor_id',
-    t('admin.new_author_field_vendor'),
-    'text',
-    false
-  );
-
-  form.appendChild(emailField.field);
-  form.appendChild(firstNameField.field);
-  form.appendChild(lastNameField.field);
-  form.appendChild(vendorField.field);
-
-  const submit = document.createElement('button');
-  submit.type = 'submit';
-  submit.className = 'auth-submit';
-  submit.textContent = t('admin.new_author_submit');
-  form.appendChild(submit);
-
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const vendorRaw = vendorField.input.value.trim();
-    const values: NewAuthorValues = {
-      email: emailField.input.value.trim(),
-      first_name: firstNameField.input.value.trim(),
-      last_name: lastNameField.input.value.trim(),
-      netsuite_vendor_id: vendorRaw.length > 0 ? vendorRaw : null,
-    };
-    void createAndInviteAuthor(values, form, submit, statusBox, onCreated);
-  });
-
-  parent.appendChild(form);
-}
-
-async function createAndInviteAuthor(
-  values: NewAuthorValues,
-  form: HTMLFormElement,
-  submit: HTMLButtonElement,
-  statusBox: HTMLElement,
-  onCreated: () => void
-): Promise<void> {
-  submit.disabled = true;
-  submit.textContent = t('common.busy');
-
-  // Insert (status default = pending_data). `must_change_password=true` zorgt
-  // dat de auteur bij eerste inlog gedwongen wordt het start-wachtwoord
-  // 'Noordhoff' te wijzigen — symmetrisch met de bulk-import-flow.
-  const { data, error } = await supabase
-    .from('authors')
-    .insert({
-      ...values,
-      is_admin: false,
-      must_change_password: true,
-    })
-    .select('id, email')
-    .single();
-
-  if (error !== null) {
-    submit.disabled = false;
-    submit.textContent = t('admin.new_author_submit');
-    reportError('admin.createAuthor', error);
-    showStatus(statusBox, 'error', `Aanmaken faalde: ${error.message}`);
-    return;
-  }
-
-  // Direct invite-mail triggeren
-  const insertedId: string = data.id;
-  const insertedEmail: string = data.email;
-
-  // Tijdens test-fase: maak auth-user direct aan met wachtwoord 'Noordhoff'
-  // (zelfde patroon als bulk-import). Mail-flow is uit; admin geeft het
-  // wachtwoord persoonlijk door. Bij eerste inlog wordt het verplicht
-  // gewijzigd dankzij must_change_password.
-  const inviteResult = await supabase.functions.invoke<CreateAccountsResult>('create-accounts', {
-    body: {
-      author_id: insertedId,
-      email: insertedEmail,
-      password: INITIAL_PASSWORD,
-      mode: 'invite',
-    },
-  });
-
-  const fnErr = await extractFnError(inviteResult.error);
-  const firstResult = inviteResult.data?.results?.[0];
-  const failed = fnErr !== null || firstResult === undefined || firstResult.status === 'failed';
-
-  if (failed) {
-    submit.disabled = false;
-    submit.textContent = t('admin.new_author_submit');
-    const reason =
-      fnErr !== null ? formatFnErrorMessage(fnErr) : (firstResult?.error ?? 'onbekend');
-    showStatus(statusBox, 'error', `Auteur aangemaakt maar account-creatie faalde (${reason}).`);
-    onCreated();
-    return;
-  }
-
-  form.remove();
-  showStatus(
-    statusBox,
-    'success',
-    `${values.email} aangemaakt. Geef de auteur persoonlijk het wachtwoord "${INITIAL_PASSWORD}" door — bij eerste inlog wordt deze automatisch gewijzigd.`
-  );
-  onCreated();
-}
-
-/** Vast start-wachtwoord voor de test-fase. Zie 0015_must_change_password.sql. */
-const INITIAL_PASSWORD = 'Noordhoff';
-
-// =============================================================================
 // Helpers
 // =============================================================================
-function labeledInput(
-  name: string,
-  label: string,
-  type: 'text' | 'email',
-  required: boolean
-): { field: HTMLLabelElement; input: HTMLInputElement } {
-  const field = document.createElement('label');
-  field.className = 'auth-field';
-
-  const span = document.createElement('span');
-  span.textContent = label;
-  field.appendChild(span);
-
-  const input = document.createElement('input');
-  input.type = type;
-  input.name = name;
-  if (required) {
-    input.required = true;
-  }
-  field.appendChild(input);
-
-  return { field, input };
-}
-
 function showStatus(box: HTMLElement, kind: 'error' | 'success', message: string): void {
   box.className = `admin-status admin-status-${kind}`;
   box.textContent = message;
