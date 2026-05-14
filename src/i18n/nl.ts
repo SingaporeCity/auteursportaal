@@ -345,6 +345,8 @@ export const nl: Translations = {
   'admin.detail_empty_value': '—',
   'admin.detail_close': 'Sluiten',
   'admin.detail_more_actions': 'Meer acties',
+  'admin.list_count_total': '{shown} van {total} auteurs',
+  'admin.btn_load_more': 'Toon nog {n}',
   'admin.btn_send_reminder_label': 'Stuur reminder naar auteur',
   'admin.btn_activate': 'Activeer',
   'admin.btn_reset_mfa': 'Reset 2FA',

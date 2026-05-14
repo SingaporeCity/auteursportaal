@@ -347,6 +347,8 @@ export type TranslationKey =
   | 'admin.detail_empty_value'
   | 'admin.detail_close'
   | 'admin.detail_more_actions'
+  | 'admin.list_count_total'
+  | 'admin.btn_load_more'
   | 'admin.btn_send_reminder_label'
   | 'admin.btn_activate'
   | 'admin.btn_reset_mfa'

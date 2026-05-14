@@ -42,7 +42,19 @@ interface ListState {
   authors: AuthorRow[];
   /** Set van author-IDs die ten minste één `payments`-rij hebben. */
   paymentsByAuthor: Set<string>;
+  /**
+   * Hoeveel rijen we momenteel tonen. Initieel 50, klimt in stappen van 50
+   * via "Toon meer". Reset bij filter- of search-wijziging zodat een nieuwe
+   * zoekopdracht weer bij de eerste 50 begint.
+   */
+  visibleCount: number;
 }
+
+const PAGE_SIZE = 50;
+/** Supabase hard-limiteert standaard op 1000 rijen — expliciet ophogen zodat
+ *  we tot 5000 auteurs ophalen zonder silent cutoff. Boven die grens moet
+ *  echte paginering komen. */
+const MAX_FETCH = 5000;
 
 /** Twee tabs in het admin-portaal. Keuze wordt in localStorage bewaard. */
 type AdminTab = 'accounts' | 'persoonsgegevens';
@@ -90,6 +102,7 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
     search: '',
     authors: [],
     paymentsByAuthor: new Set(),
+    visibleCount: PAGE_SIZE,
   };
 
   const statusBox = document.createElement('div');
@@ -317,6 +330,7 @@ function renderAccountsTab(
 
   searchInput.addEventListener('input', () => {
     state.search = searchInput.value;
+    state.visibleCount = PAGE_SIZE;
     renderList(list, state, statusBox);
   });
 
@@ -363,6 +377,7 @@ function renderStatsStrip(container: HTMLElement, state: ListState, onChange: ()
 
     btn.addEventListener('click', () => {
       state.filter = state.filter === tile.value ? 'all' : tile.value;
+      state.visibleCount = PAGE_SIZE;
       onChange();
     });
     container.appendChild(btn);
@@ -627,8 +642,15 @@ async function loadAuthors(
   // zonder per-rij round-trip. Volume in test-fase laag genoeg om alles op
   // te halen; voor schaalbaarheid later vervangen door een aggregate-RPC.
   const [authorsResp, paymentsResp] = await Promise.all([
-    supabase.from('authors').select('*').order('created_at', { ascending: false }),
-    supabase.from('payments').select('author_id'),
+    supabase
+      .from('authors')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(0, MAX_FETCH - 1),
+    supabase
+      .from('payments')
+      .select('author_id')
+      .range(0, MAX_FETCH - 1),
   ]);
 
   if (authorsResp.error !== null) {
@@ -745,6 +767,7 @@ function renderFilterButtons(container: HTMLElement, state: ListState, onChange:
 
     btn.addEventListener('click', () => {
       state.filter = item.value;
+      state.visibleCount = PAGE_SIZE;
       onChange();
     });
     container.appendChild(btn);
@@ -777,7 +800,6 @@ function renderList(container: HTMLElement, state: ListState, statusBox: HTMLEle
 
   const needle = state.search.trim().toLowerCase();
   const filtered = state.authors.filter((a) => {
-    // Admin-accounts horen niet in het auteursbeheer-overzicht.
     if (a.is_admin) {
       return false;
     }
@@ -808,12 +830,42 @@ function renderList(container: HTMLElement, state: ListState, statusBox: HTMLEle
     return;
   }
 
-  for (const author of filtered) {
+  // Lazy-render: alleen de eerste `visibleCount` cards in DOM. Bij 3000
+  // auteurs is 3000 buttons + avatars renderen merkbaar traag — 50 cards
+  // op een batch houdt scroll-performance soepel.
+  const shown = filtered.slice(0, state.visibleCount);
+  for (const author of shown) {
     const onChanged = (): void => {
       refreshOne(state, author.id, container, statusBox);
     };
     container.appendChild(renderAuthorCard(author, state, onChanged, statusBox));
   }
+
+  // Voet met count + load-more knop wanneer er meer te tonen valt
+  const footer = document.createElement('div');
+  footer.className = 'admin-list-footer';
+
+  const countLabel = document.createElement('span');
+  countLabel.className = 'admin-list-count';
+  countLabel.textContent = t('admin.list_count_total')
+    .replace('{shown}', String(shown.length))
+    .replace('{total}', String(filtered.length));
+  footer.appendChild(countLabel);
+
+  if (shown.length < filtered.length) {
+    const next = Math.min(PAGE_SIZE, filtered.length - shown.length);
+    const loadMoreBtn = document.createElement('button');
+    loadMoreBtn.type = 'button';
+    loadMoreBtn.className = 'admin-load-more';
+    loadMoreBtn.textContent = t('admin.btn_load_more').replace('{n}', String(next));
+    loadMoreBtn.addEventListener('click', () => {
+      state.visibleCount += PAGE_SIZE;
+      renderList(container, state, statusBox);
+    });
+    footer.appendChild(loadMoreBtn);
+  }
+
+  container.appendChild(footer);
 }
 
 /** Vervang één auteur-rij in state na een actie, daarna re-render de lijst. */

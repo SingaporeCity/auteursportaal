@@ -350,6 +350,8 @@ export const sv: Translations = {
   'admin.detail_empty_value': '—',
   'admin.detail_close': 'Stäng',
   'admin.detail_more_actions': 'Fler åtgärder',
+  'admin.list_count_total': '{shown} av {total} författare',
+  'admin.btn_load_more': 'Visa {n} till',
   'admin.btn_send_reminder_label': 'Skicka påminnelse till författare',
   'admin.btn_activate': 'Aktivera',
   'admin.btn_reset_mfa': 'Återställ 2FA',
