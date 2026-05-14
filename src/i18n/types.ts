@@ -98,6 +98,7 @@ export type TranslationKey =
   | 'header.search_placeholder'
   | 'header.search_label'
   | 'header.app_label'
+  | 'header.role_admin'
 
   // Command palette
   | 'cmd.placeholder'

@@ -69,7 +69,7 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
 
   const layout = document.createElement('div');
   layout.className = 'app-shell';
-  layout.appendChild(buildAppHeader());
+  layout.appendChild(buildAppHeader(admin));
 
   const main = document.createElement('main');
   main.className = 'admin-content';
@@ -618,8 +618,21 @@ function renderFilterButtons(container: HTMLElement, state: ListState, onChange:
     btn.className = 'admin-filter-btn';
     if (state.filter === item.value) {
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+    } else {
+      btn.setAttribute('aria-pressed', 'false');
     }
-    btn.textContent = `${item.label} (${String(item.count)})`;
+
+    const label = document.createElement('span');
+    label.className = 'admin-filter-btn-label';
+    label.textContent = item.label;
+    btn.appendChild(label);
+
+    const count = document.createElement('span');
+    count.className = 'admin-filter-btn-count';
+    count.textContent = String(item.count);
+    btn.appendChild(count);
+
     btn.addEventListener('click', () => {
       state.filter = item.value;
       onChange();

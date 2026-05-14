@@ -77,6 +77,7 @@ export const en: Translations = {
   'header.search_placeholder': 'Search tabs, statements, contracts, FAQ…',
   'header.search_label': 'Search…',
   'header.app_label': 'Author Portal',
+  'header.role_admin': 'Admin',
 
   'cmd.placeholder': 'Search tabs, statements, contracts, FAQ…',
   'cmd.no_results': 'No results',

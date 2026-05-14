@@ -17,7 +17,6 @@
 
 import './styles/main.css';
 import { initLocale, t } from '@/lib/i18n';
-import { initTheme } from '@/lib/theme';
 import {
   getActiveSession,
   loadOwnProfile,
@@ -44,7 +43,6 @@ void bootstrap(root);
 
 async function bootstrap(rootEl: HTMLElement): Promise<void> {
   initLocale();
-  initTheme();
 
   if (import.meta.env.DEV) {
     const { mountDebugPanel } = await import('@/dev/debug-panel');

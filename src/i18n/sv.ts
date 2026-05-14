@@ -85,6 +85,7 @@ export const sv: Translations = {
   'header.search_placeholder': 'Sök flikar, avräkningar, kontrakt, FAQ…',
   'header.search_label': 'Sök…',
   'header.app_label': 'Författarportal',
+  'header.role_admin': 'Administratör',
 
   'cmd.placeholder': 'Sök flikar, avräkningar, kontrakt, FAQ…',
   'cmd.no_results': 'Inga resultat',

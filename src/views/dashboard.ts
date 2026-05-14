@@ -53,7 +53,7 @@ export function renderDashboardView(
   const layout = document.createElement('div');
   layout.className = 'app-shell';
 
-  layout.appendChild(buildAppHeader());
+  layout.appendChild(buildAppHeader(author));
 
   const dashContent = document.createElement('div');
   dashContent.className = 'dashboard-content';

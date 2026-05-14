@@ -78,6 +78,7 @@ export const nl: Translations = {
   'header.search_placeholder': 'Zoek tabs, afrekeningen, contracten, FAQ…',
   'header.search_label': 'Zoeken…',
   'header.app_label': 'Auteursportaal',
+  'header.role_admin': 'Beheerder',
 
   'cmd.placeholder': 'Zoek tabs, afrekeningen, contracten, FAQ…',
   'cmd.no_results': 'Geen resultaten',

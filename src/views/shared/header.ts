@@ -1,26 +1,38 @@
 /**
  * Gedeelde app-header voor auteur-dashboard én admin-pagina.
  *
- * Layout (5-koloms grid zoals demo):
- *   logo + sub-label  |  search-trigger  |  taal-toggle  |  dark-toggle  |  logout
- *
- * Greeting staat NIET meer in de header — die is verplaatst naar de
- * `welcome-section` boven de tabs (zie `welcome-section.ts`).
+ * Layout (links → rechts):
+ *   logo + AUTEURSPORTAAL-label  |  zoek-trigger (Ctrl/⌘K)  |  taal-toggle
+ *                                                           |  user-chip
+ *                                                           |  uitloggen
  *
  * @module views/shared/header
  */
 
 import { signOut } from '@/auth';
+import type { AuthorRow } from '@/auth';
 import { t, getLocale, setLocale, listSupportedLocales } from '@/lib/i18n';
-import { toggleTheme } from '@/lib/theme';
 import type { SupportedLocale } from '@/i18n/types';
 import { openCommandPalette } from './command-palette';
 
-export function buildAppHeader(): HTMLElement {
+export function buildAppHeader(user: AuthorRow): HTMLElement {
   const header = document.createElement('header');
   header.className = 'app-header';
 
-  // -- Brand (logo + AUTEURSPORTAAL label)
+  header.appendChild(buildBrand());
+  header.appendChild(buildSearchTrigger());
+
+  const actions = document.createElement('div');
+  actions.className = 'app-header-actions';
+  actions.appendChild(buildLangToggle());
+  actions.appendChild(buildUserChip(user));
+  actions.appendChild(buildLogoutBtn());
+  header.appendChild(actions);
+
+  return header;
+}
+
+function buildBrand(): HTMLElement {
   const brand = document.createElement('div');
   brand.className = 'app-header-brand';
 
@@ -39,38 +51,7 @@ export function buildAppHeader(): HTMLElement {
   sub.textContent = t('header.app_label');
   brand.appendChild(sub);
 
-  header.appendChild(brand);
-
-  // -- Search trigger (opent command palette)
-  header.appendChild(buildSearchTrigger());
-
-  // -- Acties container
-  const actions = document.createElement('div');
-  actions.className = 'app-header-actions';
-
-  actions.appendChild(buildLangToggle());
-
-  const themeBtn = document.createElement('button');
-  themeBtn.type = 'button';
-  themeBtn.className = 'theme-toggle';
-  themeBtn.title = 'Wissel licht/donker';
-  themeBtn.setAttribute('aria-label', 'Wissel licht of donker thema');
-  themeBtn.addEventListener('click', () => {
-    toggleTheme();
-  });
-  actions.appendChild(themeBtn);
-
-  const logoutBtn = document.createElement('button');
-  logoutBtn.type = 'button';
-  logoutBtn.className = 'app-header-logout';
-  logoutBtn.textContent = t('auth.logout');
-  logoutBtn.addEventListener('click', () => {
-    void signOut();
-  });
-  actions.appendChild(logoutBtn);
-
-  header.appendChild(actions);
-  return header;
+  return brand;
 }
 
 function buildSearchTrigger(): HTMLElement {
@@ -122,4 +103,55 @@ function buildLangToggle(): HTMLElement {
     wrap.appendChild(btn);
   }
   return wrap;
+}
+
+function buildUserChip(user: AuthorRow): HTMLElement {
+  const chip = document.createElement('div');
+  chip.className = 'app-header-user';
+  if (user.is_admin) {
+    chip.classList.add('app-header-user--admin');
+  }
+  chip.setAttribute('aria-label', `Ingelogd als ${user.first_name} ${user.last_name}`);
+
+  const avatar = document.createElement('span');
+  avatar.className = 'app-header-user-avatar';
+  avatar.textContent = computeInitials(user.first_name, user.last_name);
+  avatar.setAttribute('aria-hidden', 'true');
+  chip.appendChild(avatar);
+
+  const meta = document.createElement('span');
+  meta.className = 'app-header-user-meta';
+
+  const name = document.createElement('span');
+  name.className = 'app-header-user-name';
+  name.textContent = `${user.first_name} ${user.last_name}`.trim();
+  meta.appendChild(name);
+
+  if (user.is_admin) {
+    const role = document.createElement('span');
+    role.className = 'app-header-user-role';
+    role.textContent = t('header.role_admin');
+    meta.appendChild(role);
+  }
+
+  chip.appendChild(meta);
+  return chip;
+}
+
+function buildLogoutBtn(): HTMLElement {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'app-header-logout';
+  btn.textContent = t('auth.logout');
+  btn.addEventListener('click', () => {
+    void signOut();
+  });
+  return btn;
+}
+
+function computeInitials(first: string, last: string): string {
+  const f = first.trim()[0] ?? '';
+  const l = last.trim()[0] ?? '';
+  const initials = `${f}${l}`.toUpperCase();
+  return initials === '' ? '·' : initials;
 }
