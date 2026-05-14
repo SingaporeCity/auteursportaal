@@ -5898,3 +5898,132 @@ a:hover {
     display: none;
   }
 }
+
+/* =============================================================================
+ * Choice-modal: tegel-grid waar admin een sub-flow kiest (auteur-type,
+ * documenttype). Klik op tegel sluit deze modal en opent de echte modal.
+ * ============================================================================= */
+.choice-modal {
+  max-width: 640px;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.choice-modal--upload .choice-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.choice-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1rem 1.05rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease,
+    background-color 180ms ease;
+  font: inherit;
+  color: inherit;
+  min-height: 132px;
+  position: relative;
+}
+
+.choice-tile:hover:not(.choice-tile--disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 12px rgba(0, 116, 96, 0.08);
+  transform: translateY(-1px);
+}
+
+.choice-tile:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+  border-color: var(--color-primary);
+}
+
+.choice-tile--disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.choice-tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.choice-tile-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.choice-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.choice-tile-label {
+  font-size: 0.95rem;
+  font-variation-settings: 'wght' 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.choice-tile-desc {
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+  line-height: 1.45;
+}
+
+.choice-tile-badge {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 0.4rem;
+  padding: 0.18rem 0.5rem;
+  background: var(--color-bg);
+  color: var(--color-text-light);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  font-variation-settings: 'wght' 560;
+}
+
+@media (max-width: 640px) {
+  .choice-grid,
+  .choice-modal--upload .choice-grid {
+    grid-template-columns: 1fr;
+  }
+  .choice-tile {
+    min-height: auto;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .choice-tile-icon {
+    margin-top: 0.15rem;
+  }
+}

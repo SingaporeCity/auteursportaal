@@ -350,6 +350,35 @@ export const nl: Translations = {
   'admin.empty_zero_title': 'Nog geen auteurs',
   'admin.empty_zero_intro':
     'Importeer auteurs uit NetSuite of voeg er handmatig één toe om te beginnen.',
+  'admin.add_author_choice_title': 'Auteur toevoegen',
+  'admin.add_author_choice_intro': 'Kies hoe u de auteur wilt toevoegen aan het portaal.',
+  'admin.add_author_choice_new': 'Nieuwe auteur',
+  'admin.add_author_choice_new_desc':
+    'Voeg één nieuwe auteur toe met naam en e-mailadres. Deze ontvangt een welkomstmail en vult zelf zijn persoonsgegevens aan.',
+  'admin.add_author_choice_existing': 'Bestaande auteurs',
+  'admin.add_author_choice_existing_desc':
+    'Importeer meerdere bestaande auteurs in één keer via een NetSuite-Excel. Hun gegevens komen direct binnen.',
+  'admin.btn_add_author': 'Auteur toevoegen',
+  'admin.tooltip_add_author': 'Voeg één nieuwe auteur toe of importeer een lijst uit NetSuite.',
+  'admin.upload_choice_title': 'Documenten uploaden',
+  'admin.upload_choice_intro': 'Kies welk type document u wilt uploaden.',
+  'admin.upload_choice_royalty_desc':
+    'Reguliere royaltyafrekening met bedragen-Excel en bijbehorende PDFs.',
+  'admin.upload_choice_subsidiary_desc':
+    'Afrekening van licentie- en nevenrechten met bedragen-Excel en PDFs.',
+  'admin.upload_choice_foreign_desc':
+    'Afrekening van buitenlandse rechten met bedragen-Excel en PDFs.',
+  'admin.upload_choice_jaaropgave_desc': 'Jaaroverzicht voor de fiscus met bedragen-Excel en PDFs.',
+  'admin.upload_choice_contracts': 'Auteurscontracten',
+  'admin.upload_choice_contracts_desc':
+    'Bulk-upload van contracten via Excel met metadata en bijbehorende PDFs.',
+  'admin.upload_choice_invoices': 'Facturen',
+  'admin.upload_choice_invoices_desc':
+    'Facturen van auteurs aan Noordhoff verwerken voor uitbetaling.',
+  'admin.btn_upload_documents': 'Documenten uploaden',
+  'admin.tooltip_upload_documents': 'Upload royaltyafrekeningen, contracten of facturen.',
+  'admin.coming_soon': 'Binnenkort',
+  'admin.card_documents_title': 'Documenten',
   'admin.btn_send_reminder_label': 'Stuur reminder naar auteur',
   'admin.btn_activate': 'Activeer',
   'admin.btn_reset_mfa': 'Reset 2FA',

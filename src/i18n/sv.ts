@@ -355,6 +355,36 @@ export const sv: Translations = {
   'admin.empty_zero_title': 'Inga författare ännu',
   'admin.empty_zero_intro':
     'Importera författare från NetSuite eller lägg till en manuellt för att börja.',
+  'admin.add_author_choice_title': 'Lägg till författare',
+  'admin.add_author_choice_intro': 'Välj hur du vill lägga till författaren i portalen.',
+  'admin.add_author_choice_new': 'Ny författare',
+  'admin.add_author_choice_new_desc':
+    'Lägg till en enskild ny författare med namn och e-post. Denna får ett välkomstmejl och fyller själv i sin profil.',
+  'admin.add_author_choice_existing': 'Befintliga författare',
+  'admin.add_author_choice_existing_desc':
+    'Importera flera befintliga författare på en gång via en NetSuite-Excel. Uppgifterna fylls i direkt.',
+  'admin.btn_add_author': 'Lägg till författare',
+  'admin.tooltip_add_author': 'Lägg till en ny författare eller importera en lista från NetSuite.',
+  'admin.upload_choice_title': 'Ladda upp dokument',
+  'admin.upload_choice_intro': 'Välj vilken typ av dokument du vill ladda upp.',
+  'admin.upload_choice_royalty_desc':
+    'Vanlig royalty-avräkning med belopps-Excel och tillhörande PDF:er.',
+  'admin.upload_choice_subsidiary_desc':
+    'Avräkning av sidorättigheter med belopps-Excel och tillhörande PDF:er.',
+  'admin.upload_choice_foreign_desc':
+    'Avräkning av utländska rättigheter med belopps-Excel och tillhörande PDF:er.',
+  'admin.upload_choice_jaaropgave_desc':
+    'Årssammanställning för skattemyndigheten med belopps-Excel och PDF:er.',
+  'admin.upload_choice_contracts': 'Författarkontrakt',
+  'admin.upload_choice_contracts_desc':
+    'Bulk-uppladdning av kontrakt via Excel med metadata och tillhörande PDF:er.',
+  'admin.upload_choice_invoices': 'Fakturor',
+  'admin.upload_choice_invoices_desc':
+    'Behandla fakturor från författare till Noordhoff för utbetalning.',
+  'admin.btn_upload_documents': 'Ladda upp dokument',
+  'admin.tooltip_upload_documents': 'Ladda upp royalty-avräkningar, kontrakt eller fakturor.',
+  'admin.coming_soon': 'Snart tillgängligt',
+  'admin.card_documents_title': 'Dokument',
   'admin.btn_send_reminder_label': 'Skicka påminnelse till författare',
   'admin.btn_activate': 'Aktivera',
   'admin.btn_reset_mfa': 'Återställ 2FA',

@@ -27,6 +27,8 @@ import { openContractUploadModal } from './admin/contract-upload';
 import { openNewAuthorModal } from './admin/new-author-modal';
 import { openAuthorPickerModal } from './admin/author-picker';
 import { openAuthorDetailPanel } from './admin/author-detail-panel';
+import { openChoiceModal } from './admin/choice-modal';
+import type { PaymentType } from '@/types/db';
 import { extractFnError, formatFnErrorMessage } from '@/lib/edge-function-errors';
 import { buildAppHeader } from './shared/header';
 
@@ -224,6 +226,129 @@ function buildSectionHeader(): HTMLElement {
 }
 
 // =============================================================================
+// Keuze-modals voor "Auteur toevoegen" en "Documenten uploaden". Beide
+// gebruiken `openChoiceModal` als presentatie-laag en routen door naar de
+// bestaande gespecialiseerde modals.
+// =============================================================================
+
+const ICON_USER_PLUS =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>';
+
+const ICON_USERS_EXCEL =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8h4M21 6v4"/></svg>';
+
+const ICON_FILE_TEXT =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+
+const ICON_CONTRACT =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 12h2M8 16h6"/><path d="M14 17l1.5 1.5L18 16"/></svg>';
+
+const ICON_INVOICE =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9.5 13.5c0-.83.67-1.5 1.5-1.5h2c.83 0 1.5.67 1.5 1.5S13.83 15 13 15h-2c-.83 0-1.5.67-1.5 1.5S10.17 18 11 18h2c.83 0 1.5-.67 1.5-1.5"/></svg>';
+
+function openAddAuthorChoice(onAuthorsChanged: () => void): void {
+  openChoiceModal({
+    title: t('admin.add_author_choice_title'),
+    intro: t('admin.add_author_choice_intro'),
+    modalClassName: 'choice-modal--add-author',
+    tiles: [
+      {
+        id: 'new',
+        label: t('admin.add_author_choice_new'),
+        description: t('admin.add_author_choice_new_desc'),
+        icon: ICON_USER_PLUS,
+        onPick: () => {
+          openNewAuthorModal(onAuthorsChanged);
+        },
+      },
+      {
+        id: 'existing',
+        label: t('admin.add_author_choice_existing'),
+        description: t('admin.add_author_choice_existing_desc'),
+        icon: ICON_USERS_EXCEL,
+        onPick: () => {
+          openExcelImportModal(onAuthorsChanged);
+        },
+      },
+    ],
+  });
+}
+
+function openUploadChoice(state: ListState, onAuthorsChanged: () => void): void {
+  const openStatement = (type: PaymentType): void => {
+    openBulkStatementUploadModal(onAuthorsChanged, type);
+  };
+
+  openChoiceModal({
+    title: t('admin.upload_choice_title'),
+    intro: t('admin.upload_choice_intro'),
+    modalClassName: 'choice-modal--upload',
+    tiles: [
+      {
+        id: 'royalty',
+        label: t('admin.bulk_stmt_type_royalty'),
+        description: t('admin.upload_choice_royalty_desc'),
+        icon: ICON_FILE_TEXT,
+        onPick: () => {
+          openStatement('royalty');
+        },
+      },
+      {
+        id: 'subsidiary',
+        label: t('admin.bulk_stmt_type_subsidiary'),
+        description: t('admin.upload_choice_subsidiary_desc'),
+        icon: ICON_FILE_TEXT,
+        onPick: () => {
+          openStatement('subsidiary');
+        },
+      },
+      {
+        id: 'foreign',
+        label: t('admin.bulk_stmt_type_foreign'),
+        description: t('admin.upload_choice_foreign_desc'),
+        icon: ICON_FILE_TEXT,
+        onPick: () => {
+          openStatement('foreign');
+        },
+      },
+      {
+        id: 'jaaropgave',
+        label: t('admin.bulk_stmt_type_jaaropgave'),
+        description: t('admin.upload_choice_jaaropgave_desc'),
+        icon: ICON_FILE_TEXT,
+        onPick: () => {
+          openStatement('jaaropgave');
+        },
+      },
+      {
+        id: 'contracts',
+        label: t('admin.upload_choice_contracts'),
+        description: t('admin.upload_choice_contracts_desc'),
+        icon: ICON_CONTRACT,
+        // Tussenoplossing tot bulk-contract-flow er staat: gebruik de
+        // bestaande per-contract modal via een auteur-picker.
+        onPick: () => {
+          openAuthorPickerModal(state.authors, (author) => {
+            openContractUploadModal(author, onAuthorsChanged);
+          });
+        },
+      },
+      {
+        id: 'invoices',
+        label: t('admin.upload_choice_invoices'),
+        description: t('admin.upload_choice_invoices_desc'),
+        icon: ICON_INVOICE,
+        comingSoonLabel: t('admin.coming_soon'),
+        onPick: () => {
+          // Disabled — handler wordt niet aangeroepen zolang
+          // comingSoonLabel gezet is.
+        },
+      },
+    ],
+  });
+}
+
+// =============================================================================
 // Tab "Accounts"
 // =============================================================================
 function renderAccountsTab(
@@ -269,28 +394,20 @@ function renderAccountsTab(
   list.className = 'admin-author-list';
   container.appendChild(list);
 
-  // ---- Action-cards onder de lijst — minder gebruikt, dus secundair
+  // ---- Action-cards onder de lijst — minder gebruikt, dus secundair.
+  // Eén knop per card; achterliggende keuze-modal voor sub-types.
   container.appendChild(
     buildActionCard({
       title: t('admin.card_add_authors_title'),
       helpBuilder: buildAddAuthorsHelp,
       buttons: [
         {
-          label: t('admin.toolbar_excel_import'),
-          icon: ICON_DOWNLOAD,
-          tooltip: t('admin.tooltip_excel_import'),
+          label: t('admin.btn_add_author'),
+          icon: ICON_PLUS,
+          tooltip: t('admin.tooltip_add_author'),
           variant: 'primary',
           onClick: () => {
-            openExcelImportModal(onAuthorsChanged);
-          },
-        },
-        {
-          label: t('admin.toolbar_new_author'),
-          icon: ICON_PLUS,
-          tooltip: t('admin.tooltip_new_author'),
-          variant: 'secondary',
-          onClick: () => {
-            openNewAuthorModal(onAuthorsChanged);
+            openAddAuthorChoice(onAuthorsChanged);
           },
         },
       ],
@@ -299,27 +416,16 @@ function renderAccountsTab(
 
   container.appendChild(
     buildActionCard({
-      title: t('admin.card_bulk_statements_title'),
+      title: t('admin.card_documents_title'),
       helpBuilder: buildBulkStatementsHelp,
       buttons: [
         {
-          label: t('admin.toolbar_bulk_statements'),
+          label: t('admin.btn_upload_documents'),
           icon: ICON_UPLOAD,
-          tooltip: t('admin.tooltip_bulk_statements'),
+          tooltip: t('admin.tooltip_upload_documents'),
           variant: 'primary',
           onClick: () => {
-            openBulkStatementUploadModal(onAuthorsChanged);
-          },
-        },
-        {
-          label: t('admin.btn_upload_contract'),
-          icon: ICON_PLUS,
-          tooltip: t('admin.tooltip_upload_contract'),
-          variant: 'secondary',
-          onClick: () => {
-            openAuthorPickerModal(state.authors, (author) => {
-              openContractUploadModal(author, onAuthorsChanged);
-            });
+            openUploadChoice(state, onAuthorsChanged);
           },
         },
       ],
@@ -1209,9 +1315,6 @@ function showStatus(box: HTMLElement, kind: 'error' | 'success', message: string
 // =============================================================================
 // Inline SVG-icons — uniform 16×16, stroke 1.5, monochrome currentColor
 // =============================================================================
-const ICON_DOWNLOAD =
-  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-
 const ICON_UPLOAD =
   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
 

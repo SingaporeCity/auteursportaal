@@ -70,7 +70,7 @@ const TYPE_OPTIONS: { value: PaymentType; labelKey: string }[] = [
   { value: 'jaaropgave', labelKey: 'admin.bulk_stmt_type_jaaropgave' },
 ];
 
-export function openBulkStatementUploadModal(onDone: () => void): void {
+export function openBulkStatementUploadModal(onDone: () => void, initialType?: PaymentType): void {
   if (document.querySelector('.modal-overlay.bulk-stmt-overlay') !== null) {
     return;
   }
@@ -113,6 +113,9 @@ export function openBulkStatementUploadModal(onDone: () => void): void {
     o.value = opt.value;
     o.textContent = t(opt.labelKey as Parameters<typeof t>[0]);
     typeSelect.appendChild(o);
+  }
+  if (initialType !== undefined) {
+    typeSelect.value = initialType;
   }
   typeWrap.appendChild(typeSelect);
   modal.appendChild(typeWrap);

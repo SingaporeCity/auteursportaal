@@ -347,6 +347,35 @@ export const en: Translations = {
   'admin.btn_load_more': 'Show {n} more',
   'admin.empty_zero_title': 'No authors yet',
   'admin.empty_zero_intro': 'Import authors from NetSuite or add one manually to get started.',
+  'admin.add_author_choice_title': 'Add author',
+  'admin.add_author_choice_intro': 'Choose how to add the author to the portal.',
+  'admin.add_author_choice_new': 'New author',
+  'admin.add_author_choice_new_desc':
+    'Add a single new author with name and email. They receive a welcome email and complete their own profile.',
+  'admin.add_author_choice_existing': 'Existing authors',
+  'admin.add_author_choice_existing_desc':
+    'Import multiple existing authors at once via a NetSuite Excel export. Their data is filled in directly.',
+  'admin.btn_add_author': 'Add author',
+  'admin.tooltip_add_author': 'Add a single new author or import a batch from NetSuite.',
+  'admin.upload_choice_title': 'Upload documents',
+  'admin.upload_choice_intro': 'Choose which document type to upload.',
+  'admin.upload_choice_royalty_desc':
+    'Regular royalty statement with amounts Excel and matching PDFs.',
+  'admin.upload_choice_subsidiary_desc':
+    'Subsidiary rights statement with amounts Excel and matching PDFs.',
+  'admin.upload_choice_foreign_desc':
+    'Foreign rights statement with amounts Excel and matching PDFs.',
+  'admin.upload_choice_jaaropgave_desc':
+    'Annual tax overview with amounts Excel and matching PDFs.',
+  'admin.upload_choice_contracts': 'Author contracts',
+  'admin.upload_choice_contracts_desc':
+    'Bulk upload contracts via Excel with metadata and matching PDFs.',
+  'admin.upload_choice_invoices': 'Invoices',
+  'admin.upload_choice_invoices_desc': 'Process invoices from authors to Noordhoff for payment.',
+  'admin.btn_upload_documents': 'Upload documents',
+  'admin.tooltip_upload_documents': 'Upload royalty statements, contracts or invoices.',
+  'admin.coming_soon': 'Coming soon',
+  'admin.card_documents_title': 'Documents',
   'admin.btn_send_reminder_label': 'Send reminder to author',
   'admin.btn_activate': 'Activate',
   'admin.btn_reset_mfa': 'Reset 2FA',
