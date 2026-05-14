@@ -323,12 +323,18 @@ function renderAccountsTab(
   statusBox: HTMLElement,
   onAuthorsChanged: () => void
 ): void {
-  // ---- Action-cards bovenaan: directe toegang tot de hoofdacties
-  // (Auteur toevoegen, Documenten uploaden). Eén knop per card; de
-  // achterliggende keuze-modal toont de sub-types.
-  container.appendChild(
+  // ---- Action-tiles bovenaan: twee naast elkaar, directe toegang tot
+  // de hoofdacties (Auteur toevoegen, Documenten uploaden). Elk met een
+  // primary-tint icoon-blok zodat duidelijk is dat dit interactieve
+  // tiles zijn. Achterliggende keuze-modal toont de sub-types.
+  const actionGrid = document.createElement('div');
+  actionGrid.className = 'admin-action-grid';
+  container.appendChild(actionGrid);
+
+  actionGrid.appendChild(
     buildActionCard({
       title: t('admin.card_add_authors_title'),
+      iconSvg: ICON_USER_PLUS,
       helpBuilder: buildAddAuthorsHelp,
       buttons: [
         {
@@ -344,9 +350,10 @@ function renderAccountsTab(
     })
   );
 
-  container.appendChild(
+  actionGrid.appendChild(
     buildActionCard({
       title: t('admin.card_documents_title'),
+      iconSvg: ICON_UPLOAD_BIG,
       helpBuilder: buildBulkStatementsHelp,
       buttons: [
         {
@@ -511,6 +518,9 @@ interface ActionCardButton {
 
 interface ActionCardOpts {
   title: string;
+  /** Inline SVG-icoon dat in een primary-tint blok links naast de titel
+   *  staat. Vergroot de visuele "actie-tile"-uitstraling. */
+  iconSvg?: string;
   /**
    * Optional builder die de inhoud van een collapsible "Hoe werkt dit?"-
    * panel opbouwt. Wanneer omitted, krijgt de card geen help-dropdown.
@@ -523,9 +533,18 @@ function buildActionCard(opts: ActionCardOpts): HTMLElement {
   const card = document.createElement('section');
   card.className = 'admin-action-card';
 
-  // -- Bovenste rij: titel + klein ?-icoon (links als blok), actie-knoppen rechts.
+  // -- Bovenste rij: optioneel icoon-blok, dan titel + klein ?-icoon
+  //    (links als blok), actie-knoppen rechts.
   const topRow = document.createElement('div');
   topRow.className = 'admin-action-card-top';
+
+  if (opts.iconSvg !== undefined) {
+    const iconBlock = document.createElement('div');
+    iconBlock.className = 'admin-action-card-icon';
+    // eslint-disable-next-line no-unsanitized/property -- statische SVG uit code
+    iconBlock.innerHTML = opts.iconSvg;
+    topRow.appendChild(iconBlock);
+  }
 
   const titleWrap = document.createElement('div');
   titleWrap.className = 'admin-action-card-title-wrap';
@@ -1224,6 +1243,11 @@ function showStatus(box: HTMLElement, kind: 'error' | 'success', message: string
 // =============================================================================
 const ICON_UPLOAD =
   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+
+/** Grotere variant van ICON_UPLOAD zonder hardcoded width/height; door
+ *  CSS gestyled in `.admin-action-card-icon svg`. */
+const ICON_UPLOAD_BIG =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
 
 const ICON_PLUS =
   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
