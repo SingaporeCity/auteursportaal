@@ -1011,13 +1011,6 @@ a:hover {
  * uitgever — volwassen, sober, vakkundig.
  * ============================================================================= */
 
-/* Section header met overline + heading */
-.admin-section-header {
-  margin: 2.5rem 0 0.75rem;
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
 /* ============================================================================
  * Tab-bar als segmented control. Pill-container met actieve tab als
  * surface-card + subtiele shadow. Modern, app-achtig.
@@ -1025,7 +1018,7 @@ a:hover {
 .admin-tab-bar {
   display: inline-flex;
   gap: 0.2rem;
-  margin: 0 0 1.5rem;
+  margin: 2rem 0 1.5rem;
   padding: 0.25rem;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
@@ -1101,6 +1094,16 @@ a:hover {
   gap: 1rem;
 }
 
+/* Titel-wrap: title + klein ?-icoon-knop. Pakt alle ruimte links zodat de
+ * action-buttons rechts uitlijnen ongeacht title-lengte. */
+.admin-action-card-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1;
+  min-width: 0;
+}
+
 .admin-action-card-title {
   font-size: 0.95rem;
   font-variation-settings: 'wght' 600;
@@ -1108,9 +1111,6 @@ a:hover {
   color: var(--color-text);
   margin: 0;
   line-height: 1.25;
-  /* Pak alle resterende ruimte zodat help-toggle + knoppen rechts uitlijnen */
-  flex: 1;
-  min-width: 0;
 }
 
 .admin-action-card-buttons {
@@ -1121,42 +1121,43 @@ a:hover {
   justify-content: flex-end;
 }
 
+/* Klein rond ?-icoon naast de titel. Visuele rust: geen tekst, geen
+ * concurrentie met de action-buttons rechts. Hover + open-state laten
+ * primary-accent zien. */
 .admin-action-card-help-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  background: transparent;
-  border: none;
-  padding: 0.25rem 0;
-  font-size: 0.78rem;
-  font-variation-settings: 'wght' 550;
-  letter-spacing: -0.005em;
-  color: var(--color-primary);
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text-light);
   cursor: pointer;
-  user-select: none;
-  transition: color 180ms ease;
+  flex-shrink: 0;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.admin-action-card-help-toggle svg {
+  width: 14px;
+  height: 14px;
 }
 
 .admin-action-card-help-toggle:hover {
-  color: var(--color-primary-dark);
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
-/* Custom chevron — draait 90° wanneer aria-expanded=true */
-.admin-action-card-help-toggle::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: rotate(-45deg);
-  transition: transform 180ms ease;
-  margin-bottom: 2px;
-}
-
-.admin-action-card-help-toggle[aria-expanded='true']::before {
-  transform: rotate(45deg);
-  margin-bottom: 0;
+.admin-action-card-help-toggle[aria-expanded='true'] {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .admin-action-card-help-body {
@@ -1311,99 +1312,6 @@ a:hover {
   .admin-help-dl dt {
     margin-top: 0.5rem;
   }
-}
-
-.admin-section-overline {
-  display: block;
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  font-variation-settings: 'wght' 550;
-  color: var(--color-primary);
-  margin-bottom: 0.4rem;
-}
-
-.admin-section-heading {
-  font-size: 1.85rem;
-  font-variation-settings:
-    'wght' 620,
-    'wdth' 95;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  color: var(--color-text);
-  margin: 0;
-}
-
-/* Toolbar: hairline-row met admin-actions */
-.admin-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin: 0 0 1.25rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-/* =============================================================================
- * Filter-pills: rust + leesbaarheid. Sentence-case label + subtiele count-
- * badge ipv uppercase-tracked schreeuwen. Actief = primary-fill.
- * ============================================================================= */
-.admin-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin: 0 0 1.25rem;
-}
-
-.admin-filter-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.4rem 0.85rem;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  border-radius: var(--radius-pill);
-  font-size: 0.82rem;
-  font-variation-settings: 'wght' 520;
-  letter-spacing: -0.005em;
-  color: var(--color-text-light);
-  cursor: pointer;
-  transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease;
-  font-feature-settings: 'tnum' 1;
-}
-
-.admin-filter-btn:hover {
-  border-color: var(--color-text-muted);
-  color: var(--color-text);
-}
-
-.admin-filter-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
-  font-variation-settings: 'wght' 580;
-}
-
-.admin-filter-btn-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.5rem;
-  height: 1.1rem;
-  padding: 0 0.35rem;
-  border-radius: 999px;
-  background: var(--color-bg);
-  color: var(--color-text-light);
-  font-size: 0.72rem;
-  font-variation-settings: 'wght' 580;
-}
-
-.admin-filter-btn.active .admin-filter-btn-count {
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
 }
 
 /* =============================================================================

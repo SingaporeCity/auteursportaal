@@ -96,9 +96,6 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   main.className = 'admin-content';
   layout.appendChild(main);
 
-  // Section-header met tab-bar
-  main.appendChild(buildSectionHeader());
-
   // -- Gedeeld state-object: authors + payments. Eén bron van waarheid die
   // beide tabs gebruiken (Accounts-tab toont auteurslijst, Persoonsgegevens
   // gebruikt 'm voor de change-requests-section).
@@ -157,16 +154,11 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
     }
   }
 
-  function rerenderAccounts(
-    statsEl: HTMLElement,
-    filtersEl: HTMLElement,
-    listEl: HTMLElement
-  ): void {
+  function rerenderAccounts(statsEl: HTMLElement, listEl: HTMLElement): void {
     const refresh = (): void => {
-      rerenderAccounts(statsEl, filtersEl, listEl);
+      rerenderAccounts(statsEl, listEl);
     };
     renderStatsStrip(statsEl, state, refresh);
-    renderFilterButtons(filtersEl, state, refresh);
     renderList(listEl, state, statusBox);
   }
 
@@ -177,16 +169,10 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
         void loadAuthors(
           state,
           () => {
-            // re-render filter + stats + lijst zonder de hele tab opnieuw te tekenen
             const statsEl = tabPanel.querySelector('.admin-stats-strip');
-            const filtersEl = tabPanel.querySelector('.admin-filters');
             const listEl = tabPanel.querySelector('.admin-author-list');
-            if (
-              statsEl instanceof HTMLElement &&
-              filtersEl instanceof HTMLElement &&
-              listEl instanceof HTMLElement
-            ) {
-              rerenderAccounts(statsEl, filtersEl, listEl);
+            if (statsEl instanceof HTMLElement && listEl instanceof HTMLElement) {
+              rerenderAccounts(statsEl, listEl);
             }
           },
           statusBox
@@ -203,26 +189,6 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   void loadAuthors(state, renderActiveTab, statusBox);
 
   root.appendChild(layout);
-}
-
-// =============================================================================
-// Section-header (overline + heading boven de tabs)
-// =============================================================================
-function buildSectionHeader(): HTMLElement {
-  const sectionHeader = document.createElement('header');
-  sectionHeader.className = 'admin-section-header';
-
-  const overline = document.createElement('span');
-  overline.className = 'admin-section-overline';
-  overline.textContent = t('admin.section_overline');
-  sectionHeader.appendChild(overline);
-
-  const heading = document.createElement('h2');
-  heading.className = 'admin-section-heading';
-  heading.textContent = t('admin.section_heading');
-  sectionHeader.appendChild(heading);
-
-  return sectionHeader;
 }
 
 // =============================================================================
@@ -384,12 +350,10 @@ function renderAccountsTab(
   searchWrap.appendChild(searchInput);
   toolbar.appendChild(searchWrap);
 
-  const filters = document.createElement('div');
-  filters.className = 'admin-filters';
-  toolbar.appendChild(filters);
-
   // ---- Author-list (centraal — gebruiker werkt 99% hier). renderList
   // toont skeletons zolang state.loading=true (geen losse loading-string).
+  // Filteren gebeurt via de stats-tegels boven; aparte filter-pills zijn
+  // verwijderd (waren dubbel met de tegels).
   const list = document.createElement('div');
   list.className = 'admin-author-list';
   container.appendChild(list);
@@ -433,7 +397,6 @@ function renderAccountsTab(
   );
 
   const rerender = (): void => {
-    renderFilterButtons(filters, state, rerender);
     renderStatsStrip(stats, state, rerender);
     renderList(list, state, statusBox);
   };
@@ -561,16 +524,17 @@ function buildActionCard(opts: ActionCardOpts): HTMLElement {
   const card = document.createElement('section');
   card.className = 'admin-action-card';
 
-  // -- Bovenste rij: titel pakt alle resterende ruimte (flex:1), help-toggle
-  // hangt vóór de knoppen — zo lijnt de toggle bij elke card uit op dezelfde
-  // x-positie (vlak naast de actie-knoppen rechts).
+  // -- Bovenste rij: titel + klein ?-icoon (links als blok), actie-knoppen rechts.
   const topRow = document.createElement('div');
   topRow.className = 'admin-action-card-top';
+
+  const titleWrap = document.createElement('div');
+  titleWrap.className = 'admin-action-card-title-wrap';
 
   const h3 = document.createElement('h3');
   h3.className = 'admin-action-card-title';
   h3.textContent = opts.title;
-  topRow.appendChild(h3);
+  titleWrap.appendChild(h3);
 
   let helpBody: HTMLElement | undefined;
   let helpToggle: HTMLButtonElement | undefined;
@@ -579,9 +543,14 @@ function buildActionCard(opts: ActionCardOpts): HTMLElement {
     helpToggle.type = 'button';
     helpToggle.className = 'admin-action-card-help-toggle';
     helpToggle.setAttribute('aria-expanded', 'false');
-    helpToggle.textContent = t('admin.action_help_summary');
-    topRow.appendChild(helpToggle);
+    helpToggle.setAttribute('aria-label', t('admin.action_help_summary'));
+    helpToggle.title = t('admin.action_help_summary');
+    helpToggle.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    titleWrap.appendChild(helpToggle);
   }
+
+  topRow.appendChild(titleWrap);
 
   const buttonsRow = document.createElement('div');
   buttonsRow.className = 'admin-action-card-buttons';
@@ -823,67 +792,6 @@ export function deriveAdminStatus(author: AuthorRow, hasPayments: boolean): Admi
     return 'gereed';
   }
   return 'statements';
-}
-
-// =============================================================================
-// Filter-buttons
-// =============================================================================
-function renderFilterButtons(container: HTMLElement, state: ListState, onChange: () => void): void {
-  container.replaceChildren();
-
-  const counts = countByDerivedStatus(state);
-  const items: { value: FilterValue; label: string; count: number }[] = [
-    {
-      value: 'all',
-      label: t('admin.filter_all'),
-      count: state.authors.filter((a) => !a.is_admin).length,
-    },
-    {
-      value: 'persoonsgegevens',
-      label: t('admin.status_persoonsgegevens_short'),
-      count: counts.persoonsgegevens,
-    },
-    {
-      value: 'statements',
-      label: t('admin.status_statements_short'),
-      count: counts.statements,
-    },
-    {
-      value: 'gereed',
-      label: t('admin.status_gereed_short'),
-      count: counts.gereed,
-    },
-    { value: 'actief', label: t('admin.status_actief_short'), count: counts.actief },
-  ];
-
-  for (const item of items) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'admin-filter-btn';
-    if (state.filter === item.value) {
-      btn.classList.add('active');
-      btn.setAttribute('aria-pressed', 'true');
-    } else {
-      btn.setAttribute('aria-pressed', 'false');
-    }
-
-    const label = document.createElement('span');
-    label.className = 'admin-filter-btn-label';
-    label.textContent = item.label;
-    btn.appendChild(label);
-
-    const count = document.createElement('span');
-    count.className = 'admin-filter-btn-count';
-    count.textContent = String(item.count);
-    btn.appendChild(count);
-
-    btn.addEventListener('click', () => {
-      state.filter = item.value;
-      state.visibleCount = PAGE_SIZE;
-      onChange();
-    });
-    container.appendChild(btn);
-  }
 }
 
 function countByDerivedStatus(state: ListState): Record<AdminStatus, number> {
