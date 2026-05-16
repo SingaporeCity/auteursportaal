@@ -41,6 +41,8 @@ export const en: Translations = {
   'auth.force_password.hint': 'At least {min} characters. Mix letters, numbers, and punctuation.',
   'auth.force_password.submit': 'Save password',
   'auth.force_password.error_too_short': 'Password must be at least {min} characters.',
+  'auth.force_password.error_complexity':
+    'Password must contain at least one letter, one digit and one punctuation mark.',
   'auth.force_password.error_mismatch': 'The passwords do not match.',
   'auth.force_password.error_same_as_initial':
     'Please choose a password different from the initial one.',

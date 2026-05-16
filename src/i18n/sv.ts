@@ -48,6 +48,8 @@ export const sv: Translations = {
   'auth.force_password.hint': 'Minst {min} tecken. Blanda bokstäver, siffror och skiljetecken.',
   'auth.force_password.submit': 'Spara lösenord',
   'auth.force_password.error_too_short': 'Lösenordet måste vara minst {min} tecken.',
+  'auth.force_password.error_complexity':
+    'Lösenordet måste innehålla minst en bokstav, en siffra och ett skiljetecken.',
   'auth.force_password.error_mismatch': 'Lösenorden stämmer inte överens.',
   'auth.force_password.error_same_as_initial':
     'Välj ett lösenord som skiljer sig från startlösenordet.',

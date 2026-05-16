@@ -66,6 +66,7 @@ export type TranslationKey =
   | 'auth.force_password.hint'
   | 'auth.force_password.submit'
   | 'auth.force_password.error_too_short'
+  | 'auth.force_password.error_complexity'
   | 'auth.force_password.error_mismatch'
   | 'auth.force_password.error_same_as_initial'
   | 'auth.force_password.error_generic'

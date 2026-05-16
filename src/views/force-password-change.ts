@@ -104,6 +104,14 @@ async function handleSubmit(
     );
     return;
   }
+  // Complexity: minimaal 1 letter + 1 cijfer + 1 leesteken (matched de hint).
+  const hasLetter = /[a-zA-Z]/.test(newPw);
+  const hasDigit = /\d/.test(newPw);
+  const hasPunct = /[^a-zA-Z0-9]/.test(newPw);
+  if (!hasLetter || !hasDigit || !hasPunct) {
+    showError(ui.errorBox, t('auth.force_password.error_complexity'));
+    return;
+  }
   if (newPw !== confirmPw) {
     showError(ui.errorBox, t('auth.force_password.error_mismatch'));
     return;

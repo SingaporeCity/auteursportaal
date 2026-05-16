@@ -42,6 +42,8 @@ export const nl: Translations = {
     'Minimaal {min} tekens. Gebruik een combinatie van letters, cijfers en leestekens.',
   'auth.force_password.submit': 'Wachtwoord opslaan',
   'auth.force_password.error_too_short': 'Wachtwoord moet minimaal {min} tekens zijn.',
+  'auth.force_password.error_complexity':
+    'Wachtwoord moet minimaal één letter, één cijfer en één leesteken bevatten.',
   'auth.force_password.error_mismatch': 'De wachtwoorden komen niet overeen.',
   'auth.force_password.error_same_as_initial':
     'Kies een wachtwoord dat niet gelijk is aan het start-wachtwoord.',
