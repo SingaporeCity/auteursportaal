@@ -349,7 +349,7 @@ function renderInviteMail(args: { firstName: string; email: string; portalUrl: s
     <ol style="margin:0 0 16px 22px;padding:0;color:${TEXT};">
       <li style="margin-bottom:6px;"><strong>U logt in</strong> met onderstaande gegevens en vult uw persoonsgegevens aan op uw profielpagina.</li>
       <li style="margin-bottom:6px;"><strong>Wij activeren uw account</strong> zodra uw gegevens compleet zijn. Dit gebeurt meestal binnen enkele werkdagen.</li>
-      <li><strong>U krijgt volledige toegang</strong> tot uw royaltystatements, contracten, forecasts en declaratiefunctie. U ontvangt hierover nog een aparte bevestiging.</li>
+      <li><strong>U krijgt volledige toegang</strong> tot uw royaltystatements, contracten, prognose en declaratiefunctie. U ontvangt hierover nog een aparte bevestiging.</li>
     </ol>
     ${infoTile([
       { label: 'Inloggen', value: args.portalUrl, valueHref: args.portalUrl },
@@ -385,7 +385,7 @@ function renderActivateMail(args: { firstName: string; email: string; portalUrl:
       <li style="margin-bottom:6px;">uw royaltystatements te bekijken en te downloaden;</li>
       <li style="margin-bottom:6px;">uw contracten met Noordhoff in te zien;</li>
       <li style="margin-bottom:6px;">onkosten en projectkosten te declareren;</li>
-      <li>uw forecasts te raadplegen.</li>
+      <li>uw prognose te raadplegen.</li>
     </ul>
     ${infoTile([
       { label: 'Inloggen', value: args.portalUrl, valueHref: args.portalUrl },
