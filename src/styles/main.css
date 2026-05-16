@@ -4840,7 +4840,10 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  /* Hoger dan .author-detail-overlay (250) zodat modals die vanuit het admin
+     detail-paneel worden geopend (IDs koppelen, contract upload) boven het
+     paneel verschijnen ipv erachter. */
+  z-index: 300;
   padding: var(--space-4);
   animation: modal-in 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
