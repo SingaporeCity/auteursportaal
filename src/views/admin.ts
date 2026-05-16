@@ -324,13 +324,12 @@ function renderAccountsTab(
   statusBox: HTMLElement,
   onAuthorsChanged: () => void
 ): void {
-  // ---- Action-tiles bovenaan: twee naast elkaar, directe toegang tot
-  // de hoofdacties (Auteur toevoegen, Documenten uploaden). Elk met een
-  // primary-tint icoon-blok zodat duidelijk is dat dit interactieve
-  // tiles zijn. Achterliggende keuze-modal toont de sub-types.
+  // ---- Action-tiles (Auteur toevoegen + Documenten uploaden) — twee
+  // naast elkaar met primary-tint icoon-blok. Worden onderaan in de
+  // container ingehangen (na lijst) zodat de auteurslijst meteen
+  // bovenaan zichtbaar is; admin scrolt voor zelden-gebruikte acties.
   const actionGrid = document.createElement('div');
   actionGrid.className = 'admin-action-grid';
-  container.appendChild(actionGrid);
 
   actionGrid.appendChild(
     buildActionCard({
@@ -398,10 +397,13 @@ function renderAccountsTab(
   searchWrap.appendChild(searchInput);
   toolbar.appendChild(searchWrap);
 
-  // ---- Author-list (onderaan — uitgebreide scan-werk).
+  // ---- Author-list — hoofdcontent, direct onder de toolbar.
   const list = document.createElement('div');
   list.className = 'admin-author-list';
   container.appendChild(list);
+
+  // Action-tiles onderaan — zelden-gebruikte acties, lijst krijgt voorrang.
+  container.appendChild(actionGrid);
 
   const rerender = (): void => {
     renderStatsStrip(stats, state, rerender);
