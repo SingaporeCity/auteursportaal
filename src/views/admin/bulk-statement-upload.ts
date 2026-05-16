@@ -26,6 +26,7 @@ import {
   parseBedragenExcel,
   lookupAmount,
   buildMonthTitle,
+  derivePaymentDate,
 } from '@/lib/bulk-statement-helpers';
 import {
   MAX_FILE_BYTES,
@@ -692,7 +693,7 @@ async function uploadOneRow(
     amount: row.status.amount,
     title_nl: row.status.title_nl,
     title_en: row.status.title_en,
-    payment_date: `${String(row.year)}-${String(row.month).padStart(2, '0')}-01`,
+    payment_date: derivePaymentDate(type, row.year, row.month),
     file_path: path,
   });
 

@@ -243,10 +243,15 @@ const TYPE_LABELS_EN: Record<PaymentType, string> = {
 
 /**
  * Bouwt een nette display-title voor één statement.
- * `jaaropgave` toont alleen het jaartal; andere types tonen maand + jaar.
  *
- * @example buildMonthTitle('royalty', 2025, 12, 'nl') === 'Royaltyafrekening december 2025'
+ *  - `jaaropgave` en `royalty` tonen alleen het jaartal (geen maand). Royalty
+ *    is per definitie een afrekening over een heel boekjaar, niet over de
+ *    maand waarin het bestand is opgeleverd.
+ *  - `subsidiary` en `foreign` tonen maand + jaar (per periode geleverd).
+ *
+ * @example buildMonthTitle('royalty', 2025, 12, 'nl') === 'Royalty uitkering over 2025'
  * @example buildMonthTitle('jaaropgave', 2025, 12, 'en') === 'Annual statement 2025'
+ * @example buildMonthTitle('subsidiary', 2025, 6, 'nl') === 'Nevenrechten-afrekening juni 2025'
  */
 export function buildMonthTitle(
   type: PaymentType,
@@ -263,9 +268,31 @@ export function buildMonthTitle(
   if (type === 'jaaropgave') {
     return `${label} ${String(year)}`;
   }
+  if (type === 'royalty') {
+    const prefix = isEnglish ? 'Royalty payment for' : 'Royalty uitkering over';
+    return `${prefix} ${String(year)}`;
+  }
   const months = isEnglish ? EN_MONTHS : NL_MONTHS;
   const m = months[month - 1] ?? String(month);
   return `${label} ${m} ${String(year)}`;
+}
+
+/**
+ * Bepaalt de uitbetalings-datum (= veld `payments.payment_date`) voor een
+ * nieuw statement op basis van type + statement-periode.
+ *
+ *  - `royalty` wordt jaarlijks afgerekend in het 1e kwartaal van het jaar
+ *    NA het boekjaar. Een statement over boekjaar YYYY (ongeacht in welke
+ *    maand het bestand wordt opgeleverd) krijgt dus `{YYYY+1}-03-01`. Dat
+ *    zorgt dat het in de auteurs-Afrekeningen-tab onder het juiste uit-
+ *    betaaljaar valt (matcht de werkelijke kasstroom).
+ *  - Andere types gebruiken de statement-periode zelf als datum-anchor.
+ */
+export function derivePaymentDate(type: PaymentType, year: number, month: number): string {
+  if (type === 'royalty') {
+    return `${String(year + 1)}-03-01`;
+  }
+  return `${String(year)}-${String(month).padStart(2, '0')}-01`;
 }
 
 // ============================================================================

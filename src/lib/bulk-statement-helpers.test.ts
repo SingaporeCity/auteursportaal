@@ -4,6 +4,7 @@ import {
   parseBedragenExcel,
   lookupAmount,
   buildMonthTitle,
+  derivePaymentDate,
 } from './bulk-statement-helpers';
 
 describe('parseStatementFilename', () => {
@@ -162,13 +163,13 @@ describe('parseBedragenExcel + lookupAmount', () => {
 });
 
 describe('buildMonthTitle', () => {
-  it('royalty NL: month + year', () => {
-    expect(buildMonthTitle('royalty', 2025, 12, 'nl')).toBe('Royaltyafrekening december 2025');
-    expect(buildMonthTitle('royalty', 2024, 3, 'nl')).toBe('Royaltyafrekening maart 2024');
+  it('royalty NL: alleen jaar (statement is per boekjaar)', () => {
+    expect(buildMonthTitle('royalty', 2025, 12, 'nl')).toBe('Royalty uitkering over 2025');
+    expect(buildMonthTitle('royalty', 2024, 3, 'nl')).toBe('Royalty uitkering over 2024');
   });
 
-  it('royalty EN: month + year', () => {
-    expect(buildMonthTitle('royalty', 2025, 12, 'en')).toBe('Royalty statement December 2025');
+  it('royalty EN: alleen jaar', () => {
+    expect(buildMonthTitle('royalty', 2025, 12, 'en')).toBe('Royalty payment for 2025');
   });
 
   it('jaaropgave: alleen jaar, geen maand', () => {
@@ -176,12 +177,25 @@ describe('buildMonthTitle', () => {
     expect(buildMonthTitle('jaaropgave', 2025, 1, 'en')).toBe('Annual statement 2025');
   });
 
-  it('subsidiary + foreign', () => {
+  it('subsidiary + foreign tonen wel maand', () => {
     expect(buildMonthTitle('subsidiary', 2025, 6, 'nl')).toBe('Nevenrechten-afrekening juni 2025');
     expect(buildMonthTitle('foreign', 2025, 7, 'en')).toBe('Foreign rights statement July 2025');
   });
 
   it('sv valt terug op NL-formattering', () => {
-    expect(buildMonthTitle('royalty', 2025, 12, 'sv')).toBe('Royaltyafrekening december 2025');
+    expect(buildMonthTitle('royalty', 2025, 12, 'sv')).toBe('Royalty uitkering over 2025');
+  });
+});
+
+describe('derivePaymentDate', () => {
+  it('royalty shift naar Q1 van het volgende jaar', () => {
+    expect(derivePaymentDate('royalty', 2025, 12)).toBe('2026-03-01');
+    expect(derivePaymentDate('royalty', 2024, 6)).toBe('2025-03-01');
+  });
+
+  it('subsidiary/foreign/jaaropgave gebruiken statement-periode', () => {
+    expect(derivePaymentDate('subsidiary', 2025, 6)).toBe('2025-06-01');
+    expect(derivePaymentDate('foreign', 2025, 7)).toBe('2025-07-01');
+    expect(derivePaymentDate('jaaropgave', 2025, 12)).toBe('2025-12-01');
   });
 });
