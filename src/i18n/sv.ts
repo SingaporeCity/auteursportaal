@@ -130,6 +130,7 @@ export const sv: Translations = {
   'onboarding.field_invalid': 'Ogiltigt värde.',
   'onboarding.hint_missing': 'Återstår att fylla i: {fields}.',
   'onboarding.hint_invalid': 'Inte giltigt: {fields}. Kontrollera och justera.',
+  'onboarding.activate_success_heading': 'Tack för din anmälan',
   'onboarding.progress_step1_label': 'Fyll i profil',
   'onboarding.progress_step2_label': 'Granskning av Noordhoff',
   'onboarding.progress_step3_label': 'Portalen helt aktiv',
@@ -139,7 +140,7 @@ export const sv: Translations = {
   'validate.postcode_invalid':
     'Ogiltigt postnummer. Förväntat: 1234 AB (4 siffror, mellanslag, 2 bokstäver).',
   'validate.bsn_invalid':
-    'Detta BSN klarar inte 11-provet. Kontrollera att alla 9 siffror är korrekt ifyllda.',
+    'Detta BSN är inte giltigt. Kontrollera att alla 9 siffror är korrekt ifyllda.',
   'validate.iban_invalid':
     'Ogiltigt IBAN. Kontrollera siffror och bokstäver; ett nederländskt IBAN börjar med NL.',
 

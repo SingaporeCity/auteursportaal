@@ -4903,6 +4903,42 @@ a:hover {
   color: var(--color-text);
 }
 
+/* Activatie-success modal (na 'Verzend gegevens' bij onboarding) */
+.activate-success-modal {
+  text-align: center;
+  max-width: 460px;
+  padding: 2.25rem 2rem 1.75rem;
+}
+
+.activate-success-icon {
+  color: var(--color-success);
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.activate-success-heading {
+  margin: 0 0 0.75rem;
+  font-size: 1.4rem;
+  font-variation-settings: 'wght' 600;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.activate-success-body {
+  margin: 0 0 1.75rem;
+  color: var(--color-text-light);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.activate-success-modal .auth-submit {
+  width: auto;
+  min-width: 160px;
+  margin: 0 auto;
+  display: block;
+}
+
 /* PDF preview — fullscreen modal met iframe */
 .pdf-preview-overlay {
   padding: 2rem;

@@ -141,6 +141,7 @@ export type TranslationKey =
   | 'onboarding.field_invalid'
   | 'onboarding.hint_missing'
   | 'onboarding.hint_invalid'
+  | 'onboarding.activate_success_heading'
   | 'onboarding.progress_step1_label'
   | 'onboarding.progress_step2_label'
   | 'onboarding.progress_step3_label'

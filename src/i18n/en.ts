@@ -123,6 +123,7 @@ export const en: Translations = {
   'onboarding.field_invalid': 'Invalid value.',
   'onboarding.hint_missing': 'Still to fill in: {fields}.',
   'onboarding.hint_invalid': 'Not valid: {fields}. Please check and adjust.',
+  'onboarding.activate_success_heading': 'Thank you for your submission',
   'onboarding.progress_step1_label': 'Complete profile',
   'onboarding.progress_step2_label': 'Noordhoff review',
   'onboarding.progress_step3_label': 'Portal fully active',
@@ -132,7 +133,7 @@ export const en: Translations = {
   'validate.postcode_invalid':
     'Invalid postal code. Expected: 1234 AB (4 digits, space, 2 letters).',
   'validate.bsn_invalid':
-    'This BSN does not pass the 11-test. Please check that all 9 digits are entered correctly.',
+    'This BSN is not valid. Please check that all 9 digits are entered correctly.',
   'validate.iban_invalid':
     'Invalid IBAN. Please check the digits and letters; a Dutch IBAN starts with NL.',
 

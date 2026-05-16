@@ -541,11 +541,84 @@ async function requestActivation(
   }
 
   clearDraft(author.id);
-  showStatus(status, 'success', t('onboarding.activate_confirmation'));
-  // Herlaad zodat decideAccess opnieuw evalueert + onboarding-banner update
-  setTimeout(() => {
+  // Toon centrale bevestigings-modal; pas op bewust sluiten herladen we
+  // de pagina zodat decideAccess opnieuw evalueert + onboarding-banner
+  // omschakelt naar de pending_admin_review-variant.
+  showActivationSuccessModal(() => {
     window.location.reload();
-  }, 1500);
+  });
+}
+
+const ICON_CHECK_CIRCLE =
+  '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>';
+
+function showActivationSuccessModal(onClose: () => void): void {
+  if (document.querySelector('.modal-overlay.activate-success-overlay') !== null) {
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay activate-success-overlay';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal activate-success-modal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  overlay.appendChild(modal);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'modal-close';
+  closeBtn.textContent = '×';
+  closeBtn.setAttribute('aria-label', t('common.close'));
+  modal.appendChild(closeBtn);
+
+  const iconWrap = document.createElement('div');
+  iconWrap.className = 'activate-success-icon';
+  iconWrap.setAttribute('aria-hidden', 'true');
+  // Statische SVG-string uit eigen module
+  // eslint-disable-next-line no-unsanitized/property -- statische SVG uit code
+  iconWrap.innerHTML = ICON_CHECK_CIRCLE;
+  modal.appendChild(iconWrap);
+
+  const heading = document.createElement('h3');
+  heading.className = 'activate-success-heading';
+  heading.textContent = t('onboarding.activate_success_heading');
+  modal.appendChild(heading);
+
+  const body = document.createElement('p');
+  body.className = 'activate-success-body';
+  body.textContent = t('onboarding.activate_confirmation');
+  modal.appendChild(body);
+
+  const continueBtn = document.createElement('button');
+  continueBtn.type = 'button';
+  continueBtn.className = 'auth-submit';
+  continueBtn.textContent = t('common.close');
+  modal.appendChild(continueBtn);
+
+  const close = (): void => {
+    overlay.remove();
+    document.removeEventListener('keydown', escHandler);
+    onClose();
+  };
+
+  const escHandler = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape') {
+      close();
+    }
+  };
+
+  closeBtn.addEventListener('click', close);
+  continueBtn.addEventListener('click', close);
+  // Bewust GEEN overlay-click-to-close: dit is een belangrijke bevestiging
+  // die de auteur actief moet sluiten zodat de page-reload gestart wordt.
+  document.addEventListener('keydown', escHandler);
+
+  document.body.appendChild(overlay);
+  setTimeout(() => {
+    continueBtn.focus();
+  }, 50);
 }
 
 // =============================================================================

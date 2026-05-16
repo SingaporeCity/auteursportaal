@@ -124,6 +124,7 @@ export const nl: Translations = {
   'onboarding.field_invalid': 'Ongeldige waarde.',
   'onboarding.hint_missing': 'Nog in te vullen: {fields}.',
   'onboarding.hint_invalid': 'Niet geldig: {fields}. Controleer en pas aan.',
+  'onboarding.activate_success_heading': 'Bedankt voor uw aanmelding',
   'onboarding.progress_step1_label': 'Profiel invullen',
   'onboarding.progress_step2_label': 'Beoordeling Noordhoff',
   'onboarding.progress_step3_label': 'Portaal volledig actief',
@@ -133,7 +134,7 @@ export const nl: Translations = {
   'validate.postcode_invalid':
     'Ongeldige postcode. Verwacht: 1234 AB (4 cijfers, spatie, 2 letters).',
   'validate.bsn_invalid':
-    'Dit BSN voldoet niet aan de 11-proef. Controleer of u alle 9 cijfers correct heeft ingevuld.',
+    'Dit BSN is niet geldig. Controleer of u alle 9 cijfers correct heeft ingevuld.',
   'validate.iban_invalid':
     'Ongeldig IBAN. Controleer de cijfers en letters; een Nederlands IBAN begint met NL.',
 
