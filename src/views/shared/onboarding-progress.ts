@@ -67,8 +67,6 @@ function buildStep(num: number, label: string, state: StepState): HTMLElement {
   marker.className = 'onboarding-progress-marker';
   if (state === 'done') {
     marker.textContent = '✓';
-  } else if (state === 'upcoming') {
-    marker.textContent = '🔒';
   } else {
     marker.textContent = String(num);
   }

@@ -106,9 +106,9 @@ export const sv: Translations = {
   'tabs.faq': 'FAQ',
   'tabs.profile': 'Profil',
 
-  'onboarding.banner_blocking_title': 'Komplettera uppgifterna för att aktivera ditt konto',
+  'onboarding.banner_blocking_title': 'Välkommen till Noordhoff',
   'onboarding.banner_blocking_text':
-    'Vissa uppgifter saknas som krävs för aktivering: adress, IBAN, BIC och/eller BSN. Utan denna information kan Noordhoff inte aktivera ditt konto. Fyll i de saknade fälten på din profilsida nedan.',
+    'Roligt att du är här. För att aktivera ditt konto behöver vi fortfarande några personuppgifter från dig: adress, IBAN, BIC och BSN. Vänligen fyll i dessa nedan på din profilsida; så snart allt är komplett tar vi över.',
   'onboarding.banner_softmissing_title':
     'Dina uppgifter är kompletta. Noordhoff aktiverar snart ditt konto',
   'onboarding.banner_softmissing_text':
@@ -126,10 +126,22 @@ export const sv: Translations = {
   'onboarding.readonly_disclaimer': 'Din ansökan granskas. Ändringar kan inte göras just nu.',
   'onboarding.required_field_hint': 'Obligatoriskt',
   'onboarding.missing_fields_count': '{count} fält återstår',
+  'onboarding.field_required': 'Detta fält är obligatoriskt.',
+  'onboarding.field_invalid': 'Ogiltigt värde.',
+  'onboarding.hint_missing': 'Återstår att fylla i: {fields}.',
+  'onboarding.hint_invalid': 'Inte giltigt: {fields}. Kontrollera och justera.',
   'onboarding.progress_step1_label': 'Fyll i profil',
   'onboarding.progress_step2_label': 'Granskning av Noordhoff',
   'onboarding.progress_step3_label': 'Portalen helt aktiv',
   'onboarding.tab_lock_short': 'tillgänglig senare',
+
+  'validate.email_invalid': 'Ogiltig e-postadress. Förväntat: namn@exempel.se.',
+  'validate.postcode_invalid':
+    'Ogiltigt postnummer. Förväntat: 1234 AB (4 siffror, mellanslag, 2 bokstäver).',
+  'validate.bsn_invalid':
+    'Detta BSN klarar inte 11-provet. Kontrollera att alla 9 siffror är korrekt ifyllda.',
+  'validate.iban_invalid':
+    'Ogiltigt IBAN. Kontrollera siffror och bokstäver; ett nederländskt IBAN börjar med NL.',
 
   'profile.title': 'Dina uppgifter',
   'profile.id_vendor': 'Vendor ID',
@@ -139,6 +151,7 @@ export const sv: Translations = {
   'profile.label_email': 'E-postadress',
   'profile.label_phone': 'Telefonnummer',
   'profile.label_address': 'Adress',
+  'profile.label_house_number': 'Husnummer',
   'profile.label_postcode': 'Postnummer',
   'profile.label_city': 'Ort',
   'profile.label_country': 'Land',
@@ -149,6 +162,15 @@ export const sv: Translations = {
   'profile.bsn_show': 'Visa BSN',
   'profile.bsn_hide': 'Dölj BSN',
   'profile.bsn_immutable_hint': 'BSN kan inte ändras. För korrigeringar: rights@noordhoff.nl.',
+  'profile.placeholder_phone': 'T.ex. +31 6 12345678',
+  'profile.placeholder_street': 'Gatunamn',
+  'profile.placeholder_house_number': 'Nummer (och eventuellt tillägg)',
+  'profile.placeholder_postcode': '1234 AB',
+  'profile.placeholder_city': 'Ort',
+  'profile.placeholder_country': 'T.ex. Nederländerna',
+  'profile.placeholder_bsn': '9 siffror, utan mellanslag',
+  'profile.placeholder_iban': 'NL12 ABCD 1234 5678 90',
+  'profile.placeholder_bic': '8 eller 11 tecken, t.ex. ABNANL2A',
 
   'greeting.morning': 'God morgon',
   'greeting.afternoon': 'God eftermiddag',

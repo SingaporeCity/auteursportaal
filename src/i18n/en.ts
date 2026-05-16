@@ -98,9 +98,9 @@ export const en: Translations = {
   'tabs.faq': 'FAQ',
   'tabs.profile': 'Profile',
 
-  'onboarding.banner_blocking_title': 'Complete your details to activate your account',
+  'onboarding.banner_blocking_title': 'Welcome to Noordhoff',
   'onboarding.banner_blocking_text':
-    "We're still missing some details required for activation: address, IBAN, BIC and/or BSN. Without this information Noordhoff cannot activate your account. Please fill in the missing fields on your profile page below.",
+    'Glad to have you on board. To activate your account we still need a few personal details from you: address, IBAN, BIC and BSN. Please add these below on your profile page; as soon as everything is complete we will take it from there.',
   'onboarding.banner_softmissing_title':
     'Your details are complete. Noordhoff will activate your account shortly',
   'onboarding.banner_softmissing_text':
@@ -119,10 +119,22 @@ export const en: Translations = {
     'Your request is being reviewed. Changes cannot be made at this time.',
   'onboarding.required_field_hint': 'Required',
   'onboarding.missing_fields_count': '{count} field(s) remaining',
+  'onboarding.field_required': 'This field is required.',
+  'onboarding.field_invalid': 'Invalid value.',
+  'onboarding.hint_missing': 'Still to fill in: {fields}.',
+  'onboarding.hint_invalid': 'Not valid: {fields}. Please check and adjust.',
   'onboarding.progress_step1_label': 'Complete profile',
   'onboarding.progress_step2_label': 'Noordhoff review',
   'onboarding.progress_step3_label': 'Portal fully active',
   'onboarding.tab_lock_short': 'available later',
+
+  'validate.email_invalid': 'Invalid email address. Expected: name@example.com.',
+  'validate.postcode_invalid':
+    'Invalid postal code. Expected: 1234 AB (4 digits, space, 2 letters).',
+  'validate.bsn_invalid':
+    'This BSN does not pass the 11-test. Please check that all 9 digits are entered correctly.',
+  'validate.iban_invalid':
+    'Invalid IBAN. Please check the digits and letters; a Dutch IBAN starts with NL.',
 
   'profile.title': 'Your details',
   'profile.id_vendor': 'Vendor ID',
@@ -132,6 +144,7 @@ export const en: Translations = {
   'profile.label_email': 'Email address',
   'profile.label_phone': 'Phone number',
   'profile.label_address': 'Address',
+  'profile.label_house_number': 'House number',
   'profile.label_postcode': 'Postal code',
   'profile.label_city': 'City',
   'profile.label_country': 'Country',
@@ -142,6 +155,15 @@ export const en: Translations = {
   'profile.bsn_show': 'Show BSN',
   'profile.bsn_hide': 'Hide BSN',
   'profile.bsn_immutable_hint': 'BSN cannot be changed. For corrections: rights@noordhoff.nl.',
+  'profile.placeholder_phone': 'E.g. +31 6 12345678',
+  'profile.placeholder_street': 'Street name',
+  'profile.placeholder_house_number': 'Number (and any suffix)',
+  'profile.placeholder_postcode': '1234 AB',
+  'profile.placeholder_city': 'City',
+  'profile.placeholder_country': 'E.g. Netherlands',
+  'profile.placeholder_bsn': '9 digits, no spaces',
+  'profile.placeholder_iban': 'NL12 ABCD 1234 5678 90',
+  'profile.placeholder_bic': '8 or 11 characters, e.g. ABNANL2A',
 
   'greeting.morning': 'Good morning',
   'greeting.afternoon': 'Good afternoon',

@@ -7,6 +7,10 @@
  *    valide ingevuld zijn. Klik triggert status-overgang naar `pending_admin_review`
  *    (DB-trigger zet `data_submitted_at` automatisch).
  *
+ *    Live per-veld validatie (blur-triggered), placeholders met format-hints,
+ *    en een in-memory draft-cache zodat ingetypte waarden behouden blijven bij
+ *    tab-switch / partiele re-render binnen dezelfde sessie.
+ *
  *  - `pending_admin_review` — read-only weergave met disclaimer "uw aanvraag
  *    wordt beoordeeld". Geen edit-knop.
  *
@@ -23,6 +27,7 @@ import { formatBSNMasked, formatIBAN, formatPhoneNL, formatDate } from '@/lib/fo
 import { reportError } from '@/dev/debug-panel';
 import { isValidEmail, isValidPostcodeNL, isValidIBAN, isValidBSN } from '@/lib/validate';
 import type { Database } from '@/types/db';
+import type { TranslationKey } from '@/i18n/types';
 
 type AuthorUpdate = Database['public']['Tables']['authors']['Update'];
 
@@ -38,10 +43,13 @@ const BSN_REVEAL_MS = 30_000;
 
 interface FieldDef {
   name: keyof AuthorRow;
-  labelKey: Parameters<typeof t>[0];
+  labelKey: TranslationKey;
+  /** Placeholder met format-hint (bv. "1234 AB" voor postcode). */
+  placeholderKey?: TranslationKey;
   format?: (value: string) => string;
   validate?: (value: string) => boolean;
-  validationError?: string;
+  /** i18n-key voor validatie-foutmelding; valt terug op `field_invalid` als undefined. */
+  validationErrorKey?: TranslationKey;
   /** Verplicht voor activatie. */
   required: boolean;
   /** Niet bewerkbaar door auteur (bijv. email = auth-key). */
@@ -57,7 +65,7 @@ const FIELDS: readonly FieldDef[] = [
     name: 'email',
     labelKey: 'profile.label_email',
     validate: isValidEmail,
-    validationError: 'Ongeldig e-mailadres',
+    validationErrorKey: 'validate.email_invalid',
     required: true,
     readonly: true,
     inputType: 'email',
@@ -65,21 +73,43 @@ const FIELDS: readonly FieldDef[] = [
   {
     name: 'phone',
     labelKey: 'profile.label_phone',
+    placeholderKey: 'profile.placeholder_phone',
     format: formatPhoneNL,
     required: true,
     inputType: 'tel',
   },
-  { name: 'street', labelKey: 'profile.label_address', required: true },
-  { name: 'house_number', labelKey: 'profile.label_postcode', required: true },
+  {
+    name: 'street',
+    labelKey: 'profile.label_address',
+    placeholderKey: 'profile.placeholder_street',
+    required: true,
+  },
+  {
+    name: 'house_number',
+    labelKey: 'profile.label_house_number',
+    placeholderKey: 'profile.placeholder_house_number',
+    required: true,
+  },
   {
     name: 'postcode',
     labelKey: 'profile.label_postcode',
+    placeholderKey: 'profile.placeholder_postcode',
     validate: isValidPostcodeNL,
-    validationError: 'Ongeldige postcode (verwacht: 1234 AB)',
+    validationErrorKey: 'validate.postcode_invalid',
     required: true,
   },
-  { name: 'city', labelKey: 'profile.label_city', required: true },
-  { name: 'country', labelKey: 'profile.label_country', required: true },
+  {
+    name: 'city',
+    labelKey: 'profile.label_city',
+    placeholderKey: 'profile.placeholder_city',
+    required: true,
+  },
+  {
+    name: 'country',
+    labelKey: 'profile.label_country',
+    placeholderKey: 'profile.placeholder_country',
+    required: true,
+  },
   {
     name: 'birth_date',
     labelKey: 'profile.label_birthdate',
@@ -90,21 +120,49 @@ const FIELDS: readonly FieldDef[] = [
   {
     name: 'bsn',
     labelKey: 'profile.label_bsn',
+    placeholderKey: 'profile.placeholder_bsn',
     format: formatBSNMasked,
     validate: isValidBSN,
-    validationError: 'Ongeldig BSN',
+    validationErrorKey: 'validate.bsn_invalid',
     required: true,
   },
   {
     name: 'bank_account',
     labelKey: 'profile.label_iban',
+    placeholderKey: 'profile.placeholder_iban',
     format: formatIBAN,
     validate: isValidIBAN,
-    validationError: 'Ongeldig IBAN',
+    validationErrorKey: 'validate.iban_invalid',
     required: true,
   },
-  { name: 'bic', labelKey: 'profile.label_bic', required: true },
+  {
+    name: 'bic',
+    labelKey: 'profile.label_bic',
+    placeholderKey: 'profile.placeholder_bic',
+    required: true,
+  },
 ];
+
+/**
+ * In-memory draft-cache voor onboarding-velden. Per-auteur gekeyd.
+ * Overleeft tab-switch en partiele herrenders binnen dezelfde sessie.
+ * Bewust geen localStorage: BSN en IBAN mogen niet permanent op disk
+ * (AVG-risico). Bij browser-refresh accepteren we dataverlies.
+ */
+const draftCache = new Map<string, Map<keyof AuthorRow, string>>();
+
+function getDraft(authorId: string): Map<keyof AuthorRow, string> {
+  let m = draftCache.get(authorId);
+  if (m === undefined) {
+    m = new Map();
+    draftCache.set(authorId, m);
+  }
+  return m;
+}
+
+function clearDraft(authorId: string): void {
+  draftCache.delete(authorId);
+}
 
 export function renderProfileTab(container: HTMLElement, author: AuthorRow): void {
   container.replaceChildren();
@@ -114,9 +172,7 @@ export function renderProfileTab(container: HTMLElement, author: AuthorRow): voi
   container.appendChild(heading);
 
   // Vendor en Alliant ID zijn admin-velden (NetSuite-koppeling). Auteur
-  // ziet ze pas wanneer zijn account daadwerkelijk actief is — vóór die
-  // tijd is "ontbreekt" verwarrend want het auteur kan ze toch niet zelf
-  // invullen.
+  // ziet ze pas wanneer zijn account daadwerkelijk actief is.
   if (author.onboarding_status === 'active') {
     const banner = document.createElement('div');
     banner.className = 'id-banner';
@@ -191,9 +247,11 @@ function renderOnboardingMode(container: HTMLElement, author: AuthorRow): void {
   form.appendChild(status);
 
   const inputs = new Map<keyof AuthorRow, HTMLInputElement>();
+  const errors = new Map<keyof AuthorRow, HTMLElement>();
 
   // Werkbare snapshot — wijzigt bij elke save zodat activeer-validatie klopt
   const workingAuthor: AuthorRow = { ...author };
+  const draft = getDraft(author.id);
 
   for (const field of FIELDS) {
     const wrap = document.createElement('label');
@@ -214,19 +272,42 @@ function renderOnboardingMode(container: HTMLElement, author: AuthorRow): void {
     const input = document.createElement('input');
     input.type = field.inputType ?? 'text';
     input.name = field.name;
+    if (field.placeholderKey !== undefined) {
+      input.placeholder = t(field.placeholderKey);
+    }
+    // Draft heeft voorrang op DB-snapshot: zo blijft ingetypte data behouden
+    // bij tab-switch ook al wist de tussentijds-opslaan-knop nog niet geklikt.
+    const stored = draft.get(field.name);
     const raw = author[field.name];
-    input.value = typeof raw === 'string' ? raw : raw === null ? '' : String(raw);
+    input.value = stored ?? (typeof raw === 'string' ? raw : raw === null ? '' : String(raw));
     if (field.readonly === true) {
       input.readOnly = true;
       input.classList.add('auth-field-readonly');
     }
     wrap.appendChild(input);
 
+    const err = document.createElement('small');
+    err.className = 'auth-field-error';
+    err.hidden = true;
+    wrap.appendChild(err);
+
+    input.addEventListener('blur', () => {
+      validateField(field, input, err);
+    });
     input.addEventListener('input', () => {
+      draft.set(field.name, input.value);
+      // Clearen zodra waarde weer valide is — minder visuele ruis dan rood
+      // laten staan tot blur. Pas validateren als de fout al zichtbaar was,
+      // anders gaat de hint pas pop-up als de gebruiker echt foutief getypt
+      // heeft (voorkomt verstoring tijdens eerste invoer).
+      if (!err.hidden) {
+        validateField(field, input, err);
+      }
       updateActivateButtonState();
     });
 
     inputs.set(field.name, input);
+    errors.set(field.name, err);
     form.appendChild(wrap);
   }
 
@@ -248,6 +329,7 @@ function renderOnboardingMode(container: HTMLElement, author: AuthorRow): void {
 
   const missingHint = document.createElement('p');
   missingHint.className = 'profile-onboarding-missing-hint';
+  missingHint.setAttribute('aria-live', 'polite');
   actions.appendChild(missingHint);
 
   form.appendChild(actions);
@@ -261,39 +343,63 @@ function renderOnboardingMode(container: HTMLElement, author: AuthorRow): void {
     return out;
   }
 
-  function countMissingOrInvalidRequired(): number {
+  function gatherProblems(): { missing: string[]; invalid: string[] } {
     const values = gatherInputValues();
-    let count = 0;
+    const missing: string[] = [];
+    const invalid: string[] = [];
     for (const field of FIELDS) {
       if (!field.required) {
         continue;
       }
       const val = values.get(field.name) ?? '';
       if (val === '') {
-        count++;
+        missing.push(t(field.labelKey));
         continue;
       }
       if (field.validate !== undefined && !field.validate(val)) {
-        count++;
+        invalid.push(t(field.labelKey));
       }
     }
-    return count;
+    return { missing, invalid };
   }
 
   function updateActivateButtonState(): void {
-    const missing = countMissingOrInvalidRequired();
-    if (missing === 0) {
-      activateBtn.disabled = false;
+    const { missing, invalid } = gatherProblems();
+    const total = missing.length + invalid.length;
+    if (total === 0) {
       activateBtn.removeAttribute('aria-disabled');
+      activateBtn.classList.remove('auth-submit-blocked');
       missingHint.textContent = '';
       return;
     }
-    activateBtn.disabled = true;
+    // Knop blijft clickbaar maar visueel disabled; click triggert
+    // validateAll + scroll naar eerste fout zodat de gebruiker weet
+    // waarom hij niet door kan.
     activateBtn.setAttribute('aria-disabled', 'true');
-    missingHint.textContent = t('onboarding.missing_fields_count').replace(
-      '{count}',
-      String(missing)
-    );
+    activateBtn.classList.add('auth-submit-blocked');
+    const parts: string[] = [];
+    if (missing.length > 0) {
+      parts.push(t('onboarding.hint_missing').replace('{fields}', missing.join(', ')));
+    }
+    if (invalid.length > 0) {
+      parts.push(t('onboarding.hint_invalid').replace('{fields}', invalid.join(', ')));
+    }
+    missingHint.textContent = parts.join(' ');
+  }
+
+  function validateAllAndScroll(): void {
+    for (const [name, input] of inputs) {
+      const field = FIELDS.find((f) => f.name === name);
+      const err = errors.get(name);
+      if (field !== undefined && err !== undefined) {
+        validateField(field, input, err);
+      }
+    }
+    const firstBad = form.querySelector<HTMLInputElement>('.auth-field-input-invalid');
+    if (firstBad !== null) {
+      firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstBad.focus();
+    }
   }
 
   saveBtn.addEventListener('click', () => {
@@ -301,6 +407,11 @@ function renderOnboardingMode(container: HTMLElement, author: AuthorRow): void {
   });
 
   activateBtn.addEventListener('click', () => {
+    const { missing, invalid } = gatherProblems();
+    if (missing.length + invalid.length > 0) {
+      validateAllAndScroll();
+      return;
+    }
     void saveOnboardingData(workingAuthor, inputs, status, activateBtn, true).then((ok) => {
       if (ok) {
         void requestActivation(workingAuthor, status, activateBtn);
@@ -310,6 +421,30 @@ function renderOnboardingMode(container: HTMLElement, author: AuthorRow): void {
   });
 
   updateActivateButtonState();
+}
+
+function validateField(field: FieldDef, input: HTMLInputElement, err: HTMLElement): void {
+  const val = input.value.trim();
+  let msg: string | null = null;
+  if (field.required && val === '') {
+    msg = t('onboarding.field_required');
+  } else if (field.validate !== undefined && val !== '' && !field.validate(val)) {
+    msg =
+      field.validationErrorKey !== undefined
+        ? t(field.validationErrorKey)
+        : t('onboarding.field_invalid');
+  }
+  if (msg !== null) {
+    err.textContent = msg;
+    err.hidden = false;
+    input.classList.add('auth-field-input-invalid');
+    input.setAttribute('aria-invalid', 'true');
+  } else {
+    err.hidden = true;
+    err.textContent = '';
+    input.classList.remove('auth-field-input-invalid');
+    input.removeAttribute('aria-invalid');
+  }
 }
 
 async function saveOnboardingData(
@@ -339,11 +474,11 @@ async function saveOnboardingData(
     }
 
     if (field.validate !== undefined && newVal.length > 0 && !field.validate(newVal)) {
-      showStatus(
-        status,
-        'error',
-        field.validationError ?? `Ongeldige waarde voor ${t(field.labelKey)}`
-      );
+      const errMsg =
+        field.validationErrorKey !== undefined
+          ? t(field.validationErrorKey)
+          : t('onboarding.field_invalid');
+      showStatus(status, 'error', errMsg);
       return false;
     }
 
@@ -377,6 +512,10 @@ async function saveOnboardingData(
     (author as Record<string, unknown>)[field.name] = input.value.trim();
   }
 
+  // Draft is nu gesynchroniseerd met DB; cache wissen zodat een volgende
+  // herrender verse DB-data toont (na evt. format-normalisatie).
+  clearDraft(author.id);
+
   if (!silentOnSuccess) {
     showStatus(status, 'success', t('profile.changes_saved'));
   }
@@ -401,6 +540,7 @@ async function requestActivation(
     return;
   }
 
+  clearDraft(author.id);
   showStatus(status, 'success', t('onboarding.activate_confirmation'));
   // Herlaad zodat decideAccess opnieuw evalueert + onboarding-banner update
   setTimeout(() => {
@@ -581,7 +721,7 @@ function buildBsnToggle(valueCell: HTMLElement, fullBsn: string): HTMLButtonElem
   return btn;
 }
 
-function idChip(labelKey: Parameters<typeof t>[0], value: string | null): HTMLElement {
+function idChip(labelKey: TranslationKey, value: string | null): HTMLElement {
   const chip = document.createElement('div');
   chip.className = 'id-chip';
 
@@ -689,11 +829,11 @@ async function submitChanges(
     }
 
     if (field.validate !== undefined && newVal.length > 0 && !field.validate(newVal)) {
-      showStatus(
-        status,
-        'error',
-        field.validationError ?? `Ongeldige waarde voor ${t(field.labelKey)}`
-      );
+      const errMsg =
+        field.validationErrorKey !== undefined
+          ? t(field.validationErrorKey)
+          : t('onboarding.field_invalid');
+      showStatus(status, 'error', errMsg);
       return;
     }
 

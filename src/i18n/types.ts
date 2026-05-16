@@ -137,10 +137,20 @@ export type TranslationKey =
   | 'onboarding.readonly_disclaimer'
   | 'onboarding.required_field_hint'
   | 'onboarding.missing_fields_count'
+  | 'onboarding.field_required'
+  | 'onboarding.field_invalid'
+  | 'onboarding.hint_missing'
+  | 'onboarding.hint_invalid'
   | 'onboarding.progress_step1_label'
   | 'onboarding.progress_step2_label'
   | 'onboarding.progress_step3_label'
   | 'onboarding.tab_lock_short'
+
+  // Validatie-meldingen (per-veld error-tekst)
+  | 'validate.email_invalid'
+  | 'validate.postcode_invalid'
+  | 'validate.bsn_invalid'
+  | 'validate.iban_invalid'
 
   // Profiel
   | 'profile.title'
@@ -151,6 +161,7 @@ export type TranslationKey =
   | 'profile.label_email'
   | 'profile.label_phone'
   | 'profile.label_address'
+  | 'profile.label_house_number'
   | 'profile.label_postcode'
   | 'profile.label_city'
   | 'profile.label_country'
@@ -161,6 +172,15 @@ export type TranslationKey =
   | 'profile.bsn_show'
   | 'profile.bsn_hide'
   | 'profile.bsn_immutable_hint'
+  | 'profile.placeholder_phone'
+  | 'profile.placeholder_street'
+  | 'profile.placeholder_house_number'
+  | 'profile.placeholder_postcode'
+  | 'profile.placeholder_city'
+  | 'profile.placeholder_country'
+  | 'profile.placeholder_bsn'
+  | 'profile.placeholder_iban'
+  | 'profile.placeholder_bic'
 
   // Greeting
   | 'greeting.morning'
