@@ -20,6 +20,9 @@ build/
 *.docx
 *.pptx
 *.csv
+# Uitzondering: lege declaratie-templates in public/forms/ moeten wél mee
+# in de build zodat auteurs ze kunnen downloaden via /forms/*.xlsx.
+!public/forms/*.xlsx
 
 # Test/coverage output
 coverage/
