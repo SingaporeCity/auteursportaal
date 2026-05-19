@@ -523,6 +523,12 @@ export const en: Translations = {
     'Initial(s) with dot, space, then surname (e.g. "G. de Jong")',
   'admin.bulk_stmt_filename_part_yyyymm':
     'Book year + month with no space or dash, e.g. 202512 for December 2025',
+  'admin.bulk_stmt_amounts_help_heading': 'Amounts Excel — what goes in?',
+  'admin.bulk_stmt_amounts_help_intro':
+    'For every PDF you upload there must be a matching amount in this Excel. Add one row per author (leave yyyymm empty = the amount applies to all PDFs of that author in this batch), or multiple rows (one per yyyymm) if the amounts differ by month.',
+  'admin.bulk_stmt_amounts_help_yyyymm_empty_note':
+    '← yyyymm empty = applies to all PDFs of this author',
+  'admin.bulk_stmt_amounts_download_btn': 'Download empty template (.xlsx)',
   'admin.bulk_stmt_heading': 'Bulk upload: {type}',
   'admin.bulk_stmt_intro':
     'Upload multiple NU_SC_*.pdf files at once plus an Excel with the matching amounts (columns: alliant_id, amount, yyyymm). Authors are matched automatically via their Alliant ID.',

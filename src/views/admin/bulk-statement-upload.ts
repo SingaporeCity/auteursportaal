@@ -28,6 +28,7 @@ import {
   buildMonthTitle,
   derivePaymentDate,
   TYPE_TO_PREFIX,
+  buildBedragenTemplate,
 } from '@/lib/bulk-statement-helpers';
 import {
   MAX_FILE_BYTES,
@@ -118,6 +119,11 @@ export function openBulkStatementUploadModal(onDone: () => void, type: PaymentTy
   pdfInput.required = true;
   pdfWrap.appendChild(pdfInput);
   modal.appendChild(pdfWrap);
+
+  // -- Help-blok voor de bedragen-Excel: super-eenvoudige uitleg + voor-
+  // beeldtabel + download-knop voor leeg template. Helpt een nieuwe admin
+  // in één oogopslag zien wat we nodig hebben.
+  modal.appendChild(buildAmountsHelp());
 
   // -- Excel-input (bedragen)
   const xlsxWrap = document.createElement('label');
@@ -649,6 +655,104 @@ function renderFilenameConvention(container: HTMLElement, type: PaymentType): vo
     legend.appendChild(li);
   }
   container.appendChild(legend);
+}
+
+/**
+ * Help-blok voor de bedragen-Excel. Toont in één oogopslag:
+ *   - Wat er in moet (één rij per PDF, of een default-rij per auteur)
+ *   - Een visuele voorbeeldtabel
+ *   - Een download-knop voor een leeg template
+ *
+ * Het template wordt client-side gegenereerd met SheetJS op het moment dat
+ * de admin klikt — geen statische .xlsx in de repo, en de structuur kan
+ * niet uit sync raken met `parseBedragenExcel`.
+ */
+function buildAmountsHelp(): HTMLElement {
+  const help = document.createElement('div');
+  help.className = 'bulk-stmt-amounts-help';
+
+  const heading = document.createElement('div');
+  heading.className = 'bulk-stmt-amounts-heading';
+  heading.textContent = t('admin.bulk_stmt_amounts_help_heading');
+  help.appendChild(heading);
+
+  const intro = document.createElement('p');
+  intro.className = 'bulk-stmt-amounts-intro';
+  intro.textContent = t('admin.bulk_stmt_amounts_help_intro');
+  help.appendChild(intro);
+
+  // -- Voorbeeldtabel
+  const table = document.createElement('table');
+  table.className = 'bulk-stmt-amounts-table';
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  for (const col of ['alliant_id', 'amount', 'yyyymm']) {
+    const th = document.createElement('th');
+    th.textContent = col;
+    headRow.appendChild(th);
+  }
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  const exampleRows: { cells: string[]; note?: string }[] = [
+    { cells: ['2651307', '1250,50', '202512'] },
+    {
+      cells: ['2651307', '875,00', ''],
+      note: t('admin.bulk_stmt_amounts_help_yyyymm_empty_note'),
+    },
+    { cells: ['2644800', '2100,00', '202512'] },
+  ];
+  for (const row of exampleRows) {
+    const tr = document.createElement('tr');
+    for (const cell of row.cells) {
+      const td = document.createElement('td');
+      td.textContent = cell;
+      tr.appendChild(td);
+    }
+    if (row.note !== undefined) {
+      const noteTd = document.createElement('td');
+      noteTd.className = 'bulk-stmt-amounts-note';
+      noteTd.textContent = row.note;
+      tr.appendChild(noteTd);
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  help.appendChild(table);
+
+  // -- Download-knop voor leeg template
+  const downloadBtn = document.createElement('button');
+  downloadBtn.type = 'button';
+  downloadBtn.className = 'bulk-stmt-amounts-download';
+  downloadBtn.textContent = t('admin.bulk_stmt_amounts_download_btn');
+  downloadBtn.addEventListener('click', () => {
+    void downloadBedragenTemplate(downloadBtn);
+  });
+  help.appendChild(downloadBtn);
+
+  return help;
+}
+
+async function downloadBedragenTemplate(btn: HTMLButtonElement): Promise<void> {
+  btn.disabled = true;
+  try {
+    const XLSX = await import('xlsx');
+    const buffer = buildBedragenTemplate(XLSX);
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Bedragen-template.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // ============================================================================
