@@ -508,7 +508,6 @@ export type TranslationKey =
   | 'admin.bulk_stmt_filename_part_yyyymm'
   | 'admin.bulk_stmt_amounts_help_heading'
   | 'admin.bulk_stmt_amounts_help_intro'
-  | 'admin.bulk_stmt_amounts_help_yyyymm_empty_note'
   | 'admin.bulk_stmt_amounts_download_btn'
   | 'admin.bulk_stmt_type_label'
   | 'admin.bulk_stmt_type_royalty'

@@ -257,22 +257,16 @@ export function lookupAmount(map: BedragenMap, alliantId: string, yyyymm: string
 }
 
 /**
- * Bouwt een lege `Bedragen-template.xlsx` met de juiste 3-kolom-header en
- * 3 voorbeeld-rijen die de twee gebruikspatronen demonstreren:
- *   - rij met yyyymm = exact die maand
- *   - rij zonder yyyymm = default-bedrag voor alle PDFs van die auteur
+ * Bouwt een leeg `Bedragen-template.xlsx` — alleen de header-rij, geen
+ * voorbeelddata. De admin krijgt zo een schone start zonder dat hij eerst
+ * dummy-rijen moet verwijderen.
  *
  * Wordt client-side gegenereerd op het moment dat de admin op "Template
  * downloaden" klikt, zodat we geen statische .xlsx in de repo hoeven
  * meeleveren en de structuur altijd 1-op-1 overeenkomt met `parseBedragenExcel`.
  */
 export function buildBedragenTemplate(XLSX: typeof XLSXNamespace): ArrayBuffer {
-  const rows: (string | number)[][] = [
-    ['alliant_id', 'amount', 'yyyymm'],
-    ['2651307', 1250.5, '202512'],
-    ['2651307', 875, ''],
-    ['2644800', 2100, '202512'],
-  ];
+  const rows: string[][] = [['alliant_id', 'amount', 'yyyymm']];
   const ws = XLSX.utils.aoa_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Bedragen');

@@ -15,12 +15,19 @@ import { t, getLocale, setLocale, listSupportedLocales } from '@/lib/i18n';
 import type { SupportedLocale } from '@/i18n/types';
 import { openCommandPalette } from './command-palette';
 
-export function buildAppHeader(user: AuthorRow): HTMLElement {
+export interface HeaderOptions {
+  /** Toon de Cmd/Ctrl+K-zoekbalk in de header. Default `true`. */
+  showSearch?: boolean;
+}
+
+export function buildAppHeader(user: AuthorRow, opts: HeaderOptions = {}): HTMLElement {
   const header = document.createElement('header');
   header.className = 'app-header';
 
   header.appendChild(buildBrand());
-  header.appendChild(buildSearchTrigger());
+  if (opts.showSearch !== false) {
+    header.appendChild(buildSearchTrigger());
+  }
 
   const actions = document.createElement('div');
   actions.className = 'app-header-actions';

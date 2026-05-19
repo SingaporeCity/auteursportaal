@@ -100,8 +100,9 @@ export function openBulkStatementUploadModal(onDone: () => void, type: PaymentTy
   intro.textContent = t('admin.bulk_stmt_intro');
   modal.appendChild(intro);
 
-  // -- Filename-conventie-help-blok (statisch, type is vast).
-  const conventionHelp = document.createElement('div');
+  // -- Filename-conventie-help (collapsible). Standaard ingeklapt zodat
+  // de modal niet overspoeld lijkt; admin klikt om uit te klappen.
+  const conventionHelp = document.createElement('details');
   conventionHelp.className = 'bulk-stmt-convention-help';
   modal.appendChild(conventionHelp);
   renderFilenameConvention(conventionHelp, type);
@@ -608,10 +609,11 @@ function renderFilenameConvention(container: HTMLElement, type: PaymentType): vo
   const prefix = TYPE_TO_PREFIX[type];
   const typeLabel = t(`admin.bulk_stmt_type_${type}`);
 
-  const heading = document.createElement('div');
-  heading.className = 'bulk-stmt-convention-heading';
-  heading.textContent = t('admin.bulk_stmt_filename_heading').replace('{type}', typeLabel);
-  container.appendChild(heading);
+  // <summary> is de klikbare header die het blok open/dicht klapt
+  const summary = document.createElement('summary');
+  summary.className = 'bulk-stmt-convention-heading';
+  summary.textContent = t('admin.bulk_stmt_filename_heading').replace('{type}', typeLabel);
+  container.appendChild(summary);
 
   // Format-regel: NU_<PREFIX>_<AlliantID>_<Voorletters Achternaam>_<YYYYMM>.pdf
   const format = document.createElement('code');
@@ -658,30 +660,31 @@ function renderFilenameConvention(container: HTMLElement, type: PaymentType): vo
 }
 
 /**
- * Help-blok voor de bedragen-Excel. Toont in één oogopslag:
- *   - Wat er in moet (één rij per PDF, of een default-rij per auteur)
+ * Help-blok voor de bedragen-Excel (collapsible).
+ * Toont:
+ *   - Korte instructie: één rij per PDF
  *   - Een visuele voorbeeldtabel
  *   - Een download-knop voor een leeg template
  *
- * Het template wordt client-side gegenereerd met SheetJS op het moment dat
- * de admin klikt — geen statische .xlsx in de repo, en de structuur kan
- * niet uit sync raken met `parseBedragenExcel`.
+ * Het template wordt client-side gegenereerd met SheetJS op het moment
+ * dat de admin klikt — geen statische .xlsx in de repo, en de structuur
+ * kan niet uit sync raken met `parseBedragenExcel`.
  */
 function buildAmountsHelp(): HTMLElement {
-  const help = document.createElement('div');
+  const help = document.createElement('details');
   help.className = 'bulk-stmt-amounts-help';
 
-  const heading = document.createElement('div');
-  heading.className = 'bulk-stmt-amounts-heading';
-  heading.textContent = t('admin.bulk_stmt_amounts_help_heading');
-  help.appendChild(heading);
+  const summary = document.createElement('summary');
+  summary.className = 'bulk-stmt-amounts-heading';
+  summary.textContent = t('admin.bulk_stmt_amounts_help_heading');
+  help.appendChild(summary);
 
   const intro = document.createElement('p');
   intro.className = 'bulk-stmt-amounts-intro';
   intro.textContent = t('admin.bulk_stmt_amounts_help_intro');
   help.appendChild(intro);
 
-  // -- Voorbeeldtabel
+  // -- Voorbeeldtabel — één rij per PDF, alle kolommen gevuld
   const table = document.createElement('table');
   table.className = 'bulk-stmt-amounts-table';
   const thead = document.createElement('thead');
@@ -695,26 +698,17 @@ function buildAmountsHelp(): HTMLElement {
   table.appendChild(thead);
 
   const tbody = document.createElement('tbody');
-  const exampleRows: { cells: string[]; note?: string }[] = [
-    { cells: ['2651307', '1250,50', '202512'] },
-    {
-      cells: ['2651307', '875,00', ''],
-      note: t('admin.bulk_stmt_amounts_help_yyyymm_empty_note'),
-    },
-    { cells: ['2644800', '2100,00', '202512'] },
+  const exampleRows: string[][] = [
+    ['2651307', '1250,50', '202512'],
+    ['2651307', '980,00', '202506'],
+    ['2644800', '2100,00', '202512'],
   ];
   for (const row of exampleRows) {
     const tr = document.createElement('tr');
-    for (const cell of row.cells) {
+    for (const cell of row) {
       const td = document.createElement('td');
       td.textContent = cell;
       tr.appendChild(td);
-    }
-    if (row.note !== undefined) {
-      const noteTd = document.createElement('td');
-      noteTd.className = 'bulk-stmt-amounts-note';
-      noteTd.textContent = row.note;
-      tr.appendChild(noteTd);
     }
     tbody.appendChild(tr);
   }

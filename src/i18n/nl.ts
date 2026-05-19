@@ -531,11 +531,9 @@ export const nl: Translations = {
     'Voorletter(s) met punt, spatie, en achternaam (bv. "G. de Jong")',
   'admin.bulk_stmt_filename_part_yyyymm':
     'Boekjaar + maand zonder spatie of streepje, bv. 202512 voor december 2025',
-  'admin.bulk_stmt_amounts_help_heading': 'Excel met bedragen — wat moet erin?',
+  'admin.bulk_stmt_amounts_help_heading': 'Hulp: wat moet er in de Excel?',
   'admin.bulk_stmt_amounts_help_intro':
-    'Voor élke PDF die u uploadt moet er een matchend bedrag in dit Excel staan. Vul per auteur één rij in (laat yyyymm leeg = bedrag geldt voor alle PDFs van die auteur in deze batch), of meerdere rijen (één per yyyymm) als de bedragen per maand verschillen.',
-  'admin.bulk_stmt_amounts_help_yyyymm_empty_note':
-    '← yyyymm leeg = geldt voor alle PDFs van deze auteur',
+    'Vul één rij per PDF: alliant_id van de auteur, amount (het bedrag in euro), en yyyymm (jaar + maand uit de filename). Voor twee PDFs van dezelfde auteur in verschillende maanden zet u dus twee rijen.',
   'admin.bulk_stmt_amounts_download_btn': 'Leeg template downloaden (.xlsx)',
   'admin.bulk_stmt_heading': 'Bulk uploaden: {type}',
   'admin.bulk_stmt_intro':

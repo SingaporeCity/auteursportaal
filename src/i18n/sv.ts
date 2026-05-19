@@ -535,11 +535,9 @@ export const sv: Translations = {
     'Initial(er) med punkt, mellanslag, sedan efternamn (t.ex. "G. de Jong")',
   'admin.bulk_stmt_filename_part_yyyymm':
     'Bokföringsår + månad utan mellanslag eller bindestreck, t.ex. 202512 för december 2025',
-  'admin.bulk_stmt_amounts_help_heading': 'Excel med belopp — vad ska ingå?',
+  'admin.bulk_stmt_amounts_help_heading': 'Hjälp: vad ska in i Excel?',
   'admin.bulk_stmt_amounts_help_intro':
-    'För varje PDF du laddar upp måste det finnas ett matchande belopp i denna Excel. Lägg till en rad per författare (lämna yyyymm tom = beloppet gäller för alla PDF:er för den författaren i denna batch), eller flera rader (en per yyyymm) om beloppen skiljer sig per månad.',
-  'admin.bulk_stmt_amounts_help_yyyymm_empty_note':
-    '← yyyymm tom = gäller för alla PDF:er för denna författare',
+    'En rad per PDF: alliant_id för författaren, amount (belopp i euro), och yyyymm (år + månad från filnamnet). För två PDF:er av samma författare i olika månader lägger du till två rader.',
   'admin.bulk_stmt_amounts_download_btn': 'Ladda ner tom mall (.xlsx)',
   'admin.bulk_stmt_heading': 'Bulkuppladdning: {type}',
   'admin.bulk_stmt_intro':

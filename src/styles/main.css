@@ -1824,6 +1824,30 @@ a:hover {
   font-variation-settings: 'wght' 600;
   margin-bottom: 0.5rem;
   color: #78350f;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.bulk-stmt-convention-heading::-webkit-details-marker {
+  display: none;
+}
+
+.bulk-stmt-convention-heading::before {
+  content: '▸';
+  font-size: 0.75rem;
+  transition: transform 140ms ease;
+  display: inline-block;
+}
+
+details[open] > .bulk-stmt-convention-heading::before {
+  transform: rotate(90deg);
+}
+
+details[open] > .bulk-stmt-convention-heading {
+  margin-bottom: 0.75rem;
 }
 
 .bulk-stmt-convention-format {
@@ -1904,6 +1928,30 @@ a:hover {
   font-variation-settings: 'wght' 600;
   margin-bottom: 0.5rem;
   color: var(--color-primary);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.bulk-stmt-amounts-heading::-webkit-details-marker {
+  display: none;
+}
+
+.bulk-stmt-amounts-heading::before {
+  content: '▸';
+  font-size: 0.75rem;
+  transition: transform 140ms ease;
+  display: inline-block;
+}
+
+details[open] > .bulk-stmt-amounts-heading::before {
+  transform: rotate(90deg);
+}
+
+details[open] > .bulk-stmt-amounts-heading {
+  margin-bottom: 0.75rem;
 }
 
 .bulk-stmt-amounts-intro {
