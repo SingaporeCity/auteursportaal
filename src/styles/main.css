@@ -4574,6 +4574,171 @@ a:hover {
   border-color: var(--color-primary);
 }
 
+/* Aangevinkt (bulk-select): primary-border + subtiel achtergrond-accent. */
+.admin-author-card--selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+.admin-author-card--selected:hover {
+  background: var(--color-primary-subtle);
+}
+
+/* Bulk-select checkbox links in de card. Rond, leeg in default-state,
+ * gevuld met primary + ✓ wanneer aangevinkt. */
+.admin-author-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: transparent;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+.admin-author-checkbox:hover {
+  border-color: var(--color-primary);
+}
+.admin-author-checkbox[aria-checked='true'] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.admin-author-checkbox[aria-checked='true']::after {
+  content: '✓';
+  font-variation-settings: 'wght' 700;
+}
+.admin-author-checkbox:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+/* Bulk-actie-bar boven de auteurslijst. */
+.admin-bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.admin-bulk-select-all {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: transparent;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+.admin-bulk-select-all:hover {
+  border-color: var(--color-primary);
+}
+.admin-bulk-select-all--checked {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.admin-bulk-select-all--checked::after {
+  content: '✓';
+  font-variation-settings: 'wght' 700;
+}
+.admin-bulk-select-all--mixed {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.admin-bulk-select-all--mixed::after {
+  content: '–';
+  font-variation-settings: 'wght' 700;
+}
+.admin-bulk-select-all:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+.admin-bulk-label {
+  flex: 1;
+  font-size: 0.88rem;
+  color: var(--color-text-light);
+}
+.admin-bulk-clear {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+.admin-bulk-clear:hover {
+  background: var(--color-bg);
+}
+.admin-bulk-delete {
+  padding: 0.45rem 1rem !important;
+  font-size: 0.88rem !important;
+  min-width: auto !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+.admin-bulk-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Bulk-delete-modal: preview-lijst van namen + progress-tekst + errors. */
+.bulk-delete-preview,
+.bulk-delete-errors {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  list-style: none;
+  font-size: 0.88rem;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+.bulk-delete-preview li,
+.bulk-delete-errors li {
+  padding: 0.15rem 0;
+}
+.bulk-delete-preview-more {
+  color: var(--color-text-light);
+  font-style: italic;
+}
+.bulk-delete-errors {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.bulk-delete-progress {
+  margin: 0 0 1rem;
+  padding: 0.85rem;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  font-variation-settings: 'wght' 600;
+}
+
 .admin-author-avatar {
   display: inline-flex;
   align-items: center;

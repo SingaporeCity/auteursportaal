@@ -31,6 +31,7 @@ import { openChoiceModal } from './admin/choice-modal';
 import { openIdKoppelModal } from './admin/id-koppel-modal';
 import { openConfirmModal } from './shared/confirm-modal';
 import { deleteAuthor } from '@/lib/delete-author';
+import { openBulkDeleteModal } from './admin/bulk-delete-modal';
 import type { PaymentType } from '@/types/db';
 import { extractFnError, formatFnErrorMessage } from '@/lib/edge-function-errors';
 import { buildAppHeader } from './shared/header';
@@ -56,6 +57,13 @@ interface ListState {
   /** True tot de eerste loadAuthors-call gefinaliseerd is (success of error).
    *  Stuurt of `renderList` skeleton-cards of echte content laat zien. */
   loading: boolean;
+  /**
+   * Auteurs die de admin heeft aangevinkt voor bulk-acties (verwijderen).
+   * Set blijft behouden bij filter/search-wijzigingen — geselecteerde ID's
+   * die buiten de huidige filter vallen blijven aangevinkt onderwater zodat
+   * de admin een combinatie kan opbouwen via meerdere zoekslagen.
+   */
+  selectedIds: Set<string>;
 }
 
 const PAGE_SIZE = 50;
@@ -109,6 +117,7 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
     paymentsByAuthor: new Set(),
     visibleCount: PAGE_SIZE,
     loading: true,
+    selectedIds: new Set(),
   };
 
   const statusBox = document.createElement('div');
@@ -162,7 +171,7 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
       rerenderAccounts(statsEl, listEl);
     };
     renderStatsStrip(statsEl, state, refresh);
-    renderList(listEl, state, statusBox);
+    renderList(listEl, state, statusBox, refresh);
   }
 
   function renderActiveTab(): void {
@@ -399,6 +408,12 @@ function renderAccountsTab(
   searchWrap.appendChild(searchInput);
   toolbar.appendChild(searchWrap);
 
+  // ---- Bulk-actie-bar (alleen zichtbaar als auteurs zijn aangevinkt).
+  const bulkBar = document.createElement('div');
+  bulkBar.className = 'admin-bulk-bar';
+  bulkBar.hidden = true;
+  container.appendChild(bulkBar);
+
   // ---- Author-list — hoofdcontent, direct onder de toolbar.
   const list = document.createElement('div');
   list.className = 'admin-author-list';
@@ -409,13 +424,14 @@ function renderAccountsTab(
 
   const rerender = (): void => {
     renderStatsStrip(stats, state, rerender);
-    renderList(list, state, statusBox);
+    renderBulkBar(bulkBar, state, rerender, statusBox);
+    renderList(list, state, statusBox, rerender);
   };
 
   searchInput.addEventListener('input', () => {
     state.search = searchInput.value;
     state.visibleCount = PAGE_SIZE;
-    renderList(list, state, statusBox);
+    rerender();
   });
 
   rerender();
@@ -844,6 +860,33 @@ function countByDerivedStatus(state: ListState): Record<AdminStatus, number> {
 }
 
 /**
+ * Filter-logica voor de auteurslijst — gebruikt door zowel `renderList`
+ * als `renderBulkBar` (consistente "selecteer alle zichtbare"-set).
+ * Admins worden altijd uitgesloten.
+ */
+function filterAuthors(state: ListState): AuthorRow[] {
+  const needle = state.search.trim().toLowerCase();
+  return state.authors.filter((a) => {
+    if (a.is_admin) {
+      return false;
+    }
+    if (state.filter !== 'all') {
+      const status = deriveAdminStatus(a, state.paymentsByAuthor.has(a.id));
+      if (status !== state.filter) {
+        return false;
+      }
+    }
+    if (needle !== '') {
+      const haystack = `${a.first_name} ${a.last_name} ${a.email}`.toLowerCase();
+      if (!haystack.includes(needle)) {
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
+/**
  * Sorteer-volgorde voor de auteurslijst. Status is primair sleutel —
  * dezelfde volgorde als de stats-strip (persoonsgegevens → id_koppelen →
  * statements → gereed → actief). Binnen één status wordt nieuwste
@@ -861,7 +904,12 @@ const STATUS_SORT_ORDER: Record<AdminStatus, number> = {
 // =============================================================================
 // Lijst + cards
 // =============================================================================
-function renderList(container: HTMLElement, state: ListState, statusBox: HTMLElement): void {
+function renderList(
+  container: HTMLElement,
+  state: ListState,
+  statusBox: HTMLElement,
+  rerender: () => void
+): void {
   container.replaceChildren();
 
   // Skeleton-cards tijdens initial load — vervangt de oudere "Aan het laden…"-
@@ -882,30 +930,13 @@ function renderList(container: HTMLElement, state: ListState, statusBox: HTMLEle
     return;
   }
 
-  const needle = state.search.trim().toLowerCase();
-  const filtered = state.authors.filter((a) => {
-    if (a.is_admin) {
-      return false;
-    }
-    if (state.filter !== 'all') {
-      const status = deriveAdminStatus(a, state.paymentsByAuthor.has(a.id));
-      if (status !== state.filter) {
-        return false;
-      }
-    }
-    if (needle !== '') {
-      const haystack = `${a.first_name} ${a.last_name} ${a.email}`.toLowerCase();
-      if (!haystack.includes(needle)) {
-        return false;
-      }
-    }
-    return true;
-  });
+  const filtered = filterAuthors(state);
+  const hasSearch = state.search.trim() !== '';
 
   if (filtered.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'admin-empty';
-    if (needle !== '') {
+    if (hasSearch) {
       empty.textContent = t('admin.search_no_results').replace('{q}', state.search);
     } else {
       empty.textContent = t('admin.empty_filter');
@@ -932,9 +963,9 @@ function renderList(container: HTMLElement, state: ListState, statusBox: HTMLEle
   const shown = sorted.slice(0, state.visibleCount);
   for (const author of shown) {
     const onChanged = (): void => {
-      refreshOne(state, author.id, container, statusBox);
+      refreshOne(state, author.id, rerender);
     };
-    container.appendChild(renderAuthorCard(author, state, onChanged, statusBox));
+    container.appendChild(renderAuthorCard(author, state, onChanged, statusBox, rerender));
   }
 
   // Voet met count + load-more knop wanneer er meer te tonen valt
@@ -956,7 +987,7 @@ function renderList(container: HTMLElement, state: ListState, statusBox: HTMLEle
     loadMoreBtn.textContent = t('admin.btn_load_more').replace('{n}', String(next));
     loadMoreBtn.addEventListener('click', () => {
       state.visibleCount += PAGE_SIZE;
-      renderList(container, state, statusBox);
+      renderList(container, state, statusBox, rerender);
     });
     footer.appendChild(loadMoreBtn);
   }
@@ -964,13 +995,129 @@ function renderList(container: HTMLElement, state: ListState, statusBox: HTMLEle
   container.appendChild(footer);
 }
 
-/** Vervang één auteur-rij in state na een actie, daarna re-render de lijst. */
-function refreshOne(
+/**
+ * Bulk-actie-bar boven de auteurslijst. Toont een tri-state "selecteer
+ * alles"-checkbox + count + "Verwijderen"-knop. De select-all werkt op de
+ * huidige filter+search (niet alleen op de eerste `visibleCount` cards) —
+ * "alle zichtbare" = alle die door de filter passen, zodat de admin met
+ * een statusfilter een hele groep tegelijk kan opruimen.
+ */
+function renderBulkBar(
+  bar: HTMLElement,
   state: ListState,
-  authorId: string,
-  container: HTMLElement,
+  rerender: () => void,
   statusBox: HTMLElement
 ): void {
+  bar.replaceChildren();
+
+  const filtered = filterAuthors(state);
+  if (filtered.length === 0) {
+    bar.hidden = true;
+    return;
+  }
+  bar.hidden = false;
+
+  const filteredIds = filtered.map((a) => a.id);
+  const selectedInFiltered = filteredIds.filter((id) => state.selectedIds.has(id)).length;
+  const allSelected = selectedInFiltered === filteredIds.length;
+  const partialSelected = selectedInFiltered > 0 && !allSelected;
+
+  // -- Select-all checkbox (tri-state: empty / mixed / all)
+  const selectAll = document.createElement('span');
+  selectAll.className = 'admin-bulk-select-all';
+  if (allSelected) {
+    selectAll.classList.add('admin-bulk-select-all--checked');
+  } else if (partialSelected) {
+    selectAll.classList.add('admin-bulk-select-all--mixed');
+  }
+  selectAll.setAttribute('role', 'checkbox');
+  selectAll.setAttribute(
+    'aria-checked',
+    allSelected ? 'true' : partialSelected ? 'mixed' : 'false'
+  );
+  selectAll.setAttribute('tabindex', '0');
+  selectAll.setAttribute('aria-label', t('admin.bulk_select_all_label'));
+  const toggleAll = (): void => {
+    if (allSelected) {
+      for (const id of filteredIds) {
+        state.selectedIds.delete(id);
+      }
+    } else {
+      for (const id of filteredIds) {
+        state.selectedIds.add(id);
+      }
+    }
+    rerender();
+  };
+  selectAll.addEventListener('click', toggleAll);
+  selectAll.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      toggleAll();
+    }
+  });
+  bar.appendChild(selectAll);
+
+  // -- Label: telling
+  const label = document.createElement('span');
+  label.className = 'admin-bulk-label';
+  if (state.selectedIds.size === 0) {
+    label.textContent = t('admin.bulk_select_all_hint').replace('{count}', String(filtered.length));
+  } else {
+    label.textContent = t('admin.bulk_selected_count').replace(
+      '{n}',
+      String(state.selectedIds.size)
+    );
+  }
+  bar.appendChild(label);
+
+  // -- Wis-selectie-knop (alleen als >0)
+  if (state.selectedIds.size > 0) {
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'admin-bulk-clear';
+    clear.textContent = t('admin.bulk_clear');
+    clear.addEventListener('click', () => {
+      state.selectedIds.clear();
+      rerender();
+    });
+    bar.appendChild(clear);
+  }
+
+  // -- Verwijder-knop (rechts, danger-styling)
+  const del = document.createElement('button');
+  del.type = 'button';
+  del.className = 'auth-submit auth-submit-danger admin-bulk-delete';
+  del.textContent = t('admin.bulk_delete_button').replace('{n}', String(state.selectedIds.size));
+  del.disabled = state.selectedIds.size === 0;
+  del.addEventListener('click', () => {
+    const selectedAuthors = state.authors.filter((a) => state.selectedIds.has(a.id));
+    openBulkDeleteModal({
+      authors: selectedAuthors,
+      onComplete: (deletedIds) => {
+        if (deletedIds.length === 0) {
+          return;
+        }
+        // Filter verwijderde rijen uit state + selection
+        const deletedSet = new Set(deletedIds);
+        state.authors = state.authors.filter((a) => !deletedSet.has(a.id));
+        for (const id of deletedIds) {
+          state.selectedIds.delete(id);
+        }
+        showStatus(
+          statusBox,
+          'success',
+          t('admin.bulk_delete_status_success').replace('{n}', String(deletedIds.length))
+        );
+        rerender();
+      },
+    });
+  });
+  bar.appendChild(del);
+}
+
+/** Vervang één auteur-rij in state na een actie, daarna re-render de lijst. */
+function refreshOne(state: ListState, authorId: string, rerender: () => void): void {
   void supabase
     .from('authors')
     .select('*')
@@ -994,7 +1141,7 @@ function refreshOne(
         }
         state.paymentsByAuthor = set;
       }
-      renderList(container, state, statusBox);
+      rerender();
     });
 }
 
@@ -1002,20 +1149,55 @@ function renderAuthorCard(
   author: AuthorRow,
   state: ListState,
   onChanged: () => void,
-  statusBox: HTMLElement
+  statusBox: HTMLElement,
+  rerender: () => void
 ): HTMLElement {
   const hasPayments = state.paymentsByAuthor.has(author.id);
   const status = deriveAdminStatus(author, hasPayments);
+  const isSelected = state.selectedIds.has(author.id);
 
   // Hele kaart is klikbaar — opent het detail-paneel. We gebruiken
   // `<button>` zodat tastatuur/screenreader-ondersteuning er gratis bij komt.
   const card = document.createElement('button');
   card.type = 'button';
-  card.className = `admin-author-card admin-author-card--${status}`;
+  card.className = `admin-author-card admin-author-card--${status}${isSelected ? ' admin-author-card--selected' : ''}`;
   card.setAttribute(
     'aria-label',
     `${author.first_name} ${author.last_name} — ${statusLabel(status)}`
   );
+
+  // -- Checkbox links voor bulk-acties (verwijderen). Aparte <span> met
+  // role=checkbox zodat we de native click niet door laten lekken naar de
+  // card (die het detail-paneel zou openen).
+  const checkbox = document.createElement('span');
+  checkbox.className = 'admin-author-checkbox';
+  checkbox.setAttribute('role', 'checkbox');
+  checkbox.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+  checkbox.setAttribute('tabindex', '0');
+  checkbox.setAttribute(
+    'aria-label',
+    `${t('admin.bulk_select_label')} ${author.first_name} ${author.last_name}`
+  );
+  const toggleSelection = (): void => {
+    if (state.selectedIds.has(author.id)) {
+      state.selectedIds.delete(author.id);
+    } else {
+      state.selectedIds.add(author.id);
+    }
+    rerender();
+  };
+  checkbox.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleSelection();
+  });
+  checkbox.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleSelection();
+    }
+  });
+  card.appendChild(checkbox);
 
   // -- Avatar (initials in primary-cirkel)
   const avatar = document.createElement('span');
