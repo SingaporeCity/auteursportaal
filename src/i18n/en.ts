@@ -404,6 +404,15 @@ export const en: Translations = {
   'admin.btn_send_reminder_label': 'Send reminder to author',
   'admin.btn_activate': 'Activate',
   'admin.btn_reset_mfa': 'Reset 2FA',
+  'admin.btn_delete_author': 'Delete',
+  'admin.tooltip_delete_author': 'Permanently delete this author',
+  'admin.delete_author_heading': 'Delete {name}?',
+  'admin.delete_author_body':
+    'This action removes the account, all royalty statements, contracts, expenses and historical data. This cannot be undone.',
+  'admin.delete_author_confirm': 'Permanently delete',
+  'admin.delete_author_success': '{name} has been deleted.',
+  'admin.delete_author_error': 'Delete failed',
+  'admin.delete_author_error_self': 'You cannot delete your own account from this screen.',
   'admin.btn_upload_contract': 'Upload contract',
   'admin.tooltip_upload_contract':
     'Add a new author contract (PDF) for this author. Contract number + PDF are required; name, royalty percentage, start and end date are optional. The author sees it immediately in the Contracts tab.',

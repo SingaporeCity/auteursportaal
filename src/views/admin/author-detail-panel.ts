@@ -21,7 +21,13 @@ interface PanelOptions {
   /** Eén primaire actie afhankelijk van de status (mag null zijn). */
   primaryAction?: { label: string; tooltip?: string; onClick: () => void } | null;
   /** Secundaire acties — getoond als list onder de primary. */
-  secondaryActions?: { label: string; tooltip?: string; onClick: () => void }[];
+  secondaryActions?: {
+    label: string;
+    tooltip?: string;
+    onClick: () => void;
+    /** Rendert als rode knop bij destructieve acties (bv. verwijder-auteur). */
+    variant?: 'danger';
+  }[];
   onClose: () => void;
 }
 
@@ -262,7 +268,10 @@ function buildFooter(opts: PanelOptions): HTMLElement | null {
   for (const sec of secondaries) {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'author-detail-secondary';
+    btn.className =
+      sec.variant === 'danger'
+        ? 'author-detail-secondary author-detail-secondary--danger'
+        : 'author-detail-secondary';
     btn.textContent = sec.label;
     if (sec.tooltip !== undefined) {
       btn.title = sec.tooltip;

@@ -29,6 +29,8 @@ import { openAuthorPickerModal } from './admin/author-picker';
 import { openAuthorDetailPanel } from './admin/author-detail-panel';
 import { openChoiceModal } from './admin/choice-modal';
 import { openIdKoppelModal } from './admin/id-koppel-modal';
+import { openConfirmModal } from './shared/confirm-modal';
+import { deleteAuthor } from '@/lib/delete-author';
 import type { PaymentType } from '@/types/db';
 import { extractFnError, formatFnErrorMessage } from '@/lib/edge-function-errors';
 import { buildAppHeader } from './shared/header';
@@ -1043,6 +1045,8 @@ interface DetailAction {
   label: string;
   tooltip?: string;
   onClick: () => void;
+  /** Visuele variant — `danger` rendert als rode knop voor destructieve acties. */
+  variant?: 'danger';
 }
 
 function statusLabel(status: AdminStatus): string {
@@ -1121,6 +1125,32 @@ function openDetailFor(
       },
     });
   }
+
+  // Verwijder-actie altijd onderaan; geblokkeerd voor je eigen account
+  // (Edge Function returnt extra 400 als sluitnet).
+  secondaries.push({
+    label: t('admin.btn_delete_author'),
+    tooltip: t('admin.tooltip_delete_author'),
+    variant: 'danger',
+    onClick: () => {
+      const fullName = `${author.first_name} ${author.last_name}`.trim();
+      openConfirmModal({
+        title: t('admin.delete_author_heading').replace('{name}', fullName),
+        body: t('admin.delete_author_body'),
+        confirmLabel: t('admin.delete_author_confirm'),
+        danger: true,
+        onConfirm: async () => {
+          await deleteAuthor(author.id);
+          showStatus(
+            statusBox,
+            'success',
+            t('admin.delete_author_success').replace('{name}', fullName)
+          );
+          onChanged();
+        },
+      });
+    },
+  });
 
   openAuthorDetailPanel({
     author,

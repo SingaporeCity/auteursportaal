@@ -413,6 +413,15 @@ export const sv: Translations = {
   'admin.btn_send_reminder_label': 'Skicka påminnelse till författare',
   'admin.btn_activate': 'Aktivera',
   'admin.btn_reset_mfa': 'Återställ 2FA',
+  'admin.btn_delete_author': 'Ta bort',
+  'admin.tooltip_delete_author': 'Ta bort denna författare permanent',
+  'admin.delete_author_heading': 'Ta bort {name}?',
+  'admin.delete_author_body':
+    'Denna åtgärd tar bort kontot, alla royaltybesked, kontrakt, utgifter och historiska data. Detta kan inte ångras.',
+  'admin.delete_author_confirm': 'Ta bort permanent',
+  'admin.delete_author_success': '{name} har tagits bort.',
+  'admin.delete_author_error': 'Borttagning misslyckades',
+  'admin.delete_author_error_self': 'Du kan inte ta bort ditt eget konto från denna skärm.',
   'admin.btn_upload_contract': 'Ladda upp kontrakt',
   'admin.tooltip_upload_contract':
     'Lägg till ett nytt författarkontrakt (PDF) för denna författare. Kontraktsnummer + PDF är obligatoriska; namn, royaltyprocent, startdatum och slutdatum är valfria. Författaren ser det direkt i Kontrakt-fliken.',

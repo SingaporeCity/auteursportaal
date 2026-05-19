@@ -407,6 +407,15 @@ export const nl: Translations = {
   'admin.btn_send_reminder_label': 'Stuur reminder naar auteur',
   'admin.btn_activate': 'Activeer',
   'admin.btn_reset_mfa': 'Reset 2FA',
+  'admin.btn_delete_author': 'Verwijderen',
+  'admin.tooltip_delete_author': 'Verwijder deze auteur permanent',
+  'admin.delete_author_heading': '{name} verwijderen?',
+  'admin.delete_author_body':
+    'Deze actie verwijdert het account, alle royaltystatements, contracten, declaraties en historische gegevens. Dit kan niet ongedaan worden gemaakt.',
+  'admin.delete_author_confirm': 'Definitief verwijderen',
+  'admin.delete_author_success': '{name} is verwijderd.',
+  'admin.delete_author_error': 'Verwijderen mislukt',
+  'admin.delete_author_error_self': 'U kunt uw eigen account niet verwijderen via dit scherm.',
   'admin.btn_upload_contract': 'Contract uploaden',
   'admin.tooltip_upload_contract':
     'Voeg een nieuw auteurscontract (PDF) toe voor deze auteur. Contractnummer + PDF zijn verplicht; naam, royaltypercentage, ingangs- en einddatum zijn optioneel. De auteur ziet het direct in zijn/haar Contracten-tab.',

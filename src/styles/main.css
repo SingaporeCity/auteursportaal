@@ -5735,6 +5735,74 @@ a:hover {
   border-color: var(--color-text-muted);
 }
 
+/* Danger-variant: rode tekst + rand; hover wisselt naar gevulde rode knop. */
+.author-detail-secondary--danger {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.author-detail-secondary--danger:hover {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+}
+
+/* Confirm-modal (generieke pop-up voor destructieve acties) */
+.confirm-modal {
+  max-width: 460px;
+  padding: 2rem;
+}
+
+.confirm-modal h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+  font-variation-settings: 'wght' 600;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.confirm-modal-body {
+  margin: 0 0 1.5rem;
+  color: var(--color-text-light);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.confirm-error {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.85rem;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.confirm-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.confirm-modal-actions .auth-submit {
+  width: auto;
+  min-width: 130px;
+  margin: 0;
+}
+
+.auth-submit-danger {
+  background: var(--color-danger) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.auth-submit-danger:hover:not(:disabled) {
+  filter: brightness(0.92);
+  transform: none !important;
+}
+
 @media (max-width: 640px) {
   .author-detail-panel {
     width: 100vw;
