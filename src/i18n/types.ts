@@ -305,6 +305,7 @@ export type TranslationKey =
   | 'profile.changes_empty'
   | 'profile.changes_saved'
   | 'profile.changes_nothing'
+  | 'profile.changes_submitted_for_review'
   | 'profile.pending_change_badge'
   | 'profile.changes_submitted'
 

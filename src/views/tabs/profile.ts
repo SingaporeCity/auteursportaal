@@ -26,10 +26,7 @@ import { t } from '@/lib/i18n';
 import { formatBSNMasked, formatIBAN, formatPhoneNL, formatDate } from '@/lib/format';
 import { reportError } from '@/dev/debug-panel';
 import { isValidEmail, isValidPostcodeNL, isValidIBAN, isValidBSN } from '@/lib/validate';
-import type { Database } from '@/types/db';
 import type { TranslationKey } from '@/i18n/types';
-
-type AuthorUpdate = Database['public']['Tables']['authors']['Update'];
 
 /**
  * Velden die NA eerste invoer niet meer wijzigbaar zijn (security-policy).
@@ -182,7 +179,7 @@ export function renderProfileTab(container: HTMLElement, author: AuthorRow): voi
   }
 
   if (author.onboarding_status === 'pending_data') {
-    renderOnboardingMode(container, author);
+    void renderOnboardingMode(container, author);
     return;
   }
 
@@ -234,9 +231,16 @@ function renderReviewPendingMode(container: HTMLElement, author: AuthorRow): voi
 }
 
 // =============================================================================
-// Mode: pending_data — onboarding-form met directe UPDATE + activeer-knop
+// Mode: pending_data — onboarding-form, schrijft naar change_requests
+// (admin reviewt per veld onder Persoonsgegevens-tab vóór toepassing op
+// authors).
 // =============================================================================
-function renderOnboardingMode(container: HTMLElement, author: AuthorRow): void {
+async function renderOnboardingMode(container: HTMLElement, author: AuthorRow): Promise<void> {
+  // Pre-load pending change-requests zodat we de "in-afwachting" waarden
+  // tonen — anders zou de auteur denken dat zijn eerder ingevulde data
+  // verdwenen is (terwijl die wacht op admin-goedkeuring).
+  const pendingByField = await loadPendingChangeRequests(author.id);
+
   const form = document.createElement('form');
   form.className = 'profile-onboarding-form';
   form.noValidate = true;
@@ -275,11 +279,15 @@ function renderOnboardingMode(container: HTMLElement, author: AuthorRow): void {
     if (field.placeholderKey !== undefined) {
       input.placeholder = t(field.placeholderKey);
     }
-    // Draft heeft voorrang op DB-snapshot: zo blijft ingetypte data behouden
-    // bij tab-switch ook al wist de tussentijds-opslaan-knop nog niet geklikt.
+    // Initialisatie-volgorde: draft > pending change_request > authors-DB.
+    //   - draft = recent getypt maar nog niet opgeslagen (overleeft tab-switch)
+    //   - pending = wel opgeslagen, wacht op admin-goedkeuring
+    //   - authors = goedgekeurde of bestaande waarde
     const stored = draft.get(field.name);
+    const pending = pendingByField.get(field.name);
     const raw = author[field.name];
-    input.value = stored ?? (typeof raw === 'string' ? raw : raw === null ? '' : String(raw));
+    const rawStr = typeof raw === 'string' ? raw : raw === null ? '' : String(raw);
+    input.value = stored ?? pending ?? rawStr;
     if (field.readonly === true) {
       input.readOnly = true;
       input.classList.add('auth-field-readonly');
@@ -454,9 +462,34 @@ async function saveOnboardingData(
   submit: HTMLButtonElement,
   silentOnSuccess: boolean
 ): Promise<boolean> {
-  // Verzamel alleen-gewijzigde + valide velden in een type-safe Update-object
-  const update: AuthorUpdate = {};
-  let changed = 0;
+  // Haal bestaande pending change_requests op — als auteur eerder al een
+  // veld heeft ingevuld dat nog niet door admin is verwerkt, willen we de
+  // bestaande rij UPDATE-en ipv een tweede pending-rij naast te zetten.
+  const { data: existing, error: existErr } = await supabase
+    .from('change_requests')
+    .select('id, field_name')
+    .eq('author_id', author.id)
+    .eq('status', 'pending');
+  if (existErr !== null) {
+    reportError('profile.onboardingSave.loadPending', existErr);
+    showStatus(status, 'error', `Opslaan faalde: ${existErr.message}`);
+    return false;
+  }
+  const existingIdByField = new Map<string, string>();
+  existing.forEach((r) => existingIdByField.set(r.field_name, r.id));
+
+  // Verzamel wijzigingen — diff tegen authors-DB-waarde EN tegen huidige
+  // pending-waarde, zodat een tweede save met dezelfde waarde geen
+  // overbodige UPDATE doet.
+  const toInsert: {
+    author_id: string;
+    field_name: string;
+    old_value: string | null;
+    new_value: string;
+    status: 'pending';
+  }[] = [];
+  const toUpdate: { id: string; new_value: string }[] = [];
+
   for (const field of FIELDS) {
     if (field.readonly === true) {
       continue;
@@ -466,14 +499,16 @@ async function saveOnboardingData(
       continue;
     }
     const newVal = input.value.trim();
-    const raw = author[field.name];
-    const oldVal = typeof raw === 'string' ? raw : raw === null ? '' : String(raw);
-
-    if (newVal === oldVal) {
+    if (newVal === '') {
+      // Lege invoer wordt niet als change_request opgeslagen; auteur kan
+      // later alsnog invullen. Bestaande pending blijft staan tot admin
+      // 'm afwijst.
       continue;
     }
+    const raw = author[field.name];
+    const dbVal = typeof raw === 'string' ? raw : raw === null ? '' : String(raw);
 
-    if (field.validate !== undefined && newVal.length > 0 && !field.validate(newVal)) {
+    if (field.validate !== undefined && !field.validate(newVal)) {
       const errMsg =
         field.validationErrorKey !== undefined
           ? t(field.validationErrorKey)
@@ -482,11 +517,23 @@ async function saveOnboardingData(
       return false;
     }
 
-    assignAuthorField(update, field.name, newVal === '' ? null : newVal);
-    changed++;
+    const existingId = existingIdByField.get(field.name);
+    if (existingId !== undefined) {
+      // Pending bestaat al — overschrijf alleen als waarde verandert
+      toUpdate.push({ id: existingId, new_value: newVal });
+    } else if (newVal !== dbVal) {
+      // Nieuwe wijziging tegenover authors-DB
+      toInsert.push({
+        author_id: author.id,
+        field_name: field.name,
+        old_value: dbVal === '' ? null : dbVal,
+        new_value: newVal,
+        status: 'pending',
+      });
+    }
   }
 
-  if (changed === 0) {
+  if (toInsert.length === 0 && toUpdate.length === 0) {
     if (!silentOnSuccess) {
       showStatus(status, 'success', t('profile.changes_nothing'));
     }
@@ -494,32 +541,63 @@ async function saveOnboardingData(
   }
 
   submit.disabled = true;
-  const { error } = await supabase.from('authors').update(update).eq('id', author.id);
+
+  if (toInsert.length > 0) {
+    const { error: insErr } = await supabase.from('change_requests').insert(toInsert);
+    if (insErr !== null) {
+      submit.disabled = false;
+      reportError('profile.onboardingSave.insert', insErr);
+      showStatus(status, 'error', `Opslaan faalde: ${insErr.message}`);
+      return false;
+    }
+  }
+  for (const u of toUpdate) {
+    const { error: updErr } = await supabase
+      .from('change_requests')
+      .update({ new_value: u.new_value })
+      .eq('id', u.id);
+    if (updErr !== null) {
+      submit.disabled = false;
+      reportError('profile.onboardingSave.update', updErr);
+      showStatus(status, 'error', `Opslaan faalde: ${updErr.message}`);
+      return false;
+    }
+  }
+
   submit.disabled = false;
 
-  if (error !== null) {
-    reportError('profile.onboardingSave', error);
-    showStatus(status, 'error', `Opslaan faalde: ${error.message}`);
-    return false;
-  }
-
-  // Update lokale snapshot zodat volgende save juiste oldVal heeft
-  for (const field of FIELDS) {
-    const input = inputs.get(field.name);
-    if (input === undefined) {
-      continue;
-    }
-    (author as Record<string, unknown>)[field.name] = input.value.trim();
-  }
-
-  // Draft is nu gesynchroniseerd met DB; cache wissen zodat een volgende
-  // herrender verse DB-data toont (na evt. format-normalisatie).
+  // Draft is nu naar change_requests gesynct; cache wissen.
   clearDraft(author.id);
 
   if (!silentOnSuccess) {
-    showStatus(status, 'success', t('profile.changes_saved'));
+    showStatus(status, 'success', t('profile.changes_submitted_for_review'));
   }
   return true;
+}
+
+/**
+ * Laad alle pending change-requests voor deze auteur in een Map
+ * `field_name → new_value`. Wordt gebruikt om de onboarding-form te
+ * initialiseren met "in afwachting"-waarden zodat de auteur niet denkt
+ * dat zijn eerder ingevulde data verloren is.
+ */
+async function loadPendingChangeRequests(authorId: string): Promise<Map<string, string>> {
+  const { data, error } = await supabase
+    .from('change_requests')
+    .select('field_name, new_value')
+    .eq('author_id', authorId)
+    .eq('status', 'pending');
+  if (error !== null) {
+    reportError('profile.loadPending', error);
+    return new Map();
+  }
+  const out = new Map<string, string>();
+  for (const r of data) {
+    if (r.new_value !== null) {
+      out.set(r.field_name, r.new_value);
+    }
+  }
+  return out;
 }
 
 async function requestActivation(
@@ -953,43 +1031,4 @@ function showStatus(box: HTMLElement, kind: 'error' | 'success', message: string
   box.className = `admin-status admin-status-${kind}`;
   box.textContent = message;
   box.hidden = false;
-}
-
-/**
- * Type-safe assign: zet alleen velden die als `string | null` op `AuthorUpdate`
- * staan. Onbekende velden worden stilzwijgend genegeerd (kan niet voorkomen in
- * de FIELDS-array maar TS kan het niet bewijzen).
- */
-function assignAuthorField(
-  update: AuthorUpdate,
-  name: keyof AuthorRow,
-  value: string | null
-): void {
-  // Whitelist van velden die we vanuit het profiel mogen schrijven.
-  // Email + ID-kolommen + status-velden niet via dit pad. BSN is niet writable
-  // bij elke save — wel toegestaan op `pending_data` (eerste invoer) — daar
-  // wordt assignAuthorField uitsluitend tijdens onboarding aangeroepen, en
-  // DB-trigger 0010 forceert immutability bovendien op database-niveau.
-  // BSN staat hier nog wél in de set, omdat eerste invoer mogelijk moet zijn.
-  // Voor active-mode worden ALLE schrijfacties via change_requests gerouteerd
-  // (zie buildEditForm), waar IMMUTABLE_FIELDS BSN expliciet uitsluit.
-  const writable: ReadonlySet<keyof AuthorRow> = new Set([
-    'first_name',
-    'last_name',
-    'phone',
-    'street',
-    'house_number',
-    'postcode',
-    'city',
-    'country',
-    'birth_date',
-    'bsn',
-    'bank_account',
-    'bic',
-  ]);
-  if (!writable.has(name)) {
-    return;
-  }
-  // We weten op basis van de set hierboven dat deze velden allemaal `string | null` zijn.
-  (update as Record<string, string | null>)[name] = value;
 }

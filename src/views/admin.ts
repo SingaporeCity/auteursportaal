@@ -487,7 +487,7 @@ function renderPersoonsgegevensTab(
           tooltip: t('admin.tooltip_csv_export'),
           variant: 'primary',
           onClick: () => {
-            openCsvExportModal(state.authors, () => {
+            openCsvExportModal(() => {
               void loadAuthors(state, () => undefined, statusBox);
             });
           },

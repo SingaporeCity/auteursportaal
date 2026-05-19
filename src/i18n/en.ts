@@ -288,6 +288,8 @@ export const en: Translations = {
     'Changes are reviewed by Noordhoff. They become permanent only after approval.',
   'profile.changes_empty': 'No changes made.',
   'profile.changes_saved': 'Changes saved.',
+  'profile.changes_submitted_for_review':
+    'Your changes have been saved and are awaiting approval by Noordhoff.',
   'profile.changes_nothing': 'Nothing to change.',
   'profile.pending_change_badge': '⏳ change pending: {value}',
   'profile.changes_submitted': '{count} change(s) submitted. Noordhoff will review them.',
@@ -333,7 +335,7 @@ export const en: Translations = {
     'Select both files together → click "Show preview" → check the table of author-matches → confirm. Duplicate uploads of the same PDF are automatically skipped.',
   'admin.toolbar_excel_import': 'Import existing authors',
   'admin.toolbar_bulk_statements': 'Upload Statements',
-  'admin.toolbar_csv_export': 'Export to NetSuite',
+  'admin.toolbar_csv_export': 'Export',
   'admin.toolbar_new_author': 'Import new author',
   'admin.tooltip_excel_import':
     'Create multiple authors at once from the NetSuite Vendor export. For authors who already exist at Noordhoff with their data filled in.',
@@ -472,7 +474,7 @@ export const en: Translations = {
   'admin.status_gereed_short': 'Ready for activation',
   'admin.status_actief': 'Active',
   'admin.status_actief_short': 'Active',
-  'admin.card_export_title': 'Export to NetSuite',
+  'admin.card_export_title': 'Export',
   'admin.card_export_help_intro':
     'Authors change their own profile details (address, IBAN, phone) via the portal. Those changes are collected here for periodic sync back to NetSuite, keeping the financial administration up-to-date.',
   'admin.card_export_help_workflow':
@@ -563,13 +565,13 @@ export const en: Translations = {
   'admin.bulk_stmt_result_failed': 'Failed',
   'admin.bulk_stmt_result_errors_heading': 'Details ({count})',
 
-  'admin.csv_export_heading': 'Export to NetSuite',
+  'admin.csv_export_heading': 'Export changes',
   'admin.csv_export_intro':
     'Generates a CSV containing all author data changed or newly activated since the previous export. The file is downloaded. Upload to Noordhoff SharePoint within minutes and delete locally.',
   'admin.csv_export_reason_label': 'Reason / note (optional, saved in audit log)',
   'admin.csv_export_reason_placeholder': 'e.g. Weekly NetSuite sync',
-  'admin.csv_export_submit_count': 'Export & download ({count} rows)',
-  'admin.csv_export_submit': 'Export & download',
+  'admin.csv_export_submit_count': 'Export ({count} changes)',
+  'admin.csv_export_submit': 'Export',
   'admin.csv_export_no_changes': 'No changes since the previous export.',
   'admin.csv_export_summary_count': '{count} author(s) will be included:',
   'admin.csv_export_row_more': '… and {count} more',

@@ -290,6 +290,8 @@ export const nl: Translations = {
     'Wijzigingen worden eerst door de uitgever beoordeeld. Pas na goedkeuring zijn ze definitief.',
   'profile.changes_empty': 'Geen wijzigingen aangebracht.',
   'profile.changes_saved': 'Wijzigingen opgeslagen.',
+  'profile.changes_submitted_for_review':
+    'Uw wijzigingen zijn opgeslagen en wachten op goedkeuring door Noordhoff.',
   'profile.changes_nothing': 'Niets te wijzigen.',
   'profile.pending_change_badge': '⏳ wijziging in behandeling: {value}',
   'profile.changes_submitted': '{count} wijziging(en) ingediend. De uitgever beoordeelt deze.',
@@ -335,7 +337,7 @@ export const nl: Translations = {
     'Selecteer beide bestanden samen → klik "Voorbeeld tonen" → controleer de tabel met auteur-matches → bevestig. Dubbel-uploaden van dezelfde PDF wordt automatisch overgeslagen.',
   'admin.toolbar_excel_import': 'Importeer bestaande auteurs',
   'admin.toolbar_bulk_statements': 'Upload Statements',
-  'admin.toolbar_csv_export': 'Export naar NetSuite',
+  'admin.toolbar_csv_export': 'Exporteer',
   'admin.toolbar_new_author': 'Importeer nieuwe auteur',
   'admin.tooltip_excel_import':
     'Maak in één keer meerdere auteurs aan vanuit de NetSuite-Vendor-export. Voor auteurs die al bij Noordhoff bekend zijn en hun gegevens al ingevuld hebben.',
@@ -477,13 +479,13 @@ export const nl: Translations = {
   'admin.status_gereed_short': 'Gereed voor activatie',
   'admin.status_actief': 'Actief',
   'admin.status_actief_short': 'Actief',
-  'admin.card_export_title': 'Export naar NetSuite',
+  'admin.card_export_title': 'Exporteer',
   'admin.card_export_help_intro':
-    'Auteurs wijzigen hun eigen profielgegevens (adres, IBAN, telefoon) via het portaal. Die wijzigingen worden hier verzameld om periodiek terug te synchroniseren naar NetSuite, zodat de financiële administratie up-to-date blijft.',
+    'Auteurs wijzigen hun eigen profielgegevens (adres, IBAN, telefoon) via het portaal. Zodra u die wijzigingen heeft goedgekeurd onder "Persoonsgegevens", verschijnen ze hier klaar om geëxporteerd te worden naar Excel.',
   'admin.card_export_help_workflow':
-    'Klik op "Export naar NetSuite" → er wordt een CSV gegenereerd met alle gegevens die zijn gewijzigd of geactiveerd sinds de vorige export → het bestand wordt automatisch gedownload. Upload het binnen enkele minuten naar Noordhoff SharePoint zodat de NetSuite-administratie het kan importeren. Verwijder de lokale kopie daarna (bevat persoonsgegevens).',
+    'Klik op "Exporteer" → er wordt een Excel-bestand gegenereerd met alle goedgekeurde wijzigingen sinds de vorige export (één rij per veld: auteur, alliant ID, veld, oude waarde, nieuwe waarde, goedgekeurd door en wanneer). Het bestand wordt automatisch gedownload — u kunt het direct importeren in NetSuite of in een ander back-office systeem.',
   'admin.card_export_help_safety':
-    'Per export wordt een tijdstempel per auteur bijgehouden, zodat dezelfde wijziging niet twee keer gerapporteerd wordt. Bij een tweede klik krijg je dan ook "Geen wijzigingen sinds vorige export".',
+    'Per ge-exporteerde wijziging wordt een tijdstempel opgeslagen, zodat dezelfde wijziging niet twee keer in de export verschijnt. Bij een tweede klik krijgt u "Geen wijzigingen sinds vorige export".',
   'admin.created_at': 'Aangemaakt {date}',
   'admin.invited_at': 'Uitgenodigd {date}',
   'admin.reminder_at': 'Reminder {date}',
@@ -569,13 +571,13 @@ export const nl: Translations = {
   'admin.bulk_stmt_result_failed': 'Mislukt',
   'admin.bulk_stmt_result_errors_heading': 'Details ({count})',
 
-  'admin.csv_export_heading': 'Export naar NetSuite',
+  'admin.csv_export_heading': 'Exporteer wijzigingen',
   'admin.csv_export_intro':
-    'Genereert een CSV met alle auteursgegevens die zijn gewijzigd of nieuw geactiveerd sinds vorige export. Bestand wordt gedownload. Upload binnen enkele minuten naar Noordhoff SharePoint en verwijder lokaal.',
+    'Genereert een Excel-bestand met alle goedgekeurde wijzigingen sinds de vorige export. Eén rij per gewijzigd veld; klaar om in te lezen in NetSuite of een ander back-office systeem.',
   'admin.csv_export_reason_label': 'Reden / opmerking (optioneel, komt in audit-log)',
   'admin.csv_export_reason_placeholder': 'bv. Wekelijkse NetSuite-sync',
-  'admin.csv_export_submit_count': 'Exporteer & download ({count} rijen)',
-  'admin.csv_export_submit': 'Exporteer & download',
+  'admin.csv_export_submit_count': 'Exporteer ({count} wijzigingen)',
+  'admin.csv_export_submit': 'Exporteer',
   'admin.csv_export_no_changes': 'Geen wijzigingen sinds vorige export.',
   'admin.csv_export_summary_count': '{count} auteur(s) komen in deze export:',
   'admin.csv_export_row_more': '… en {count} meer',

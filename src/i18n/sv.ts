@@ -295,6 +295,8 @@ export const sv: Translations = {
     'Ändringar granskas av Noordhoff. De träder i kraft först efter godkännande.',
   'profile.changes_empty': 'Inga ändringar gjorda.',
   'profile.changes_saved': 'Ändringar sparade.',
+  'profile.changes_submitted_for_review':
+    'Dina ändringar har sparats och väntar på godkännande av Noordhoff.',
   'profile.changes_nothing': 'Inget att ändra.',
   'profile.pending_change_badge': '⏳ ändring väntar: {value}',
   'profile.changes_submitted': '{count} ändring(ar) skickade. Noordhoff granskar dem.',
@@ -340,7 +342,7 @@ export const sv: Translations = {
     'Välj båda filer tillsammans → klicka "Visa förhandsgranskning" → kontrollera tabellen med författarmatchningar → bekräfta. Dubbeluppladdningar av samma PDF hoppas över automatiskt.',
   'admin.toolbar_excel_import': 'Importera befintliga författare',
   'admin.toolbar_bulk_statements': 'Ladda upp avräkningar',
-  'admin.toolbar_csv_export': 'Exportera till NetSuite',
+  'admin.toolbar_csv_export': 'Exportera',
   'admin.toolbar_new_author': 'Importera ny författare',
   'admin.tooltip_excel_import':
     'Skapa flera författare samtidigt från NetSuite-leverantörsexporten. För författare som redan finns hos Noordhoff med ifyllda uppgifter.',
@@ -482,7 +484,7 @@ export const sv: Translations = {
   'admin.status_gereed_short': 'Redo för aktivering',
   'admin.status_actief': 'Aktiv',
   'admin.status_actief_short': 'Aktiv',
-  'admin.card_export_title': 'Exportera till NetSuite',
+  'admin.card_export_title': 'Exportera',
   'admin.card_export_help_intro':
     'Författare ändrar sina egna profiluppgifter (adress, IBAN, telefon) via portalen. Dessa ändringar samlas här för periodisk synk tillbaka till NetSuite så att den finansiella administrationen hålls aktuell.',
   'admin.card_export_help_workflow':
@@ -573,13 +575,13 @@ export const sv: Translations = {
   'admin.bulk_stmt_result_failed': 'Misslyckades',
   'admin.bulk_stmt_result_errors_heading': 'Detaljer ({count})',
 
-  'admin.csv_export_heading': 'Exportera till NetSuite',
+  'admin.csv_export_heading': 'Exportera ändringar',
   'admin.csv_export_intro':
     'Genererar en CSV med alla författaruppgifter som ändrats eller nyligen aktiverats sedan föregående export. Filen laddas ner. Ladda upp till Noordhoff SharePoint inom minuter och radera lokalt.',
   'admin.csv_export_reason_label': 'Anledning / kommentar (valfritt, sparas i revisionsloggen)',
   'admin.csv_export_reason_placeholder': 't.ex. Veckovis NetSuite-synk',
-  'admin.csv_export_submit_count': 'Exportera & ladda ner ({count} rader)',
-  'admin.csv_export_submit': 'Exportera & ladda ner',
+  'admin.csv_export_submit_count': 'Exportera ({count} ändringar)',
+  'admin.csv_export_submit': 'Exportera',
   'admin.csv_export_no_changes': 'Inga ändringar sedan föregående export.',
   'admin.csv_export_summary_count': '{count} författare ingår:',
   'admin.csv_export_row_more': '… och {count} till',
