@@ -531,7 +531,7 @@ export const en: Translations = {
   'admin.bulk_stmt_amounts_download_btn': 'Download empty template (.xlsx)',
   'admin.bulk_stmt_heading': 'Bulk upload: {type}',
   'admin.bulk_stmt_intro':
-    'Upload multiple NU_SC_*.pdf files at once plus an Excel with the matching amounts (columns: alliant_id, amount, yyyymm). Authors are matched automatically via their Alliant ID.',
+    'Upload all PDFs in this batch in one go, together with an Excel containing the amounts. The conventions below are leading; authors are automatically matched via their Alliant ID.',
   'admin.bulk_stmt_type_label': 'Statement type',
   'admin.bulk_stmt_type_royalty': 'Royalty',
   'admin.bulk_stmt_type_subsidiary': 'Subsidiary rights',

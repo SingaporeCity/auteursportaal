@@ -537,7 +537,7 @@ export const nl: Translations = {
   'admin.bulk_stmt_amounts_download_btn': 'Leeg template downloaden (.xlsx)',
   'admin.bulk_stmt_heading': 'Bulk uploaden: {type}',
   'admin.bulk_stmt_intro':
-    'Upload meerdere NU_SC_*.pdf bestanden tegelijk plus een Excel met de bijbehorende bedragen (kolommen: alliant_id, amount, yyyymm). Auteurs worden automatisch gematcht via hun Alliant ID.',
+    'Upload alle PDFs van deze batch in één keer, samen met een Excel met de bedragen. De conventies hieronder zijn leidend; auteurs worden automatisch gematcht via hun Alliant ID.',
   'admin.bulk_stmt_type_label': 'Type afrekening',
   'admin.bulk_stmt_type_royalty': 'Royalty',
   'admin.bulk_stmt_type_subsidiary': 'Nevenrechten',

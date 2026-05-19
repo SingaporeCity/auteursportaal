@@ -541,7 +541,7 @@ export const sv: Translations = {
   'admin.bulk_stmt_amounts_download_btn': 'Ladda ner tom mall (.xlsx)',
   'admin.bulk_stmt_heading': 'Bulkuppladdning: {type}',
   'admin.bulk_stmt_intro':
-    'Ladda upp flera NU_SC_*.pdf-filer samtidigt plus en Excel med motsvarande belopp (kolumner: alliant_id, amount, yyyymm). Författare matchas automatiskt via Alliant ID.',
+    'Ladda upp alla PDF:er i denna batch samtidigt med en Excel som innehåller beloppen. Konventionerna nedan är vägledande; författare matchas automatiskt via deras Alliant ID.',
   'admin.bulk_stmt_type_label': 'Avräkningstyp',
   'admin.bulk_stmt_type_royalty': 'Royalty',
   'admin.bulk_stmt_type_subsidiary': 'Bilaterala rättigheter',
