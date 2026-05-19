@@ -27,6 +27,7 @@ import {
   lookupAmount,
   buildMonthTitle,
   derivePaymentDate,
+  TYPE_TO_PREFIX,
 } from '@/lib/bulk-statement-helpers';
 import {
   MAX_FILE_BYTES,
@@ -120,6 +121,16 @@ export function openBulkStatementUploadModal(onDone: () => void, initialType?: P
   }
   typeWrap.appendChild(typeSelect);
   modal.appendChild(typeWrap);
+
+  // -- Filename-conventie-help-blok. Updatet automatisch bij type-wissel.
+  const conventionHelp = document.createElement('div');
+  conventionHelp.className = 'bulk-stmt-convention-help';
+  modal.appendChild(conventionHelp);
+  const renderConventionHelp = (): void => {
+    renderFilenameConvention(conventionHelp, typeSelect.value as PaymentType);
+  };
+  typeSelect.addEventListener('change', renderConventionHelp);
+  renderConventionHelp();
 
   // -- PDF-input (multi)
   const pdfWrap = document.createElement('label');
@@ -272,9 +283,11 @@ async function runPreview(
       return;
     }
 
-    // PDF-filenames parsen
+    // PDF-filenames parsen — geef het verwachte type mee zodat een
+    // verkeerde prefix (bv. NR-bestand bij Royalty-selectie) een
+    // duidelijke type-mismatch-error oplevert ipv stilzwijgend te slagen.
     const rows: PreviewRow[] = pdfs.map((file) => {
-      const parsed = parseStatementFilename(file.name);
+      const parsed = parseStatementFilename(file.name, type);
       if ('error' in parsed) {
         return makeErrorRow(file, parsed.error);
       }
@@ -600,6 +613,69 @@ function formatPeriod(year: number, month: number): string {
     month: 'long',
     year: 'numeric',
   }).format(new Date(year, month - 1, 1));
+}
+
+/**
+ * Rendert een prominent uitleg-blok in de bulk-upload-modal met de filename-
+ * conventie voor het geselecteerde type. Wordt opnieuw aangeroepen bij elke
+ * type-wissel zodat de prefix + voorbeeld direct meeschakelt.
+ *
+ * Doel: voorkom mislukte uploads door verkeerde naamgeving — admin ziet
+ * vóór het slepen exact welk patroon nodig is, met een geel-gemarkeerd
+ * voorbeeld dat hij kan copy-pasten als template.
+ */
+function renderFilenameConvention(container: HTMLElement, type: PaymentType): void {
+  container.replaceChildren();
+  const prefix = TYPE_TO_PREFIX[type];
+  const typeLabel = t(`admin.bulk_stmt_type_${type}`);
+
+  const heading = document.createElement('div');
+  heading.className = 'bulk-stmt-convention-heading';
+  heading.textContent = t('admin.bulk_stmt_filename_heading').replace('{type}', typeLabel);
+  container.appendChild(heading);
+
+  // Format-regel: NU_<PREFIX>_<AlliantID>_<Voorletters Achternaam>_<YYYYMM>.pdf
+  const format = document.createElement('code');
+  format.className = 'bulk-stmt-convention-format';
+  format.textContent = `NU_${prefix}_<AlliantID>_<Voorletters Achternaam>_<YYYYMM>.pdf`;
+  container.appendChild(format);
+
+  // Concreet voorbeeld om te kunnen copy-pasten
+  const exampleWrap = document.createElement('div');
+  exampleWrap.className = 'bulk-stmt-convention-example';
+  const exampleLabel = document.createElement('span');
+  exampleLabel.className = 'bulk-stmt-convention-example-label';
+  exampleLabel.textContent = t('admin.bulk_stmt_filename_example_label');
+  exampleWrap.appendChild(exampleLabel);
+  const exampleCode = document.createElement('code');
+  exampleCode.textContent = `NU_${prefix}_2651307_G. de Jong_202512.pdf`;
+  exampleWrap.appendChild(exampleCode);
+  container.appendChild(exampleWrap);
+
+  // Legenda: per onderdeel uitleggen wat erin moet
+  const legend = document.createElement('ul');
+  legend.className = 'bulk-stmt-convention-legend';
+
+  const items: { key: string; value: string }[] = [
+    {
+      key: `NU_${prefix}`,
+      value: t('admin.bulk_stmt_filename_part_prefix').replace('{type}', typeLabel),
+    },
+    { key: '<AlliantID>', value: t('admin.bulk_stmt_filename_part_alliant') },
+    { key: '<Voorletters Achternaam>', value: t('admin.bulk_stmt_filename_part_name') },
+    { key: '<YYYYMM>', value: t('admin.bulk_stmt_filename_part_yyyymm') },
+  ];
+  for (const item of items) {
+    const li = document.createElement('li');
+    const code = document.createElement('code');
+    code.textContent = item.key;
+    li.appendChild(code);
+    const span = document.createElement('span');
+    span.textContent = ` — ${item.value}`;
+    li.appendChild(span);
+    legend.appendChild(li);
+  }
+  container.appendChild(legend);
 }
 
 // ============================================================================

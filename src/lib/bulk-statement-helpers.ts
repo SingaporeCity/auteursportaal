@@ -26,30 +26,90 @@ export interface ParsedFilename {
   year: number;
   month: number;
   yyyymm: string; // bv. '202512'
+  /** Type afgeleid uit de filename-prefix (SC/NR/FR/JO). */
+  inferredType: PaymentType;
 }
 
-const FILENAME_RE = /^NU_SC_(\d+)_(.+?)_(\d{4})(\d{2})\.pdf$/i;
+/**
+ * Filename-prefix per statement-type. Eén kant van de waarheid voor zowel
+ * parser (prefix → type) als UI-help-tekst (type → prefix).
+ *
+ *   SC = Statement Compensation = Royalty-afrekening
+ *   NR = Nevenrechten
+ *   FR = Foreign Rights
+ *   JO = Jaaropgave
+ */
+export const TYPE_TO_PREFIX: Record<PaymentType, string> = {
+  royalty: 'SC',
+  subsidiary: 'NR',
+  foreign: 'FR',
+  jaaropgave: 'JO',
+};
+
+const PREFIX_TO_TYPE: Record<string, PaymentType> = {
+  SC: 'royalty',
+  NR: 'subsidiary',
+  FR: 'foreign',
+  JO: 'jaaropgave',
+};
+
+const TYPE_LABEL_NL: Record<PaymentType, string> = {
+  royalty: 'Royalty-afrekening',
+  subsidiary: 'Nevenrechten',
+  foreign: 'Foreign Rights',
+  jaaropgave: 'Jaaropgave',
+};
+
+const FILENAME_RE = /^NU_(SC|NR|FR|JO)_(\d+)_(.+?)_(\d{4})(\d{2})\.pdf$/i;
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1;
 
 /**
  * Parset een NetSuite-statement-filename naar zijn semantische velden.
  *
- * Verwachte conventie: `NU_SC_<alliantId>_<naam>_<YYYYMM>.pdf`.
+ * Conventie per type (de prefix bepaalt het type):
+ *   Royalty       → `NU_SC_<alliantId>_<naam>_<YYYYMM>.pdf`
+ *   Nevenrechten  → `NU_NR_<alliantId>_<naam>_<YYYYMM>.pdf`
+ *   Foreign       → `NU_FR_<alliantId>_<naam>_<YYYYMM>.pdf`
+ *   Jaaropgave    → `NU_JO_<alliantId>_<naam>_<YYYYMM>.pdf`
  *
- * @example parseStatementFilename('NU_SC_2651307_G. de Jong_202512.pdf')
- *   → { alliantId: '2651307', displayName: 'G. de Jong', year: 2025, month: 12, yyyymm: '202512' }
+ * Optioneel `expectedType`-argument valideert dat de filename-prefix
+ * overeenkomt met wat de admin in de UI heeft geselecteerd. Mismatch geeft
+ * een leesbare fout zodat een per-ongeluk-bestand niet onder de verkeerde
+ * categorie geüpload wordt.
+ *
+ * @example parseStatementFilename('NU_SC_2651307_G. de Jong_202512.pdf', 'royalty')
+ *   → { alliantId: '2651307', displayName: 'G. de Jong', year: 2025, month: 12, yyyymm: '202512', inferredType: 'royalty' }
  */
-export function parseStatementFilename(filename: string): ParsedFilename | { error: string } {
+export function parseStatementFilename(
+  filename: string,
+  expectedType?: PaymentType
+): ParsedFilename | { error: string } {
   const m = FILENAME_RE.exec(filename);
   if (m === null) {
+    const expectedPrefix =
+      expectedType !== undefined ? TYPE_TO_PREFIX[expectedType] : 'SC/NR/FR/JO';
     return {
-      error: 'Filename volgt niet de conventie NU_SC_<alliantId>_<naam>_<YYYYMM>.pdf',
+      error: `Filename volgt niet de conventie NU_${expectedPrefix}_<AlliantID>_<Voorletters Achternaam>_<YYYYMM>.pdf`,
     };
   }
-  const alliantId = m[1] ?? '';
-  const displayName = m[2] ?? '';
-  const year = Number(m[3] ?? '0');
-  const month = Number(m[4] ?? '0');
+  const prefix = (m[1] ?? '').toUpperCase();
+  const inferredType = PREFIX_TO_TYPE[prefix];
+  if (inferredType === undefined) {
+    return { error: `Onbekende type-prefix "${prefix}" (verwacht SC, NR, FR of JO).` };
+  }
+
+  if (expectedType !== undefined && inferredType !== expectedType) {
+    const expectedLabel = TYPE_LABEL_NL[expectedType];
+    const inferredLabel = TYPE_LABEL_NL[inferredType];
+    return {
+      error: `Type-mismatch: filename heeft prefix "${prefix}" (= ${inferredLabel}), maar je hebt "${expectedLabel}" geselecteerd. Selecteer het juiste type of hernoem het bestand.`,
+    };
+  }
+
+  const alliantId = m[2] ?? '';
+  const displayName = m[3] ?? '';
+  const year = Number(m[4] ?? '0');
+  const month = Number(m[5] ?? '0');
 
   if (year < 2020 || year > CURRENT_YEAR_PLUS_ONE) {
     return {
@@ -66,6 +126,7 @@ export function parseStatementFilename(filename: string): ParsedFilename | { err
     year,
     month,
     yyyymm: `${String(year)}${String(month).padStart(2, '0')}`,
+    inferredType,
   };
 }
 

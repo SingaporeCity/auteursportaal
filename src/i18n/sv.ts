@@ -525,6 +525,14 @@ export const sv: Translations = {
   'admin.excel_import_no_response': 'Inget svar mottaget från Edge Function.',
   'admin.excel_import_unexpected': 'Oväntat fel',
 
+  'admin.bulk_stmt_filename_heading': 'Filnamnskonvention för {type}',
+  'admin.bulk_stmt_filename_example_label': 'Exempel:',
+  'admin.bulk_stmt_filename_part_prefix': 'fast prefix för {type}',
+  'admin.bulk_stmt_filename_part_alliant': 'Författarens Alliant ID (se författardetalj i admin)',
+  'admin.bulk_stmt_filename_part_name':
+    'Initial(er) med punkt, mellanslag, sedan efternamn (t.ex. "G. de Jong")',
+  'admin.bulk_stmt_filename_part_yyyymm':
+    'Bokföringsår + månad utan mellanslag eller bindestreck, t.ex. 202512 för december 2025',
   'admin.bulk_stmt_heading': 'Bulkuppladdning av royalty-avräkningar',
   'admin.bulk_stmt_intro':
     'Ladda upp flera NU_SC_*.pdf-filer samtidigt plus en Excel med motsvarande belopp (kolumner: alliant_id, amount, yyyymm). Författare matchas automatiskt via Alliant ID.',

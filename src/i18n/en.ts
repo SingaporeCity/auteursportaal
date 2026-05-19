@@ -515,6 +515,14 @@ export const en: Translations = {
   'admin.excel_import_no_response': 'No response received from Edge Function.',
   'admin.excel_import_unexpected': 'Unexpected error',
 
+  'admin.bulk_stmt_filename_heading': 'Filename convention for {type}',
+  'admin.bulk_stmt_filename_example_label': 'Example:',
+  'admin.bulk_stmt_filename_part_prefix': 'fixed prefix for {type}',
+  'admin.bulk_stmt_filename_part_alliant': "Author's Alliant ID (see author detail in admin)",
+  'admin.bulk_stmt_filename_part_name':
+    'Initial(s) with dot, space, then surname (e.g. "G. de Jong")',
+  'admin.bulk_stmt_filename_part_yyyymm':
+    'Book year + month with no space or dash, e.g. 202512 for December 2025',
   'admin.bulk_stmt_heading': 'Bulk upload royalty statements',
   'admin.bulk_stmt_intro':
     'Upload multiple NU_SC_*.pdf files at once plus an Excel with the matching amounts (columns: alliant_id, amount, yyyymm). Authors are matched automatically via their Alliant ID.',

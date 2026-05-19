@@ -25,7 +25,6 @@ import { openExcelImportModal } from './admin/excel-import';
 import { openBulkStatementUploadModal } from './admin/bulk-statement-upload';
 import { openContractUploadModal } from './admin/contract-upload';
 import { openNewAuthorModal } from './admin/new-author-modal';
-import { openAuthorPickerModal } from './admin/author-picker';
 import { openAuthorDetailPanel } from './admin/author-detail-panel';
 import { openChoiceModal } from './admin/choice-modal';
 import { openIdKoppelModal } from './admin/id-koppel-modal';
@@ -249,7 +248,7 @@ function openAddAuthorChoice(onAuthorsChanged: () => void): void {
   });
 }
 
-function openUploadChoice(state: ListState, onAuthorsChanged: () => void): void {
+function openUploadChoice(onAuthorsChanged: () => void): void {
   const openStatement = (type: PaymentType): void => {
     openBulkStatementUploadModal(onAuthorsChanged, type);
   };
@@ -300,12 +299,12 @@ function openUploadChoice(state: ListState, onAuthorsChanged: () => void): void 
         label: t('admin.upload_choice_contracts'),
         description: t('admin.upload_choice_contracts_desc'),
         icon: ICON_CONTRACT,
-        // Tussenoplossing tot bulk-contract-flow er staat: gebruik de
-        // bestaande per-contract modal via een auteur-picker.
+        comingSoonLabel: t('admin.coming_soon'),
+        // Disabled — bulk-contract-upload nog niet gebouwd. Per-auteur
+        // contract-upload blijft beschikbaar via het detail-paneel.
         onPick: () => {
-          openAuthorPickerModal(state.authors, (author) => {
-            openContractUploadModal(author, onAuthorsChanged);
-          });
+          // Disabled — handler wordt niet aangeroepen zolang
+          // comingSoonLabel gezet is.
         },
       },
       {
@@ -370,7 +369,7 @@ function renderAccountsTab(
           tooltip: t('admin.tooltip_upload_documents'),
           variant: 'primary',
           onClick: () => {
-            openUploadChoice(state, onAuthorsChanged);
+            openUploadChoice(onAuthorsChanged);
           },
         },
       ],

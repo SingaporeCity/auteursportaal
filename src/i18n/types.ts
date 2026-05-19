@@ -499,6 +499,12 @@ export type TranslationKey =
   // Admin — bulk-statement-upload (royalty-PDFs in bulk)
   | 'admin.bulk_stmt_heading'
   | 'admin.bulk_stmt_intro'
+  | 'admin.bulk_stmt_filename_heading'
+  | 'admin.bulk_stmt_filename_example_label'
+  | 'admin.bulk_stmt_filename_part_prefix'
+  | 'admin.bulk_stmt_filename_part_alliant'
+  | 'admin.bulk_stmt_filename_part_name'
+  | 'admin.bulk_stmt_filename_part_yyyymm'
   | 'admin.bulk_stmt_type_label'
   | 'admin.bulk_stmt_type_royalty'
   | 'admin.bulk_stmt_type_subsidiary'

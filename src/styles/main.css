@@ -1806,6 +1806,86 @@ a:hover {
   margin-bottom: 0.25rem;
 }
 
+/* Filename-conventie-help in de bulk-statement-modal — opvallend amber
+ * info-card met format + voorbeeld + legenda per onderdeel. */
+.bulk-stmt-convention-help {
+  margin: 0.75rem 0 1.25rem;
+  padding: 0.9rem 1rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 3px solid #f59e0b;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.bulk-stmt-convention-heading {
+  font-variation-settings: 'wght' 600;
+  margin-bottom: 0.5rem;
+  color: #78350f;
+}
+
+.bulk-stmt-convention-format {
+  display: block;
+  padding: 0.5rem 0.7rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  color: var(--color-text);
+  word-break: break-all;
+  margin-bottom: 0.6rem;
+}
+
+.bulk-stmt-convention-example {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.bulk-stmt-convention-example-label {
+  color: #78350f;
+  font-variation-settings: 'wght' 600;
+}
+
+.bulk-stmt-convention-example code {
+  padding: 0.2rem 0.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  word-break: break-all;
+}
+
+.bulk-stmt-convention-legend {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.bulk-stmt-convention-legend li {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--color-text-light);
+}
+
+.bulk-stmt-convention-legend code {
+  padding: 0.05rem 0.35rem;
+  background: var(--color-bg);
+  border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  color: var(--color-text);
+}
+
 /* ============================================================================
  * Bulk-statement preview — modern voorbeeldweergave met stat-tiles, groepen
  * per status en compacte item-cards. Vervangt de oude rij-per-rij-tabel.

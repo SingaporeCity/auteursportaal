@@ -521,6 +521,14 @@ export const nl: Translations = {
   'admin.excel_import_no_response': 'Geen resultaat ontvangen van Edge Function.',
   'admin.excel_import_unexpected': 'Onverwachte fout',
 
+  'admin.bulk_stmt_filename_heading': 'Filename-conventie voor {type}',
+  'admin.bulk_stmt_filename_example_label': 'Voorbeeld:',
+  'admin.bulk_stmt_filename_part_prefix': 'vaste prefix voor {type}',
+  'admin.bulk_stmt_filename_part_alliant': 'Alliant ID van de auteur (zie auteur-detail in admin)',
+  'admin.bulk_stmt_filename_part_name':
+    'Voorletter(s) met punt, spatie, en achternaam (bv. "G. de Jong")',
+  'admin.bulk_stmt_filename_part_yyyymm':
+    'Boekjaar + maand zonder spatie of streepje, bv. 202512 voor december 2025',
   'admin.bulk_stmt_heading': 'Royalty-statements bulk uploaden',
   'admin.bulk_stmt_intro':
     'Upload meerdere NU_SC_*.pdf bestanden tegelijk plus een Excel met de bijbehorende bedragen (kolommen: alliant_id, amount, yyyymm). Auteurs worden automatisch gematcht via hun Alliant ID.',

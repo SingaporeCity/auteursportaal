@@ -8,7 +8,7 @@ import {
 } from './bulk-statement-helpers';
 
 describe('parseStatementFilename', () => {
-  it('parset standaard NU_SC-filename', () => {
+  it('parset standaard NU_SC-filename (royalty)', () => {
     const result = parseStatementFilename('NU_SC_2651307_G. de Jong_202512.pdf');
     expect(result).toEqual({
       alliantId: '2651307',
@@ -16,17 +16,36 @@ describe('parseStatementFilename', () => {
       year: 2025,
       month: 12,
       yyyymm: '202512',
+      inferredType: 'royalty',
     });
+  });
+
+  it('parset NR-prefix als subsidiary (Nevenrechten)', () => {
+    const result = parseStatementFilename('NU_NR_2644800_van Dijk_202403.pdf');
+    expect(result).toMatchObject({
+      alliantId: '2644800',
+      displayName: 'van Dijk',
+      inferredType: 'subsidiary',
+    });
+  });
+
+  it('parset FR-prefix als foreign (Foreign Rights)', () => {
+    const result = parseStatementFilename('NU_FR_2644800_van Dijk_202403.pdf');
+    expect(result).toMatchObject({ inferredType: 'foreign' });
+  });
+
+  it('parset JO-prefix als jaaropgave', () => {
+    const result = parseStatementFilename('NU_JO_2644800_van Dijk_202403.pdf');
+    expect(result).toMatchObject({ inferredType: 'jaaropgave' });
   });
 
   it('accepteert namen met koppeltekens en spaties', () => {
     const result = parseStatementFilename('NU_SC_2644800_van Dijk-Jansen_202403.pdf');
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       alliantId: '2644800',
       displayName: 'van Dijk-Jansen',
       year: 2024,
       month: 3,
-      yyyymm: '202403',
     });
   });
 
@@ -38,9 +57,13 @@ describe('parseStatementFilename', () => {
     expect(result.year).toBe(2021);
   });
 
-  it('verwerpt filenames zonder NU_SC-prefix', () => {
+  it('verwerpt filenames zonder NU-prefix', () => {
     expect(parseStatementFilename('SC_1234_Naam_202512.pdf')).toHaveProperty('error');
     expect(parseStatementFilename('factuur.pdf')).toHaveProperty('error');
+  });
+
+  it('verwerpt onbekende prefix', () => {
+    expect(parseStatementFilename('NU_XX_1_Naam_202512.pdf')).toHaveProperty('error');
   });
 
   it('verwerpt ongeldige maand', () => {
@@ -55,6 +78,21 @@ describe('parseStatementFilename', () => {
 
   it('verwerpt niet-numerieke alliant_id', () => {
     expect(parseStatementFilename('NU_SC_ABC_Naam_202512.pdf')).toHaveProperty('error');
+  });
+
+  it('geeft type-mismatch-error bij verkeerde prefix voor selected type', () => {
+    const result = parseStatementFilename('NU_NR_1_Naam_202512.pdf', 'royalty');
+    expect(result).toHaveProperty('error');
+    if ('error' in result) {
+      expect(result.error).toMatch(/Type-mismatch/);
+      expect(result.error).toMatch(/NR/);
+      expect(result.error).toMatch(/Royalty/);
+    }
+  });
+
+  it('accepteert wanneer expectedType matched inferredType', () => {
+    const result = parseStatementFilename('NU_FR_1_Naam_202512.pdf', 'foreign');
+    expect(result).toMatchObject({ inferredType: 'foreign' });
   });
 });
 
