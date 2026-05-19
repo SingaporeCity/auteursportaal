@@ -507,6 +507,8 @@ export const en: Translations = {
   'admin.excel_import_stat_created': 'Created',
   'admin.excel_import_stat_skipped': 'Skipped',
   'admin.excel_import_errors_heading': 'Errors ({count})',
+  'admin.excel_import_stat_warnings': 'Warnings',
+  'admin.excel_import_warnings_heading': 'Warnings ({count} row(s) with cleaned fields)',
   'admin.excel_import_no_file': 'Please select an Excel file first.',
   'admin.excel_import_empty': 'No rows found in the Excel file.',
   'admin.excel_import_failed': 'Import failed',

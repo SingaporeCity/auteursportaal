@@ -64,6 +64,10 @@ interface ImportResult {
   created: number;
   skipped: number;
   errors: { row: number; email: string; reason: string }[];
+  /** Rijen die wel zijn aangemaakt maar waar één of meer optionele velden
+   *  (BSN, postcode, birth_date) ongeldig waren — die velden zijn als NULL
+   *  opgeslagen, de admin kan ze later corrigeren via change_requests. */
+  warnings: { row: number; email: string; reason: string }[];
 }
 
 function corsHeaders(origin: string | null): Record<string, string> {
@@ -177,22 +181,38 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // -- Per rij: valideer → auth-user → authors-rij
-    const result: ImportResult = { created: 0, skipped: 0, errors: [] };
+    const result: ImportResult = { created: 0, skipped: 0, errors: [], warnings: [] };
 
     for (let i = 0; i < rows.length; i++) {
       const raw = rows[i]!;
       const lineNum = i + 2; // Excel header is regel 1, data start regel 2
       const email = (raw.email ?? '').trim().toLowerCase();
 
+      // -- Skip mails waarin 'noordhoff' voorkomt (intern adres of typ-fout
+      // van interne medewerker). Substring-match dekt @noordhoff.nl,
+      // @noordhoff.com, én lokale parts als noordhoff.test@gmail.com.
+      if (email.includes('noordhoff')) {
+        result.errors.push({
+          row: lineNum,
+          email,
+          reason: 'Noordhoff-intern adres — overgeslagen',
+        });
+        result.skipped++;
+        continue;
+      }
+
       // -- Normaliseer
       const normalized = normalizeRow(raw);
 
-      // -- Valideer
-      const validation = validateNormalized(normalized);
-      if (validation.length > 0) {
-        result.errors.push({ row: lineNum, email, reason: validation.join('; ') });
+      // -- Valideer + clean (soft-fail op BSN/postcode/birth_date)
+      const { errors, warnings } = validateAndCleanRow(normalized);
+      if (errors.length > 0) {
+        result.errors.push({ row: lineNum, email, reason: errors.join('; ') });
         result.skipped++;
         continue;
+      }
+      if (warnings.length > 0) {
+        result.warnings.push({ row: lineNum, email, reason: warnings.join('; ') });
       }
 
       // -- Auth-user eerst (email_confirm:true → 0 mails)
@@ -271,6 +291,7 @@ serve(async (req: Request): Promise<Response> => {
           created: result.created,
           skipped: result.skipped,
           error_count: result.errors.length,
+          warning_count: result.warnings.length,
         },
       });
     } catch {
@@ -405,30 +426,60 @@ function truncate(s: string, max: number): string {
 // =============================================================================
 // Validatie
 // =============================================================================
-function validateNormalized(row: NormalizedRow): string[] {
-  const errs: string[] = [];
+/**
+ * Splitst de validatie in twee categorieën:
+ *
+ *   - **errors** (hard-fail): rij wordt geskipt. Email + naam ontbreken,
+ *     of IBAN ingevuld maar ongeldig (mod-97 faalt) — zonder geldig IBAN
+ *     kunnen royalty's niet uitbetaald worden, dus moet admin de rij
+ *     fixen voordat we 'm aanmaken.
+ *
+ *   - **warnings** (soft-fail): rij wordt aangemaakt met het ongeldige
+ *     veld als NULL (`row.X = ''` in deze functie; INSERT mapt '' → NULL).
+ *     Geldt voor BSN/postcode/birth_date — admin kan die later
+ *     corrigeren via change_requests of een directe update. Patrick wil
+ *     niet dat één typo de hele import-rij verliest.
+ *
+ * MUTEERT de meegegeven row bij soft-fail. Caller leest erna `row.X` ===
+ * '' en zet daar NULL voor de DB.
+ */
+function validateAndCleanRow(row: NormalizedRow): {
+  errors: string[];
+  warnings: string[];
+} {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // -- Fatal: email + naam moeten kloppen, anders is rij onbruikbaar
   if (row.email === '' || !isValidEmail(row.email)) {
-    errs.push('Email ongeldig of leeg');
+    errors.push('Email ongeldig of leeg');
   }
   if (row.first_name === '' || row.last_name === '') {
-    errs.push('Naam kon niet worden gesplitst (first_name of last_name leeg)');
+    errors.push('Naam kon niet worden gesplitst (first_name of last_name leeg)');
   }
+  // -- Fatal: IBAN ongeldig blokkeert uitbetalingen
+  if (row.iban !== '' && !isValidIBAN(row.iban)) {
+    errors.push('IBAN ongeldig (mod-97 faalt)');
+  }
+
+  // -- Soft-fail: drop het ongeldige veld + log waarschuwing
   if (row.postcode !== '' && !isValidPostcodeNL(row.postcode)) {
-    errs.push(`Postcode ongeldig (verwacht "1234 AB"): "${row.postcode}"`);
+    warnings.push(`Postcode "${row.postcode}" ongeldig (verwacht "1234 AB") — opgeslagen als leeg`);
+    row.postcode = '';
   }
   if (row.bsn !== '' && !isValidBSN(row.bsn)) {
-    errs.push('BSN ongeldig (11-proef faalt)');
+    warnings.push('BSN ongeldig (11-proef faalt) — opgeslagen als leeg');
+    row.bsn = '';
   }
-  if (row.iban !== '' && !isValidIBAN(row.iban)) {
-    errs.push('IBAN ongeldig (mod-97 faalt)');
-  }
-  // Format-check: na normalizeRow zijn implausibele datums al ge-NULL'd, dus
-  // wat hier overblijft moet ISO YYYY-MM-DD zijn. Faalt alleen bij echte
-  // parsing-rotzooi vanuit de frontend (zou niet mogen).
+  // Format-check: na normalizeRow zijn implausibele datums al ge-NULL'd;
+  // wat overblijft moet ISO YYYY-MM-DD zijn. Soft-fail ipv hard-fail zodat
+  // een ondiepe parsing-glitch geen rij kost.
   if (row.birth_date !== '' && !/^\d{4}-\d{2}-\d{2}$/.test(row.birth_date)) {
-    errs.push(`Geboortedatum heeft onbekend formaat: "${row.birth_date}"`);
+    warnings.push(`Geboortedatum "${row.birth_date}" ongeldig formaat — opgeslagen als leeg`);
+    row.birth_date = '';
   }
-  return errs;
+
+  return { errors, warnings };
 }
 
 function isValidEmail(s: string): boolean {

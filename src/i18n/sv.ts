@@ -517,6 +517,8 @@ export const sv: Translations = {
   'admin.excel_import_stat_created': 'Skapade',
   'admin.excel_import_stat_skipped': 'Hoppade över',
   'admin.excel_import_errors_heading': 'Fel ({count})',
+  'admin.excel_import_stat_warnings': 'Varningar',
+  'admin.excel_import_warnings_heading': 'Varningar ({count} rad(er) med rensade fält)',
   'admin.excel_import_no_file': 'Välj först en Excel-fil.',
   'admin.excel_import_empty': 'Inga rader hittades i Excel-filen.',
   'admin.excel_import_failed': 'Import misslyckades',

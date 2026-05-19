@@ -512,6 +512,9 @@ export const nl: Translations = {
   'admin.excel_import_stat_created': 'Aangemaakt',
   'admin.excel_import_stat_skipped': 'Overgeslagen',
   'admin.excel_import_errors_heading': 'Fouten ({count})',
+  'admin.excel_import_stat_warnings': 'Waarschuwingen',
+  'admin.excel_import_warnings_heading':
+    'Aandachtspunten ({count} rij(en) met opgeschoonde velden)',
   'admin.excel_import_no_file': 'Selecteer eerst een Excel-bestand.',
   'admin.excel_import_empty': 'Geen rijen gevonden in het Excel-bestand.',
   'admin.excel_import_failed': 'Importeren faalde',

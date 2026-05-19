@@ -488,6 +488,8 @@ export type TranslationKey =
   | 'admin.excel_import_stat_created'
   | 'admin.excel_import_stat_skipped'
   | 'admin.excel_import_errors_heading'
+  | 'admin.excel_import_stat_warnings'
+  | 'admin.excel_import_warnings_heading'
   | 'admin.excel_import_no_file'
   | 'admin.excel_import_empty'
   | 'admin.excel_import_failed'

@@ -22,6 +22,9 @@ interface ImportResult {
   created: number;
   skipped: number;
   errors: { row: number; email: string; reason: string }[];
+  /** Aangemaakt-met-soft-fail: één of meer optionele velden (BSN, postcode,
+   *  birth_date) waren ongeldig en zijn als NULL opgeslagen. */
+  warnings: { row: number; email: string; reason: string }[];
 }
 
 interface BulkRow {
@@ -334,6 +337,13 @@ function renderResult(box: HTMLElement, result: ImportResult): void {
     { label: t('admin.excel_import_stat_created'), value: result.created, cls: 'success' },
     { label: t('admin.excel_import_stat_skipped'), value: result.skipped, cls: 'warning' },
   ];
+  if (result.warnings.length > 0) {
+    items.push({
+      label: t('admin.excel_import_stat_warnings'),
+      value: result.warnings.length,
+      cls: 'warning',
+    });
+  }
   for (const item of items) {
     const span = document.createElement('span');
     span.className = `csv-import-stat csv-import-stat-${item.cls}`;
@@ -355,6 +365,24 @@ function renderResult(box: HTMLElement, result: ImportResult): void {
     for (const err of result.errors) {
       const li = document.createElement('li');
       li.textContent = `Regel ${String(err.row)} (${err.email}): ${err.reason}`;
+      list.appendChild(li);
+    }
+    box.appendChild(list);
+  }
+
+  if (result.warnings.length > 0) {
+    const warnHeading = document.createElement('h4');
+    warnHeading.textContent = t('admin.excel_import_warnings_heading').replace(
+      '{count}',
+      String(result.warnings.length)
+    );
+    box.appendChild(warnHeading);
+
+    const list = document.createElement('ul');
+    list.className = 'csv-import-warnings';
+    for (const w of result.warnings) {
+      const li = document.createElement('li');
+      li.textContent = `Regel ${String(w.row)} (${w.email}): ${w.reason}`;
       list.appendChild(li);
     }
     box.appendChild(list);
