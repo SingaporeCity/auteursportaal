@@ -65,14 +65,7 @@ interface PreviewRow {
   status: RowStatus;
 }
 
-const TYPE_OPTIONS: { value: PaymentType; labelKey: string }[] = [
-  { value: 'royalty', labelKey: 'admin.bulk_stmt_type_royalty' },
-  { value: 'subsidiary', labelKey: 'admin.bulk_stmt_type_subsidiary' },
-  { value: 'foreign', labelKey: 'admin.bulk_stmt_type_foreign' },
-  { value: 'jaaropgave', labelKey: 'admin.bulk_stmt_type_jaaropgave' },
-];
-
-export function openBulkStatementUploadModal(onDone: () => void, initialType?: PaymentType): void {
+export function openBulkStatementUploadModal(onDone: () => void, type: PaymentType): void {
   if (document.querySelector('.modal-overlay.bulk-stmt-overlay') !== null) {
     return;
   }
@@ -93,8 +86,12 @@ export function openBulkStatementUploadModal(onDone: () => void, initialType?: P
   closeBtn.setAttribute('aria-label', 'Sluiten');
   modal.appendChild(closeBtn);
 
+  // Type is al gekozen in de Documenten-uploaden choice-modal; geen
+  // dropdown meer hier. Heading bevat het type-label zodat de admin
+  // ziet welke modus actief is.
+  const typeLabel = t(`admin.bulk_stmt_type_${type}`);
   const heading = document.createElement('h3');
-  heading.textContent = t('admin.bulk_stmt_heading');
+  heading.textContent = t('admin.bulk_stmt_heading').replace('{type}', typeLabel);
   modal.appendChild(heading);
 
   const intro = document.createElement('p');
@@ -102,35 +99,11 @@ export function openBulkStatementUploadModal(onDone: () => void, initialType?: P
   intro.textContent = t('admin.bulk_stmt_intro');
   modal.appendChild(intro);
 
-  // -- Type-dropdown
-  const typeWrap = document.createElement('label');
-  typeWrap.className = 'auth-field';
-  const typeSpan = document.createElement('span');
-  typeSpan.textContent = t('admin.bulk_stmt_type_label');
-  typeWrap.appendChild(typeSpan);
-  const typeSelect = document.createElement('select');
-  typeSelect.name = 'type';
-  for (const opt of TYPE_OPTIONS) {
-    const o = document.createElement('option');
-    o.value = opt.value;
-    o.textContent = t(opt.labelKey as Parameters<typeof t>[0]);
-    typeSelect.appendChild(o);
-  }
-  if (initialType !== undefined) {
-    typeSelect.value = initialType;
-  }
-  typeWrap.appendChild(typeSelect);
-  modal.appendChild(typeWrap);
-
-  // -- Filename-conventie-help-blok. Updatet automatisch bij type-wissel.
+  // -- Filename-conventie-help-blok (statisch, type is vast).
   const conventionHelp = document.createElement('div');
   conventionHelp.className = 'bulk-stmt-convention-help';
   modal.appendChild(conventionHelp);
-  const renderConventionHelp = (): void => {
-    renderFilenameConvention(conventionHelp, typeSelect.value as PaymentType);
-  };
-  typeSelect.addEventListener('change', renderConventionHelp);
-  renderConventionHelp();
+  renderFilenameConvention(conventionHelp, type);
 
   // -- PDF-input (multi)
   const pdfWrap = document.createElement('label');
@@ -213,7 +186,7 @@ export function openBulkStatementUploadModal(onDone: () => void, initialType?: P
       showStatus(status, 'error', t('admin.bulk_stmt_no_amounts'));
       return;
     }
-    void runPreview(Array.from(pdfs), xlsx, typeSelect.value as PaymentType, {
+    void runPreview(Array.from(pdfs), xlsx, type, {
       previewBtn,
       status,
       preview,

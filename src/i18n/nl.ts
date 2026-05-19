@@ -529,7 +529,7 @@ export const nl: Translations = {
     'Voorletter(s) met punt, spatie, en achternaam (bv. "G. de Jong")',
   'admin.bulk_stmt_filename_part_yyyymm':
     'Boekjaar + maand zonder spatie of streepje, bv. 202512 voor december 2025',
-  'admin.bulk_stmt_heading': 'Royalty-statements bulk uploaden',
+  'admin.bulk_stmt_heading': 'Bulk uploaden: {type}',
   'admin.bulk_stmt_intro':
     'Upload meerdere NU_SC_*.pdf bestanden tegelijk plus een Excel met de bijbehorende bedragen (kolommen: alliant_id, amount, yyyymm). Auteurs worden automatisch gematcht via hun Alliant ID.',
   'admin.bulk_stmt_type_label': 'Type afrekening',

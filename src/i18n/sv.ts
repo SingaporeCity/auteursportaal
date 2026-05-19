@@ -533,7 +533,7 @@ export const sv: Translations = {
     'Initial(er) med punkt, mellanslag, sedan efternamn (t.ex. "G. de Jong")',
   'admin.bulk_stmt_filename_part_yyyymm':
     'Bokföringsår + månad utan mellanslag eller bindestreck, t.ex. 202512 för december 2025',
-  'admin.bulk_stmt_heading': 'Bulkuppladdning av royalty-avräkningar',
+  'admin.bulk_stmt_heading': 'Bulkuppladdning: {type}',
   'admin.bulk_stmt_intro':
     'Ladda upp flera NU_SC_*.pdf-filer samtidigt plus en Excel med motsvarande belopp (kolumner: alliant_id, amount, yyyymm). Författare matchas automatiskt via Alliant ID.',
   'admin.bulk_stmt_type_label': 'Avräkningstyp',
