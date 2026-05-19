@@ -43,8 +43,6 @@ type FilterValue = 'all' | AdminStatus;
 
 interface ListState {
   filter: FilterValue;
-  /** Vrije-tekst-zoekopdracht; vergelijkt case-insensitive met naam + email. */
-  search: string;
   authors: AuthorRow[];
   /** Set van author-IDs die ten minste één `payments`-rij hebben. */
   paymentsByAuthor: Set<string>;
@@ -112,7 +110,6 @@ export function renderAdminView(root: HTMLElement, admin: AuthorRow): void {
   // gebruikt 'm voor de change-requests-section).
   const state: ListState = {
     filter: 'all',
-    search: '',
     authors: [],
     paymentsByAuthor: new Set(),
     visibleCount: PAGE_SIZE,
@@ -385,29 +382,6 @@ function renderAccountsTab(
   stats.className = 'admin-stats-strip';
   container.appendChild(stats);
 
-  // ---- Toolbar: alleen zoekveld (filter-pills vervallen — stats-tegels
-  // doen dat werk).
-  const toolbar = document.createElement('div');
-  toolbar.className = 'admin-list-toolbar';
-  container.appendChild(toolbar);
-
-  const searchWrap = document.createElement('div');
-  searchWrap.className = 'admin-search-wrap';
-  const searchIcon = document.createElement('span');
-  searchIcon.className = 'admin-search-icon';
-  searchIcon.innerHTML =
-    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
-  searchWrap.appendChild(searchIcon);
-
-  const searchInput = document.createElement('input');
-  searchInput.type = 'search';
-  searchInput.className = 'admin-search-input';
-  searchInput.placeholder = t('admin.search_placeholder');
-  searchInput.value = state.search;
-  searchInput.setAttribute('aria-label', t('admin.search_placeholder'));
-  searchWrap.appendChild(searchInput);
-  toolbar.appendChild(searchWrap);
-
   // ---- Bulk-actie-bar (alleen zichtbaar als auteurs zijn aangevinkt).
   const bulkBar = document.createElement('div');
   bulkBar.className = 'admin-bulk-bar';
@@ -427,12 +401,6 @@ function renderAccountsTab(
     renderBulkBar(bulkBar, state, rerender, statusBox);
     renderList(list, state, statusBox, rerender);
   };
-
-  searchInput.addEventListener('input', () => {
-    state.search = searchInput.value;
-    state.visibleCount = PAGE_SIZE;
-    rerender();
-  });
 
   rerender();
 }
@@ -865,7 +833,6 @@ function countByDerivedStatus(state: ListState): Record<AdminStatus, number> {
  * Admins worden altijd uitgesloten.
  */
 function filterAuthors(state: ListState): AuthorRow[] {
-  const needle = state.search.trim().toLowerCase();
   return state.authors.filter((a) => {
     if (a.is_admin) {
       return false;
@@ -873,12 +840,6 @@ function filterAuthors(state: ListState): AuthorRow[] {
     if (state.filter !== 'all') {
       const status = deriveAdminStatus(a, state.paymentsByAuthor.has(a.id));
       if (status !== state.filter) {
-        return false;
-      }
-    }
-    if (needle !== '') {
-      const haystack = `${a.first_name} ${a.last_name} ${a.email}`.toLowerCase();
-      if (!haystack.includes(needle)) {
         return false;
       }
     }
@@ -931,16 +892,11 @@ function renderList(
   }
 
   const filtered = filterAuthors(state);
-  const hasSearch = state.search.trim() !== '';
 
   if (filtered.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'admin-empty';
-    if (hasSearch) {
-      empty.textContent = t('admin.search_no_results').replace('{q}', state.search);
-    } else {
-      empty.textContent = t('admin.empty_filter');
-    }
+    empty.textContent = t('admin.empty_filter');
     container.appendChild(empty);
     return;
   }

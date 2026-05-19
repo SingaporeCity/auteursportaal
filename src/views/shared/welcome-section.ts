@@ -5,16 +5,15 @@
  * @module views/shared/welcome-section
  */
 
-import type { AuthorRow } from '@/auth';
 import { t } from '@/lib/i18n';
 
-export function buildWelcomeSection(author: AuthorRow): HTMLElement {
+export function buildWelcomeSection(): HTMLElement {
   const wrap = document.createElement('section');
   wrap.className = 'welcome-section';
 
   const heading = document.createElement('h1');
   heading.className = 'welcome-heading';
-  heading.textContent = `${greetingFor(new Date())}, ${author.last_name}`;
+  heading.textContent = greetingFor(new Date());
   wrap.appendChild(heading);
 
   const tagline = document.createElement('p');

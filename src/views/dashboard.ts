@@ -60,7 +60,7 @@ export function renderDashboardView(
   layout.appendChild(dashContent);
 
   // Welcome section staat boven de tabs (greeting + tagline)
-  dashContent.appendChild(buildWelcomeSection(author));
+  dashContent.appendChild(buildWelcomeSection());
 
   // Onboarding-banner + progress-indicator direct onder de welcome bij niet-active auteurs
   if (isOnboarding) {
