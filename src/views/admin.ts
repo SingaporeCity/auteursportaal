@@ -843,6 +843,21 @@ function countByDerivedStatus(state: ListState): Record<AdminStatus, number> {
   return counts;
 }
 
+/**
+ * Sorteer-volgorde voor de auteurslijst. Status is primair sleutel —
+ * dezelfde volgorde als de stats-strip (persoonsgegevens → id_koppelen →
+ * statements → gereed → actief). Binnen één status wordt nieuwste
+ * aanmelddatum eerst getoond (zelfde conventie als DB-query
+ * `created_at DESC`).
+ */
+const STATUS_SORT_ORDER: Record<AdminStatus, number> = {
+  persoonsgegevens: 0,
+  id_koppelen: 1,
+  statements: 2,
+  gereed: 3,
+  actief: 4,
+};
+
 // =============================================================================
 // Lijst + cards
 // =============================================================================
@@ -899,10 +914,22 @@ function renderList(container: HTMLElement, state: ListState, statusBox: HTMLEle
     return;
   }
 
+  // Sorteer primair op status (zelfde volgorde als stats-strip), binnen
+  // status op aanmelddatum (nieuwste eerst). `created_at` is een ISO-string
+  // dus lexicografische compare = chronologische compare.
+  const sorted = filtered.slice().sort((a, b) => {
+    const sa = deriveAdminStatus(a, state.paymentsByAuthor.has(a.id));
+    const sb = deriveAdminStatus(b, state.paymentsByAuthor.has(b.id));
+    if (sa !== sb) {
+      return STATUS_SORT_ORDER[sa] - STATUS_SORT_ORDER[sb];
+    }
+    return b.created_at.localeCompare(a.created_at);
+  });
+
   // Lazy-render: alleen de eerste `visibleCount` cards in DOM. Bij 3000
   // auteurs is 3000 buttons + avatars renderen merkbaar traag — 50 cards
   // op een batch houdt scroll-performance soepel.
-  const shown = filtered.slice(0, state.visibleCount);
+  const shown = sorted.slice(0, state.visibleCount);
   for (const author of shown) {
     const onChanged = (): void => {
       refreshOne(state, author.id, container, statusBox);
