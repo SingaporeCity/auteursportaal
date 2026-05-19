@@ -2365,6 +2365,9 @@ details[open] > .bulk-stmt-amounts-heading {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  /* Forceer plaatsing in de laatste grid-kolom — anders schuift hij naar
+     kol 2 op pagina's zonder search-trigger (admin) en zit hij links. */
+  grid-column: -1;
 }
 
 .app-header-greeting {
