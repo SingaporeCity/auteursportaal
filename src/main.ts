@@ -33,6 +33,7 @@ import { renderAdminView } from '@/views/admin';
 import { renderForcePasswordChangeView } from '@/views/force-password-change';
 import { renderMfaEnrollView } from '@/views/mfa-enroll';
 import { renderMfaChallengeView } from '@/views/mfa-challenge';
+import { registerQuickLoginShortcuts } from '@/dev/quick-login';
 
 const root = document.getElementById('app');
 if (root === null) {
@@ -50,9 +51,11 @@ async function bootstrap(rootEl: HTMLElement): Promise<void> {
   }
 
   // TIJDELIJK (demo 2026-06-11): quick-login ook in productie actief.
+  // Statisch geïmporteerd (bovenaan) zodat hij in de main-chunk zit — een
+  // dynamic import van een aparte chunk kan na een nieuwe deploy 404'en bij
+  // bezoekers met een gecachete index.html en blokkeerde dan de hele render.
   // Credentials zitten niet in de bundle (zie src/dev/quick-login.ts).
-  // Terugdraaien: deze twee regels terug in het DEV-blok hierboven.
-  const { registerQuickLoginShortcuts } = await import('@/dev/quick-login');
+  // Terugdraaien: import + registratie als dynamic import in het DEV-blok.
   registerQuickLoginShortcuts();
 
   await render(rootEl);
