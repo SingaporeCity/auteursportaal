@@ -49,7 +49,7 @@ console.log('   scherm:', JSON.stringify(await describeScreen()));
 await shot('quick-login-author.png');
 
 console.log('3. Naar Contracten-tab…');
-const contractTab = page.locator('button, a', { hasText: /contracten/i }).first();
+const contractTab = page.locator('button, a', { hasText: /contract/i }).first();
 if ((await contractTab.count()) > 0) {
   await contractTab.click();
   await page.waitForTimeout(2500);
