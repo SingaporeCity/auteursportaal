@@ -15,10 +15,17 @@ export interface PreviewOptions {
   filePath: string;
   title: string;
   subtitle?: string | undefined;
+  /** Storage-bucket waar `filePath` in staat. Default: 'statements'. */
+  bucket?: 'statements' | 'contracts';
 }
 
-export async function openPdfPreview({ filePath, title, subtitle }: PreviewOptions): Promise<void> {
-  const { data, error } = await supabase.storage.from('statements').createSignedUrl(filePath, 300);
+export async function openPdfPreview({
+  filePath,
+  title,
+  subtitle,
+  bucket = 'statements',
+}: PreviewOptions): Promise<void> {
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(filePath, 300);
 
   if (error !== null) {
     reportError('pdfPreview.signedUrl', error);

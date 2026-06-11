@@ -47,6 +47,8 @@ async function bootstrap(rootEl: HTMLElement): Promise<void> {
   if (import.meta.env.DEV) {
     const { mountDebugPanel } = await import('@/dev/debug-panel');
     mountDebugPanel();
+    const { registerQuickLoginShortcuts } = await import('@/dev/quick-login');
+    registerQuickLoginShortcuts();
   }
 
   await render(rootEl);
