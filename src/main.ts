@@ -47,9 +47,13 @@ async function bootstrap(rootEl: HTMLElement): Promise<void> {
   if (import.meta.env.DEV) {
     const { mountDebugPanel } = await import('@/dev/debug-panel');
     mountDebugPanel();
-    const { registerQuickLoginShortcuts } = await import('@/dev/quick-login');
-    registerQuickLoginShortcuts();
   }
+
+  // TIJDELIJK (demo 2026-06-11): quick-login ook in productie actief.
+  // Credentials zitten niet in de bundle (zie src/dev/quick-login.ts).
+  // Terugdraaien: deze twee regels terug in het DEV-blok hierboven.
+  const { registerQuickLoginShortcuts } = await import('@/dev/quick-login');
+  registerQuickLoginShortcuts();
 
   await render(rootEl);
 
