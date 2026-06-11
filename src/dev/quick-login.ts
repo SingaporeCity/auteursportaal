@@ -80,15 +80,36 @@ export function registerQuickLoginShortcuts(): void {
   });
 }
 
+/**
+ * Eenmalige setup zonder console: vraag e-mail + wachtwoord via `prompt()` en
+ * bewaar ze in localStorage voor volgende keren. Annuleren = afbreken.
+ */
+function promptAndStore(role: 'author' | 'admin'): QuickAccount | null {
+  // eslint-disable-next-line no-alert -- bewust: eenmalige credential-setup zonder UI
+  const email = window.prompt(`Quick-login '${role}' instellen — e-mailadres:`);
+  if (email === null || email.trim() === '') {
+    return null;
+  }
+  // eslint-disable-next-line no-alert -- bewust: eenmalige credential-setup zonder UI
+  const password = window.prompt(`Quick-login '${role}' — wachtwoord voor ${email.trim()}:`);
+  if (password === null || password === '') {
+    return null;
+  }
+  const account: QuickAccount = { email: email.trim(), password };
+  try {
+    localStorage.setItem(`quick-login.${role}`, JSON.stringify(account));
+  } catch {
+    // Opslag vol/geblokkeerd — login werkt deze keer alsnog, alleen niet onthouden.
+  }
+  return account;
+}
+
 async function quickLogin(role: 'author' | 'admin'): Promise<void> {
   if (busy) {
     return;
   }
-  const account = fromEnv(role) ?? fromStorage(role);
+  const account = fromEnv(role) ?? fromStorage(role) ?? promptAndStore(role);
   if (account === null) {
-    console.warn(
-      `[quick-login] geen credentials voor '${role}' — zet VITE_DEV_*-vars in .env (dev) of localStorage-key 'quick-login.${role}' (JSON {email, password}).`
-    );
     return;
   }
 
@@ -101,6 +122,11 @@ async function quickLogin(role: 'author' | 'admin'): Promise<void> {
     const result = await signInWithPassword(account.email, account.password);
     if (!result.success) {
       console.warn(`[quick-login] inloggen als ${role} mislukt:`, result.error);
+      if (result.error === 'invalid_credentials') {
+        // Fout opgeslagen wachtwoord? Weggooien zodat de volgende druk op de
+        // sneltoets opnieuw om credentials vraagt.
+        localStorage.removeItem(`quick-login.${role}`);
+      }
     }
   } finally {
     busy = false;
