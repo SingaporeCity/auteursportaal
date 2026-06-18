@@ -35,6 +35,8 @@ Admin (Patrick) zet payments-records in de tabel via het admin-portaal of via ee
 
 Charlotte's eerste echte data is in de productie-database geseed: drie payments-records (2024 / 2025 / 2026), bijbehorende PDF's in Storage, plus twee MW Methodeovereenkomst-contracten als referentie.
 
+> **Let op — testdata.** De royalty-statement-PDF's van Charlotte Phillips zijn testbestanden, geen productie-documenten. Het adres in deze PDF's is bewust geanonimiseerd naar een testadres (`Teststraat 1, 1234 AB Teststad`) zodat er geen echt woonadres in de demo-/testomgeving staat. De originele PDF's staan lokaal in `Screenshots/_backup-adres-origineel/`. Bij uitrol naar echte auteurs worden deze testbestanden vervangen door de werkelijke NetSuite-statements.
+
 ### 2.2 Persoonlijke gegevens beheren
 
 Tabblad: **Profiel**
