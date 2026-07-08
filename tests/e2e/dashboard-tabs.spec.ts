@@ -41,9 +41,12 @@ test.describe('Dashboard tabs', () => {
     await expect(page.locator('.contracts-list, .empty-state').first()).toBeVisible();
   });
 
-  test('Prognose tab laadt zonder errors', async ({ page }) => {
+  test('Prognose tab toont het "gesloten" statement', async ({ page }) => {
     await page.click('button.tab-btn[data-tab="forecast"]');
-    await expect(page.locator('.forecast-slot, .empty-state').first()).toBeVisible();
+    await expect(page.locator('.forecast-closed')).toBeVisible();
+    await expect(page.locator('.forecast-closed-headline')).toHaveText(
+      'Jullie waren duidelijk, dit gaan we dus niet doen'
+    );
   });
 
   test('Declaraties tab toont indien-form', async ({ page }) => {

@@ -1,235 +1,122 @@
 /**
- * Prognose-tab — hero card met range + payout-card + horizontale bar-chart.
+ * Prognose-tab — bewust "gesloten".
  *
- * Layout uit demo:
- * - Bovenaan: 2-koloms grid met hero-card (groot range-bedrag) + payout-card
- *   (kalender-icoon + uitbetaal-maand)
- * - Onderaan: bar-chart card met horizontal bars per jaar (historisch teal,
- *   forecast als lichte vulling met range-overlay)
+ * De auteurs gaven aan geen prognose-functie te willen; die feedback wordt met
+ * een knipoog teruggekoppeld. In plaats van forecast-data toont de tab één
+ * statement, gebracht als een "stempel-storm": de (lege) prognose wordt
+ * doorgestreept, vijf stempels ramen in met screen-shake + inktspatten, en de
+ * boodschap punch't erdoorheen. Puur statisch — geen Supabase-call meer.
+ *
+ * Tekst is hardcoded NL (de grap vertaalt niet betekenisvol; zelfde precedent
+ * als faq-data.ts / start.ts). Animaties zitten in CSS (.forecast-closed-*),
+ * met een reduced-motion-fallback in main.css.
  *
  * @module views/tabs/forecast
  */
 
-import { supabase } from '@/lib/supabase';
-import { formatCurrency } from '@/lib/format';
-import { reportError } from '@/dev/debug-panel';
-import { t } from '@/lib/i18n';
-import type { Database } from '@/types/db';
+const MESSAGE = 'Jullie waren duidelijk, dit gaan we dus niet doen';
 
-type ForecastRow = Database['public']['Tables']['forecasts']['Row'];
-type PaymentRow = Database['public']['Tables']['payments']['Row'];
+interface StampSpec {
+  text: string;
+  rot: string;
+  delay: string;
+  pos: string;
+}
+
+const STAMPS: StampSpec[] = [
+  { text: 'Nee', rot: '-13deg', delay: '0.35s', pos: 'left:12%;top:16%;' },
+  { text: 'Geschrapt', rot: '9deg', delay: '0.55s', pos: 'right:6%;top:10%;' },
+  {
+    text: 'Van de baan',
+    rot: '-5deg',
+    delay: '0.78s',
+    pos: 'left:50%;top:42%;margin-left:-3.6rem;',
+  },
+  { text: 'Exit', rot: '14deg', delay: '1s', pos: 'left:8%;bottom:14%;' },
+  { text: 'Nope', rot: '-9deg', delay: '1.18s', pos: 'right:12%;bottom:10%;' },
+];
+
+const SPLAT_COLORS = [
+  'var(--color-accent-coral)',
+  'var(--color-accent-purple)',
+  'var(--color-accent-amber)',
+  'var(--color-accent-blue)',
+  'var(--color-danger)',
+];
 
 export function renderForecastTab(container: HTMLElement): void {
-  const heading = document.createElement('h2');
-  heading.textContent = t('forecast.title');
-  container.appendChild(heading);
+  const stage = document.createElement('div');
+  stage.className = 'forecast-closed';
 
-  const slot = document.createElement('div');
-  slot.className = 'forecast-slot';
-  slot.textContent = '…';
-  container.appendChild(slot);
+  const top = document.createElement('div');
+  top.className = 'forecast-closed-top';
 
-  void loadAndRender(slot);
-}
+  // Inktspatten (decoratief) — vallen samen met de inslaande stempels.
+  const splat = document.createElement('div');
+  splat.className = 'forecast-closed-splat';
+  splat.setAttribute('aria-hidden', 'true');
+  for (const dot of buildSplatDots()) {
+    splat.appendChild(dot);
+  }
+  top.appendChild(splat);
 
-async function loadAndRender(container: HTMLElement): Promise<void> {
-  const [forecastRes, paymentRes] = await Promise.all([
-    supabase.from('forecasts').select('*').order('year', { ascending: false }),
-    supabase.from('payments').select('*'),
-  ]);
+  // Doorgestreepte, nooit-in-te-vullen prognose (bewust dashes, geen echt bedrag).
+  const ghost = document.createElement('div');
+  ghost.className = 'forecast-closed-ghost';
+  ghost.setAttribute('aria-hidden', 'true');
 
-  container.replaceChildren();
+  const label = document.createElement('span');
+  label.className = 'forecast-closed-label';
+  label.textContent = 'Verwachte royalties 2027';
+  ghost.appendChild(label);
 
-  if (forecastRes.error !== null) {
-    reportError('forecast.load', forecastRes.error);
-    container.textContent = `Fout: ${forecastRes.error.message}`;
-    return;
+  const amount = document.createElement('span');
+  amount.className = 'forecast-closed-amount';
+  amount.textContent = '€ ——,—— – € ——,——';
+  const strike = document.createElement('span');
+  strike.className = 'forecast-closed-strike';
+  amount.appendChild(strike);
+  ghost.appendChild(amount);
+
+  top.appendChild(ghost);
+
+  // Inslaande stempels.
+  for (const spec of STAMPS) {
+    const stamp = document.createElement('span');
+    stamp.className = 'forecast-closed-stamp';
+    stamp.textContent = spec.text;
+    stamp.setAttribute('aria-hidden', 'true');
+    stamp.style.cssText = `--rot:${spec.rot};--fc-d:${spec.delay};${spec.pos}`;
+    top.appendChild(stamp);
   }
 
-  const forecasts = forecastRes.data;
-  const payments = paymentRes.error === null ? paymentRes.data : [];
+  stage.appendChild(top);
 
-  // Forecast jaar: zoek het volgende ongepubliceerde jaar (default 2027)
-  const forecastYear = forecasts.find((f) => f.max_amount > 0)?.year ?? 2027;
-  const announcementDate = '31 oktober 2026';
+  // De boodschap zelf — draagt de betekenis (ook voor screenreaders).
+  const headline = document.createElement('h2');
+  headline.className = 'forecast-closed-headline';
+  headline.textContent = MESSAGE;
+  stage.appendChild(headline);
 
-  // Top row: pending-card (groot) + announcement-card (rechts)
-  const topRow = document.createElement('div');
-  topRow.className = 'forecast-top-row';
+  container.appendChild(stage);
+}
 
-  const fc = forecasts.find((f) => f.year === forecastYear);
-  if (fc !== undefined && fc.max_amount > 0) {
-    topRow.appendChild(buildHero(fc));
-    topRow.appendChild(buildPayout(fc));
-  } else {
-    topRow.appendChild(buildPendingHero(forecastYear, announcementDate));
-    topRow.appendChild(buildAnnouncementCard(announcementDate));
+function buildSplatDots(): HTMLElement[] {
+  const dots: HTMLElement[] = [];
+  for (let i = 0; i < 20; i++) {
+    const dot = document.createElement('span');
+    dot.className = 'forecast-closed-dot';
+    const size = 4 + ((i * 13) % 12);
+    const left = 6 + ((i * 41) % 88);
+    const top = 10 + ((i * 57) % 78);
+    const delay = 0.35 + ((i * 29) % 90) / 100;
+    const color = SPLAT_COLORS[i % SPLAT_COLORS.length] ?? 'var(--color-accent-coral)';
+    dot.style.cssText =
+      `width:${String(size)}px;height:${String(size)}px;` +
+      `left:${String(left)}%;top:${String(top)}%;` +
+      `background:${color};` +
+      `--fc-d:${delay.toFixed(2)}s;`;
+    dots.push(dot);
   }
-  container.appendChild(topRow);
-
-  // History-bars: uitbetaling per jaar (zelfde data als afrekeningen)
-  if (payments.length > 0) {
-    container.appendChild(buildHistoryBars(payments));
-  }
-
-  const disclaimer = document.createElement('p');
-  disclaimer.className = 'forecast-disclaimer';
-  disclaimer.textContent = t('forecast.disclaimer');
-  container.appendChild(disclaimer);
-}
-
-function buildPendingHero(year: number, announcementDate: string): HTMLElement {
-  const card = document.createElement('div');
-  card.className = 'forecast-hero forecast-hero-pending';
-
-  const eyebrow = document.createElement('div');
-  eyebrow.className = 'forecast-eyebrow';
-  eyebrow.textContent = `${t('forecast.title')} ${String(year)}`;
-  card.appendChild(eyebrow);
-
-  const headline = document.createElement('div');
-  headline.className = 'forecast-pending-headline';
-  headline.textContent = t('forecast.pending_headline');
-  card.appendChild(headline);
-
-  const sub = document.createElement('p');
-  sub.className = 'forecast-pending-sub';
-  const part1 = document.createTextNode(t('forecast.pending_sub_part1'));
-  const dateStrong = document.createElement('strong');
-  dateStrong.textContent = announcementDate;
-  const part2 = document.createTextNode(
-    t('forecast.pending_sub_part2').replace('{year}', String(year))
-  );
-  sub.append(part1, dateStrong, part2);
-  card.appendChild(sub);
-
-  return card;
-}
-
-function buildAnnouncementCard(announcementDate: string): HTMLElement {
-  const card = document.createElement('div');
-  card.className = 'forecast-announcement-card';
-
-  const eyebrow = document.createElement('div');
-  eyebrow.className = 'forecast-eyebrow';
-  eyebrow.textContent = t('forecast.publish_date_label');
-  card.appendChild(eyebrow);
-
-  const value = document.createElement('div');
-  value.className = 'forecast-announcement-date';
-  value.textContent = announcementDate;
-  card.appendChild(value);
-
-  const note = document.createElement('div');
-  note.className = 'forecast-announcement-note';
-  note.textContent = t('forecast.auto_notify');
-  card.appendChild(note);
-
-  return card;
-}
-
-function buildHistoryBars(payments: PaymentRow[]): HTMLElement {
-  const card = document.createElement('div');
-  card.className = 'forecast-chart-card';
-
-  const heading = document.createElement('h3');
-  heading.className = 'dash-tile-title';
-  heading.textContent = t('forecast.history_title');
-  card.appendChild(heading);
-
-  // Group op uitbetaal-jaar (year of payment_date), exclude jaaropgaves
-  const royalties = payments.filter((p) => p.type !== 'jaaropgave');
-  const byYear = new Map<number, number>();
-  for (const p of royalties) {
-    if (p.payment_date === null) {
-      continue;
-    }
-    const year = new Date(p.payment_date).getFullYear();
-    byYear.set(year, (byYear.get(year) ?? 0) + p.amount);
-  }
-
-  const years = [...byYear.keys()].sort((a, b) => b - a);
-  const max = Math.max(...byYear.values());
-  const scale = max * 1.15;
-
-  const rows = document.createElement('div');
-  rows.className = 'forecast-rows';
-
-  for (const year of years) {
-    const amount = byYear.get(year) ?? 0;
-    const row = document.createElement('div');
-    row.className = 'forecast-bar-row';
-
-    const yearEl = document.createElement('span');
-    yearEl.className = 'forecast-bar-year';
-    yearEl.textContent = String(year);
-    row.appendChild(yearEl);
-
-    const track = document.createElement('div');
-    track.className = 'forecast-bar-track';
-    const fill = document.createElement('div');
-    fill.className = 'forecast-bar-fill';
-    fill.style.width = `${String((amount / scale) * 100)}%`;
-    track.appendChild(fill);
-    row.appendChild(track);
-
-    const value = document.createElement('span');
-    value.className = 'forecast-bar-value';
-    value.textContent = formatCurrency(amount);
-    row.appendChild(value);
-
-    rows.appendChild(row);
-  }
-
-  card.appendChild(rows);
-  return card;
-}
-
-function buildHero(forecast: ForecastRow): HTMLElement {
-  const card = document.createElement('div');
-  card.className = 'forecast-hero';
-
-  const eyebrow = document.createElement('div');
-  eyebrow.className = 'forecast-eyebrow';
-  eyebrow.textContent = t('forecast.eyebrow_year').replace('{year}', String(forecast.year));
-  card.appendChild(eyebrow);
-
-  const range = document.createElement('div');
-  range.className = 'forecast-range';
-  range.textContent = `${formatCurrency(forecast.min_amount)} — ${formatCurrency(forecast.max_amount)}`;
-  card.appendChild(range);
-
-  const sub = document.createElement('div');
-  sub.className = 'forecast-range-sub';
-  sub.textContent = t('forecast.range_sub');
-  card.appendChild(sub);
-
-  return card;
-}
-
-function buildPayout(forecast: ForecastRow): HTMLElement {
-  const card = document.createElement('div');
-  card.className = 'forecast-payout';
-
-  const icon = document.createElement('div');
-  icon.className = 'forecast-payout-icon';
-  icon.textContent = '🗓';
-  icon.setAttribute('aria-hidden', 'true');
-  card.appendChild(icon);
-
-  const inner = document.createElement('div');
-  inner.className = 'forecast-payout-inner';
-
-  const eyebrow = document.createElement('div');
-  eyebrow.className = 'forecast-eyebrow';
-  eyebrow.textContent = t('forecast.payout_label');
-  inner.appendChild(eyebrow);
-
-  const value = document.createElement('div');
-  value.className = 'forecast-payout-month';
-  value.textContent = t('forecast.payout_month').replace('{year}', String(forecast.year + 1));
-  inner.appendChild(value);
-
-  card.appendChild(inner);
-  return card;
+  return dots;
 }
