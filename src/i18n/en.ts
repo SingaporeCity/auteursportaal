@@ -224,6 +224,12 @@ export const en: Translations = {
   'forecast.payout_label': 'Payment',
   'forecast.eyebrow_year': 'Expected royalties {year}',
   'forecast.payout_month': 'March {year}',
+  'forecast.closed_message': "You were clear, so we're not doing this",
+  'forecast.closed_stamp_1': 'No',
+  'forecast.closed_stamp_2': 'Scrapped',
+  'forecast.closed_stamp_3': 'Off the table',
+  'forecast.closed_stamp_4': 'Exit',
+  'forecast.closed_stamp_5': 'Nope',
 
   'expenses.title': 'Expenses',
   'expenses.new_title': 'Submit a new expense',

@@ -231,6 +231,12 @@ export const sv: Translations = {
   'forecast.payout_label': 'Utbetalning',
   'forecast.eyebrow_year': 'Förväntade royalties {year}',
   'forecast.payout_month': 'Mars {year}',
+  'forecast.closed_message': 'Ni var tydliga, så det här gör vi inte',
+  'forecast.closed_stamp_1': 'Nej',
+  'forecast.closed_stamp_2': 'Struket',
+  'forecast.closed_stamp_3': 'Inställt',
+  'forecast.closed_stamp_4': 'Exit',
+  'forecast.closed_stamp_5': 'Nepp',
 
   'expenses.title': 'Utgifter',
   'expenses.new_title': 'Skicka in en ny utgift',

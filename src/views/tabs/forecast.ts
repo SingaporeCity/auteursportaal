@@ -7,33 +7,34 @@
  * doorgestreept, vijf stempels ramen in met screen-shake + inktspatten, en de
  * boodschap punch't erdoorheen. Puur statisch — geen Supabase-call meer.
  *
- * Tekst is hardcoded NL (de grap vertaalt niet betekenisvol; zelfde precedent
- * als faq-data.ts / start.ts). Animaties zitten in CSS (.forecast-closed-*),
- * met een reduced-motion-fallback in main.css.
+ * Teksten lopen via i18n (NL/EN/SV); de ghost-label hergebruikt
+ * `forecast.eyebrow_year`. Animaties zitten in CSS (.forecast-closed-*), met
+ * een reduced-motion-fallback in main.css.
  *
  * @module views/tabs/forecast
  */
 
-const MESSAGE = 'Jullie waren duidelijk, dit gaan we dus niet doen';
+import { t } from '@/lib/i18n';
+import type { TranslationKey } from '@/i18n/types';
 
 interface StampSpec {
-  text: string;
+  key: TranslationKey;
   rot: string;
   delay: string;
   pos: string;
 }
 
 const STAMPS: StampSpec[] = [
-  { text: 'Nee', rot: '-13deg', delay: '0.35s', pos: 'left:12%;top:16%;' },
-  { text: 'Geschrapt', rot: '9deg', delay: '0.55s', pos: 'right:6%;top:10%;' },
+  { key: 'forecast.closed_stamp_1', rot: '-13deg', delay: '0.35s', pos: 'left:12%;top:16%;' },
+  { key: 'forecast.closed_stamp_2', rot: '9deg', delay: '0.55s', pos: 'right:6%;top:10%;' },
   {
-    text: 'Van de baan',
+    key: 'forecast.closed_stamp_3',
     rot: '-5deg',
     delay: '0.78s',
     pos: 'left:50%;top:42%;margin-left:-3.6rem;',
   },
-  { text: 'Exit', rot: '14deg', delay: '1s', pos: 'left:8%;bottom:14%;' },
-  { text: 'Nope', rot: '-9deg', delay: '1.18s', pos: 'right:12%;bottom:10%;' },
+  { key: 'forecast.closed_stamp_4', rot: '14deg', delay: '1s', pos: 'left:8%;bottom:14%;' },
+  { key: 'forecast.closed_stamp_5', rot: '-9deg', delay: '1.18s', pos: 'right:12%;bottom:10%;' },
 ];
 
 const SPLAT_COLORS = [
@@ -67,7 +68,7 @@ export function renderForecastTab(container: HTMLElement): void {
 
   const label = document.createElement('span');
   label.className = 'forecast-closed-label';
-  label.textContent = 'Verwachte royalties 2027';
+  label.textContent = t('forecast.eyebrow_year').replace('{year}', '2027');
   ghost.appendChild(label);
 
   const amount = document.createElement('span');
@@ -84,7 +85,7 @@ export function renderForecastTab(container: HTMLElement): void {
   for (const spec of STAMPS) {
     const stamp = document.createElement('span');
     stamp.className = 'forecast-closed-stamp';
-    stamp.textContent = spec.text;
+    stamp.textContent = t(spec.key);
     stamp.setAttribute('aria-hidden', 'true');
     stamp.style.cssText = `--rot:${spec.rot};--fc-d:${spec.delay};${spec.pos}`;
     top.appendChild(stamp);
@@ -95,7 +96,7 @@ export function renderForecastTab(container: HTMLElement): void {
   // De boodschap zelf — draagt de betekenis (ook voor screenreaders).
   const headline = document.createElement('h2');
   headline.className = 'forecast-closed-headline';
-  headline.textContent = MESSAGE;
+  headline.textContent = t('forecast.closed_message');
   stage.appendChild(headline);
 
   container.appendChild(stage);

@@ -242,6 +242,12 @@ export type TranslationKey =
   | 'forecast.payout_label'
   | 'forecast.eyebrow_year'
   | 'forecast.payout_month'
+  | 'forecast.closed_message'
+  | 'forecast.closed_stamp_1'
+  | 'forecast.closed_stamp_2'
+  | 'forecast.closed_stamp_3'
+  | 'forecast.closed_stamp_4'
+  | 'forecast.closed_stamp_5'
 
   // Expenses tab
   | 'expenses.title'

@@ -226,6 +226,12 @@ export const nl: Translations = {
   'forecast.payout_label': 'Uitbetaling',
   'forecast.eyebrow_year': 'Verwachte royalties {year}',
   'forecast.payout_month': 'Maart {year}',
+  'forecast.closed_message': 'Jullie waren duidelijk, dit gaan we dus niet doen',
+  'forecast.closed_stamp_1': 'Nee',
+  'forecast.closed_stamp_2': 'Geschrapt',
+  'forecast.closed_stamp_3': 'Van de baan',
+  'forecast.closed_stamp_4': 'Exit',
+  'forecast.closed_stamp_5': 'Nope',
 
   'expenses.title': 'Declaraties',
   'expenses.new_title': 'Nieuwe declaratie indienen',
